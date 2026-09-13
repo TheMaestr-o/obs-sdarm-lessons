@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OBS — тестовый стенд</title>
+<style>
+  :root{
+    --ink:#1c1c1c; --muted:#666;
+    --gray-dk:#24426e; --panel:#f3f6fb; --hair:rgba(0,0,0,.1);
+    --good:#1e7e34; --warn:#b8860b; --info:#2f5bd0;
+    --sans:-apple-system,"Segoe UI",Roboto,sans-serif;
+    --serif:Georgia,"Times New Roman",serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ink:#eee; --muted:#aaa; --gray-dk:#7fa8e0; --panel:#1c2230; --hair:rgba(255,255,255,.12); }
+    body{background:#12151c}
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--sans);color:var(--ink);background:#fafbfc;margin:0;padding:32px 20px 60px;line-height:1.5}
+  .wrap{max-width:820px;margin:0 auto}
+  h1{font-family:var(--serif);font-size:1.7rem;margin:0 0 6px}
+  .sub{color:var(--muted);margin-bottom:20px;font-size:.92rem}
+
+  .callout{background:color-mix(in srgb, var(--info) 8%, transparent);border-left:3px solid var(--info);
+    border-radius:6px;padding:14px 16px;margin-bottom:28px;font-size:.88rem}
+  .callout b{display:block;margin-bottom:4px}
+
+  .group{background:var(--panel);border:1px solid var(--hair);border-radius:12px;padding:20px 22px;margin-bottom:18px}
+  .group h2{font-size:1.05rem;margin:0 0 14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tag{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+    padding:2px 8px;border-radius:20px;color:#fff;background:var(--gray-dk)}
+  .tag.warn{background:var(--warn)}
+  .tag.good{background:var(--good)}
+
+  .pair{display:flex;gap:10px;flex-wrap:wrap}
+  a.btn{flex:1 1 220px;display:block;text-decoration:none;background:#fff;border:1px solid var(--hair);
+    border-radius:8px;padding:12px 14px;color:var(--ink);transition:transform .12s, box-shadow .12s}
+  @media (prefers-color-scheme: dark){ a.btn{background:#232a38} }
+  a.btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12)}
+  a.btn b{display:block;font-size:.92rem;margin-bottom:2px}
+  a.btn small{color:var(--muted);font-size:.78rem}
+
+  .note{font-size:.85rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hair)}
+  .note b{color:var(--ink)}
+
+  .steps{font-size:.85rem;margin:10px 0 0;padding-left:20px;color:var(--muted)}
+  .steps li{margin-bottom:3px}
+
+  .future{border-style:dashed;background:transparent;text-align:center;color:var(--muted);font-size:.9rem}
+
+  .shots{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .shots figure{margin:0;flex:1 1 260px;min-width:0}
+  .shots img{width:100%;display:block;border-radius:8px;border:1px solid var(--hair);background:#000}
+  .shots figcaption{font-size:.72rem;color:var(--muted);margin-top:4px;text-align:center}
+
+  .idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:12px 0}
+  .idgrid figure{margin:0}
+  .idgrid img{width:100%;display:block;border-radius:6px;border:1px solid var(--hair);background:#000}
+  .idgrid figcaption{font-size:.68rem;color:var(--muted);margin-top:3px;text-align:center}
+  .idgrid figcaption.bad{color:#c0392b;font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Тестовый стенд плашек для трансляции</h1>
+  <div class="sub">Место, где собраны все варианты плашек — пробуйте каждый, сравнивайте, добавляйте новые по мере поиска.</div>
+
+  <div class="callout">
+    <b>⚠️ Браузер ≠ OBS</b>
+    То, что видно здесь в обычном браузере (Chrome/Safari), — не гарантия того же вида внутри OBS.
+    OBS рендерит Browser Source через свой встроенный движок (CEF), у которого свои версии шрифтов
+    и возможны отличия в отступах/размерах. Открыть здесь для приблизительной проверки текста и логики
+    можно, но <b>финальный вид всегда проверяйте, добавив файл как настоящий Browser Source в самом OBS</b>
+    — только так видно то, что увидят зрители на трансляции.
+  </div>
+
+  <div class="group">
+    <h2>План 1 — Animated Lower Thirds <span class="tag good">панель работает на Mac</span></h2>
+    <div class="pair">
+      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/control-panel.html"><b>control-panel.html</b><small>панель управления — тексты, тайминги, логотип</small></a>
+      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/browser-source.html"><b>browser-source.html</b><small>сама плашка — это добавляют в OBS как Browser Source</small></a>
+    </div>
+    <ol class="steps">
+      <li>Откройте обе ссылки в двух вкладках одного браузера</li>
+      <li>В панели включите верхний тумблер <b>Main settings</b> — без него все слоты принудительно выключены</li>
+      <li>Впишите текст в слот 1 (текстовые поля под логотипом), включите переключатель слота — плашка появится во второй вкладке</li>
+    </ol>
+    <div class="note"><b>Вид:</b> тёмная лента, логотип слева, вертикальная цветная черта-разделитель. Полностью офлайн — ничего не тянет из интернета.</div>
+    <div class="shots">
+      <figure><img src="screenshots/plan1-panel-config.png" alt="Настройка панели Плана 1"><figcaption>Настройка панели</figcaption></figure>
+      <figure><img src="screenshots/plan1-result.png" alt="Результат Плана 1"><figcaption>Результат на плашке</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>План 2 — Ultimate OBS Lower Thirds System <span class="tag warn">нужен интернет</span></h2>
+    <div class="pair">
+      <a class="btn" href="OBS_LowerThirds/obs_control_panel.html"><b>obs_control_panel.html</b><small>панель управления</small></a>
+      <a class="btn" href="OBS_LowerThirds/obs_lower_thirds_source.html"><b>obs_lower_thirds_source.html</b><small>сама плашка</small></a>
+    </div>
+    <ol class="steps">
+      <li>Откройте обе ссылки в двух вкладках</li>
+      <li>В панели впишите текст в поля Name/Info слота 1, нажмите его кнопку <b>Show</b></li>
+    </ol>
+    <div class="note"><b>Вид:</b> сине-фиолетовый градиент, компактная карточка, эффект печатной машинки. Тянет jQuery и шрифты с внешних серверов — без интернета на эфире может показаться без шрифтов.</div>
+    <div class="shots">
+      <figure><img src="screenshots/plan2-panel-config.png" alt="Настройка панели Плана 2"><figcaption>Настройка панели</figcaption></figure>
+      <figure><img src="screenshots/plan2-result.png" alt="Результат Плана 2"><figcaption>Результат на плашке</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="group">
+    <h2>План 3 — infor-r Lower Thirds <span class="tag good">офлайн, без панели</span></h2>
+    <div class="pair">
+      <a class="btn" href="OBS_InforR-Lower/lower.html?id=1&amp;line1=Вопрос%20а&amp;line2=Какое%20свидетельство%20о%20Божьей%20любви%20дано%20человечеству%3F"><b>lower.html</b><small>сама плашка — управляется через URL-параметры, без отдельной панели</small></a>
+    </div>
+    <ol class="steps">
+      <li>Не нужна вторая вкладка-панель: весь текст задаётся прямо в ссылке — <code>?id=1&amp;line1=...&amp;line2=...&amp;color1=fff&amp;color2=cf4c4e</code></li>
+      <li>Меняете текст урока — меняете URL в свойствах Browser Source в OBS, ничего больше настраивать не нужно</li>
+      <li>Есть Lua-скрипт (<code>OBS_InforR-Lower/scripts/lower-thirds-read-file.lua</code>) для переключения вопросов по хоткею из текстового файла — см. <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a></li>
+    </ol>
+    <div class="note"><b>Вид:</b> тот самый дизайн с <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a>, который изначально просили взять за референс. Фон сплошной чёрный (не CSS-прозрачность) — в OBS прозрачность достигается фильтром <b>Chroma Key</b> поверх чёрного, как и в Планах 1/2.</div>
+    <div class="idgrid">
+      <figure><img src="screenshots/plan3/id1-result.png" alt="Шаблон id=1"><figcaption>id=1 — ок</figcaption></figure>
+      <figure><img src="screenshots/plan3/id2-result.png" alt="Шаблон id=2"><figcaption>id=2 — ок</figcaption></figure>
+      <figure><img src="screenshots/plan3/id3-result-BROKEN.png" alt="Шаблон id=3, сломан на длинном тексте"><figcaption class="bad">id=3 — строки накладываются</figcaption></figure>
+      <figure><img src="screenshots/plan3/id4-result-no-line2.png" alt="Шаблон id=4, вторая строка не показывается"><figcaption class="bad">id=4 — line2 не рисуется</figcaption></figure>
+      <figure><img src="screenshots/plan3/id5-result.png" alt="Шаблон id=5"><figcaption>id=5 — ок</figcaption></figure>
+    </div>
+  </div>
+
+  <div class="group future">
+    План 4 — здесь появится следующий вариант, как только найдём и добавим
+  </div>
+
+</div>
+</body>
+</html>
