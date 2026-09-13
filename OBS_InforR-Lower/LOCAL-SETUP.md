@@ -1,70 +1,113 @@
-# Локальная настройка (План 3)
+# Local setup (Plan 3)
 
-Эта копия основана на https://github.com/vjccruz/lower-thirds-obs (см. `README.md` и `LICENSE`
-для оригинальной атрибуции — не удалять). Отличия от оригинала:
+This copy is based on https://github.com/vjccruz/lower-thirds-obs (see `README.md` and `LICENSE`
+for the original attribution — do not remove). Differences from the original:
 
-- Абсолютные пути `/css/lower.css` и `/js/lower.js` в `lower.html` заменены на относительные
-  (`css/lower.css`, `js/lower.js`), чтобы страница работала через `file://` без веб-сервера.
-- В `scripts/lower-thirds-read-file.lua` (строка 38) URL внешнего хостинга автора
-  `https://obs.infor-r.com/lower` заменён на локальный путь к этому `lower.html`.
+- The absolute paths `/css/lower.css` and `/js/lower.js` in `lower.html` were replaced with
+  relative ones (`css/lower.css`, `js/lower.js`) so the page works over `file://` without a
+  web server.
+- In `scripts/lower-thirds-read-file.lua` (line 38), the author's external hosting URL
+  `https://obs.infor-r.com/lower` was replaced with the local path to this `lower.html`.
 
-## Вариант A — открыть напрямую по URL с параметрами
+## Option A — open directly by URL with parameters
 
-Без OBS вообще, для быстрой проверки в браузере или как статичный Browser Source:
+No OBS at all, for a quick check in the browser or as a static Browser Source:
 
 ```
-file:///Users/ohnedan/Developer/OBS/OBS_InforR-Lower/lower.html?id=1&line1=Вопрос%20а&line2=Какое%20свидетельство...&color1=fff&color2=cf4c4e&duration=4s
+file:///Users/ohnedan/Developer/OBS/OBS_InforR-Lower/lower.html?id=1&line1=Question%20a&line2=What%20evidence...&color1=fff&color2=cf4c4e&duration=4s
 ```
 
-Параметры:
-- `id` — номер шаблона анимации, 1–5 (см. таблицу ограничений ниже)
-- `line1`, `line2` — текст строк (URL-encoded)
-- `color1`, `color2` — цвет hex без `#` (по умолчанию `fff` и `cf4c4e`)
-- `duration` — длительность анимации, например `4s` (по умолчанию своя для каждого `id`)
+Parameters:
+- `id` — animation template number, 1–5 (see the limitations table below)
+- `line1`, `line2` — text of the two lines (URL-encoded)
+- `color1`, `color2` — hex color without `#` (defaults `fff` and `cf4c4e`)
+- `duration` — animation duration, e.g. `4s` (defaults to its own value per `id`)
 
-## Вариант B — через Lua-скрипт в OBS (переключение по хоткею)
+## Option B — via a Lua script in OBS (hotkey switching)
 
-1. В OBS Studio добавьте источник **Browser** (например, назовите его "Lower Thirds"),
-   URL можно оставить пустым — его перезапишет скрипт.
-2. **Tools → Scripts → +** → выберите `scripts/lower-thirds-read-file.lua`.
-3. В панели параметров скрипта укажите:
-   - **Browser source name** — имя источника из шага 1 ("Lower Thirds")
-   - **File** — текстовый файл со списком строк (формат ниже; можно начать с
-     `scripts/lower-thirds-read-file_sample.txt` как образцом)
-   - при необходимости — цвета `color1`/`color2` и шаблон по умолчанию
-4. Назначьте хоткеи **next line / prev line** (Settings → Hotkeys, ищите по имени скрипта) —
-   они переключают строку в файле и обновляют URL Browser-источника.
+1. In OBS Studio, add a **Browser** source (name it e.g. "Lower Thirds"); the URL can be
+   left empty — the script will overwrite it.
+2. **Tools → Scripts → +** → select `scripts/lower-thirds-read-file.lua`.
+3. In the script's settings panel, set:
+   - **Browser source name** — the name of the source from step 1 ("Lower Thirds")
+   - **File** — a text file with a list of lines (format below; you can start from
+     `scripts/lower-thirds-read-file_sample.txt` as a sample)
+   - if needed — `color1`/`color2` colors and the default template
+4. Assign **next line / prev line** hotkeys (Settings → Hotkeys, search by the script's
+   name) — they switch the line in the file and update the Browser source's URL.
 
-### Формат текстового файла
+### Text file format
 
-Каждая строка — `TEMPLATE_ID|LINE1|LINE2`, где `TEMPLATE_ID` — число 1–5:
+Each line is `TEMPLATE_ID|LINE1|LINE2`, where `TEMPLATE_ID` is a number 1–5:
 
 ```
 5|Frederic|Colins
 2|John Doe|Motion Designer
 ```
 
-## Ограничение дизайна: короткий формат "Имя — Должность"
+## Option C — panel.html + result.html (recommended, matches Plans 1/2)
 
-Как и в Планах 1 и 2, этот дизайн (оригинальный CodePen
-https://codepen.io/mattchestnut/pen/dMrONe) рассчитан на короткую пару строк вида
-"Имя — Должность/Заголовок", а не на длинный многострочный вопрос урока. При подстановке
-длинного `line2` (например, полного вопроса урока) поведение отличается по шаблонам:
+This is the same two-window pattern used by Plan 1 (`control-panel.html` +
+`browser-source.html`) and Plan 2 (`obs_control_panel.html` +
+`obs_lower_thirds_source.html`): one window to configure, one window/Browser Source that
+shows the result, kept in sync over a `BroadcastChannel`. It replaces manually editing the
+URL from Option A.
 
-| id | Поведение с длинным line2 |
+- `panel.html` — the control panel. Open it in a normal browser window/tab. It has a text
+  field for `line1` (a short label, e.g. "Question a"), a textarea for `line2` (the actual
+  lesson question, which can be long), a choice of template (**id=1, id=2 or id=5 only** —
+  see why below), two color pickers for `color1`/`color2` (defaulting to `fff` and
+  `cf4c4e`), and a **Show** button.
+- `result.html` — the page to add as the OBS **Browser Source** (instead of `lower.html`
+  directly). On its own it just shows a black screen with a "Waiting for panel.html…" hint.
+
+How it works: `panel.html` sends `{id, line1, line2, color1, color2}` over a
+`BroadcastChannel` named `infor-r-lower-thirds` whenever you press **Show**. `result.html`
+listens on that same channel and, on receiving a message, does a full
+`window.location.href = 'lower.html?id=...&line1=...&line2=...&color1=...&color2=...'`
+redirect to itself.
+
+This full-page redirect is intentional, not a workaround: `js/lower.js` is not a page that
+can be updated live — it is a top-level script that runs its `document.writeln()` calls
+exactly once, reading `id`/`line1`/`line2`/`color1`/`color2` from the URL at load time.
+There is no function inside it that can be called again to redraw with new text, so the
+only reliable way to show new text is to reload `lower.html` with a new query string —
+which is exactly what happens on the animation's normal page-load path, so nothing about
+the original animation is touched. `lower.html`, `js/lower.js` and `css/lower.css` are left
+completely unmodified; `result.html` is a thin wrapper placed next to them.
+
+Usage:
+1. Open `panel.html` in one window.
+2. Open `result.html` in another window (or add it as an OBS Browser Source pointing at its
+   local file path).
+3. In `panel.html`, fill in `line1`/`line2`, pick a template and colors, and press **Show**.
+4. `result.html` reloads itself into `lower.html?...` with the new parameters and plays the
+   animation from the start.
+
+## Design limitation: short "Name — Title" format
+
+Like Plans 1 and 2, this design (based on the original CodePen
+https://codepen.io/mattchestnut/pen/dMrONe) is built for a short pair of lines like
+"Name — Job Title/Role", not a long multi-line lesson question. When a long `line2` is used
+(e.g. a full lesson question), behavior differs by template:
+
+| id | Behavior with a long line2 |
 |----|---------------------------|
-| 1  | Работает нормально — обе строки идут одна под другой, читаемо |
-| 2  | Работает нормально — обе строки по центру, читаемо |
-| 3  | **Не годится** — line1 и line2 расположены в двух половинах одной строки (по 50% ширины каждая) и **накладываются друг на друга**, если line2 длиннее половины ширины экрана |
-| 4  | **line2 в этом шаблоне вообще не используется** — рисуется только line1 + декоративная полоса |
-| 5  | Работает нормально — обе строки в рамке, читаемо |
+| 1  | Works fine — both lines stack one under the other, readable |
+| 2  | Works fine — both lines centered, readable |
+| 3  | **Not usable** — line1 and line2 sit in two halves of one row (50% width each) and **overlap** if line2 is longer than half the screen width |
+| 4  | **line2 is not used at all** in this template — only line1 plus a decorative bar is drawn |
+| 5  | Works fine — both lines framed, readable |
 
-Фон страницы — сплошной чёрный (`background-color: black` в `css/lower.css`), это не CSS
-`transparent`: реальной альфа-прозрачности в самой странице нет. Прозрачность в OBS
-достигается фильтром **Chroma Key** на Browser-источнике (ключевать чёрный) — как и в
-Планах 1/2, это ожидаемое поведение дизайна, а не баг.
+This is exactly why the Option C panel only offers id=1, id=2 and id=5 as template choices.
 
-Анимации зациклены на 2 итерации (`alternate`, туда-обратно): текст появляется, недолго
-держится видимым, затем та же анимация проигрывается в обратную сторону и текст снова
-скрывается. Статичный скриншот/пауза имеет смысл делать только в середине фазы "hold" —
-конкретные тайминги использованы в `plan3-id{1..5}.png` (см. отчёт по этой задаче).
+The page background is solid black (`background-color: black` in `css/lower.css`), not CSS
+`transparent`: there is no real alpha transparency in the page itself. Transparency in OBS
+is achieved with a **Chroma Key** filter on the Browser source (keying out black) — as in
+Plans 1/2, this is expected design behavior, not a bug.
+
+Animations loop for 2 iterations (`alternate`, back and forth): the text appears, stays
+visible briefly, then the same animation plays in reverse and the text disappears again. A
+static screenshot/pause only makes sense in the middle of the "hold" phase — see
+[../screenshots/plan3/](../screenshots/plan3/) for a screenshot of each template (`id=1..5`)
+captured at that point.

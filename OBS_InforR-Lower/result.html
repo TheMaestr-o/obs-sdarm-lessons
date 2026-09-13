@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>Lower Third Result</title>
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			background-color: black;
+		}
+		#waiting {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: #666;
+			font-family: sans-serif;
+			font-size: 1.2em;
+			text-align: center;
+			padding: 1em;
+			box-sizing: border-box;
+		}
+	</style>
+</head>
+<body>
+	<!--
+	This page is a thin wrapper around lower.html. It does not render the lower third
+	itself: lower.html builds its markup once at load time (via document.writeln, reading
+	URL query parameters), so it is not a page that can be updated live. Instead, this
+	wrapper listens on a BroadcastChannel for new data sent from panel.html and reloads
+	itself into lower.html with the new parameters, which makes lower.js run its
+	document.writeln logic again from scratch and replay the animation.
+
+	Add THIS file (result.html) as the OBS Browser Source, not lower.html directly, and
+	keep panel.html open in a separate window/tab to control it. See LOCAL-SETUP.md,
+	"Option C", for the full explanation.
+	-->
+	<div id="waiting">Waiting for panel.html&hellip;<br>Open panel.html in another window, fill in the question, and press Show.</div>
+
+	<script>
+		const CHANNEL_NAME = 'infor-r-lower-thirds';
+		const channel = new BroadcastChannel(CHANNEL_NAME);
+
+		channel.onmessage = function (event) {
+			const data = event.data || {};
+
+			const params = new URLSearchParams();
+			// Only id, line1 and line2 are required by lower.js; color1/color2/duration
+			// are optional and lower.js falls back to its own defaults when they are
+			// missing or empty, so we only add them when panel.html actually sent one.
+			params.set('id', data.id || '1');
+			params.set('line1', data.line1 || '');
+			params.set('line2', data.line2 || '');
+			if (data.color1) params.set('color1', data.color1);
+			if (data.color2) params.set('color2', data.color2);
+			if (data.duration) params.set('duration', data.duration);
+
+			// Full reload on purpose: lower.js is a top-level script that writes its
+			// markup once via document.writeln() when the page first loads. There is no
+			// exported function to call again, so re-running it means re-loading the
+			// page with the new query string.
+			window.location.href = 'lower.html?' + params.toString();
+		};
+	</script>
+</body>
+</html>

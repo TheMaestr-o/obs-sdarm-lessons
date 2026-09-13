@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>Lower Third Control Panel</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+			color: #ffffff;
+			padding: 20px;
+			min-height: 100vh;
+		}
+
+		.container {
+			max-width: 640px;
+			margin: 0 auto;
+		}
+
+		h1 {
+			text-align: center;
+			margin: 0 0 4px;
+			font-size: 22px;
+			background: linear-gradient(135deg, #3b82f6, #9333ea);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+		}
+
+		.subtitle {
+			text-align: center;
+			color: #9ca3af;
+			font-size: 12px;
+			margin-bottom: 20px;
+		}
+
+		.panel {
+			background: rgba(255, 255, 255, 0.05);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			border-radius: 8px;
+			padding: 16px;
+		}
+
+		.form-group {
+			margin-bottom: 14px;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 5px;
+			font-weight: 500;
+			color: #e0e0e0;
+			font-size: 12px;
+		}
+
+		input[type="text"],
+		textarea,
+		select {
+			width: 100%;
+			padding: 8px 10px;
+			background: rgba(255, 255, 255, 0.1);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 4px;
+			color: #ffffff;
+			font-size: 13px;
+			font-family: inherit;
+		}
+
+		textarea {
+			resize: vertical;
+			min-height: 70px;
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			outline: none;
+			border-color: #3b82f6;
+			background: rgba(255, 255, 255, 0.15);
+		}
+
+		select option {
+			background: #2d2d2d;
+			color: #ffffff;
+		}
+
+		.form-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		.color-row {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		input[type="color"] {
+			width: 44px;
+			height: 34px;
+			padding: 2px;
+			background: rgba(255, 255, 255, 0.1);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 4px;
+			cursor: pointer;
+		}
+
+		.color-row input[type="text"] {
+			flex: 1;
+		}
+
+		.template-options {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 8px;
+		}
+
+		.template-options label {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 4px;
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(255, 255, 255, 0.15);
+			border-radius: 6px;
+			padding: 10px 6px;
+			cursor: pointer;
+			font-size: 12px;
+			font-weight: 600;
+			margin: 0;
+			text-align: center;
+		}
+
+		.template-options input[type="radio"] {
+			margin: 0 0 2px;
+		}
+
+		.template-options label:has(input:checked) {
+			border-color: #3b82f6;
+			background: rgba(59, 130, 246, 0.2);
+		}
+
+		.btn-show {
+			width: 100%;
+			padding: 12px;
+			margin-top: 6px;
+			border: none;
+			border-radius: 6px;
+			font-size: 14px;
+			font-weight: 700;
+			letter-spacing: 0.5px;
+			text-transform: uppercase;
+			cursor: pointer;
+			color: white;
+			background: linear-gradient(135deg, #10b981, #059669);
+			transition: opacity 0.2s;
+		}
+
+		.btn-show:hover {
+			opacity: 0.9;
+		}
+
+		.status {
+			margin-top: 10px;
+			text-align: center;
+			font-size: 12px;
+			color: #10b981;
+			min-height: 16px;
+		}
+
+		.hint {
+			font-size: 11px;
+			color: #9ca3af;
+			margin-top: 4px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<h1>Lower Third Control Panel</h1>
+		<div class="subtitle">Plan 3 &mdash; drives result.html over BroadcastChannel</div>
+
+		<div class="panel">
+			<div class="form-group">
+				<label for="line1">Line 1 (short label, e.g. "Question a")</label>
+				<input type="text" id="line1" placeholder="Question a" value="Question a">
+			</div>
+
+			<div class="form-group">
+				<label for="line2">Line 2 (the lesson question, can be long)</label>
+				<textarea id="line2" placeholder="What evidence of God's love is given to humanity?"></textarea>
+			</div>
+
+			<div class="form-group">
+				<label>Template</label>
+				<!--
+				Only id=1, id=2 and id=5 are offered here. id=3 overlaps line1/line2 when
+				line2 is long, and id=4 does not render line2 at all -- both are unusable
+				for a full lesson question, so they are intentionally left out of this
+				panel. See LOCAL-SETUP.md for the full comparison table.
+				-->
+				<div class="template-options">
+					<label>
+						<input type="radio" name="template" value="1" checked>
+						id=1
+					</label>
+					<label>
+						<input type="radio" name="template" value="2">
+						id=2
+					</label>
+					<label>
+						<input type="radio" name="template" value="5">
+						id=5
+					</label>
+				</div>
+			</div>
+
+			<div class="form-row">
+				<div class="form-group">
+					<label for="color1">Color 1 (line1 / main text)</label>
+					<div class="color-row">
+						<input type="color" id="color1picker" value="#ffffff">
+						<input type="text" id="color1" value="fff">
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="color2">Color 2 (accent)</label>
+					<div class="color-row">
+						<input type="color" id="color2picker" value="#cf4c4e">
+						<input type="text" id="color2" value="cf4c4e">
+					</div>
+				</div>
+			</div>
+			<div class="hint">Hex values without "#" -- matches lower.js's color1/color2 URL parameters.</div>
+
+			<button class="btn-show" id="showBtn">Show</button>
+			<div class="status" id="status"></div>
+		</div>
+	</div>
+
+	<script>
+		const CHANNEL_NAME = 'infor-r-lower-thirds';
+		const channel = new BroadcastChannel(CHANNEL_NAME);
+
+		const line1El = document.getElementById('line1');
+		const line2El = document.getElementById('line2');
+		const color1El = document.getElementById('color1');
+		const color2El = document.getElementById('color2');
+		const color1PickerEl = document.getElementById('color1picker');
+		const color2PickerEl = document.getElementById('color2picker');
+		const statusEl = document.getElementById('status');
+
+		// Keep the hex text input and the native color picker in sync in both directions.
+		function syncPickerToText(picker, text) {
+			picker.addEventListener('input', () => {
+				text.value = picker.value.replace('#', '');
+			});
+		}
+		function syncTextToPicker(text, picker) {
+			text.addEventListener('input', () => {
+				const hex = text.value.replace('#', '').trim();
+				if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+					picker.value = '#' + hex;
+				}
+			});
+		}
+		syncPickerToText(color1PickerEl, color1El);
+		syncPickerToText(color2PickerEl, color2El);
+		syncTextToPicker(color1El, color1PickerEl);
+		syncTextToPicker(color2El, color2PickerEl);
+
+		function sanitizeHex(value, fallback) {
+			const hex = (value || '').replace('#', '').trim();
+			return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
+		}
+
+		document.getElementById('showBtn').addEventListener('click', () => {
+			const templateEl = document.querySelector('input[name="template"]:checked');
+			const data = {
+				id: templateEl ? templateEl.value : '1',
+				line1: line1El.value,
+				line2: line2El.value,
+				color1: sanitizeHex(color1El.value, 'fff'),
+				color2: sanitizeHex(color2El.value, 'cf4c4e')
+			};
+
+			channel.postMessage(data);
+
+			statusEl.textContent = 'Sent to result.html at ' + new Date().toLocaleTimeString();
+			setTimeout(() => { statusEl.textContent = ''; }, 4000);
+		});
+	</script>
+</body>
+</html>

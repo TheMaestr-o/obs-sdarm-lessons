@@ -111,22 +111,20 @@
   </div>
 
   <div class="group">
-    <h2>Plan 3 — infor-r Lower Thirds <span class="tag good">offline, no panel</span></h2>
+    <h2>Plan 3 — infor-r Lower Thirds <span class="tag good">fully offline</span></h2>
     <div class="pair">
-      <a class="btn" href="OBS_InforR-Lower/lower.html?id=1&amp;line1=Question%20a&amp;line2=What%20evidence%20of%20God%E2%80%99s%20love%20is%20given%20to%20humanity%3F"><b>lower.html</b><small>the overlay itself — driven by URL parameters, no separate panel</small></a>
+      <a class="btn" href="OBS_InforR-Lower/panel.html"><b>panel.html</b><small>control panel — question text, template, colors</small></a>
+      <a class="btn" href="OBS_InforR-Lower/result.html"><b>result.html</b><small>the overlay itself — this is what you add to OBS as a Browser Source</small></a>
     </div>
     <ol class="steps">
-      <li>No second panel tab needed: the text is set directly in the link — <code>?id=1&amp;line1=...&amp;line2=...&amp;color1=fff&amp;color2=cf4c4e</code></li>
-      <li>Change the lesson text by changing the URL in the Browser Source properties — nothing else to configure</li>
-      <li>A Lua script (<code>OBS_InforR-Lower/scripts/lower-thirds-read-file.lua</code>) can switch questions by hotkey from a text file — see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a></li>
+      <li>Open both links in two tabs of the same browser</li>
+      <li>In the panel, fill in line 1 (a short label) and line 2 (the actual question), pick a template, and press <b>Show</b></li>
+      <li><code>result.html</code> reloads itself into <code>lower.html?...</code> with the new text and replays the animation from the start</li>
     </ol>
-    <div class="note"><b>Look:</b> the same design from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> that we were asked to use as the reference in the first place. The background is solid black (not CSS transparency) — in OBS, transparency comes from a <b>Chroma Key</b> filter over that black, same as Plans 1/2.</div>
-    <div class="idgrid">
-      <figure><img src="screenshots/plan3/id1-result.png" alt="Template id=1"><figcaption>id=1 — ok</figcaption></figure>
-      <figure><img src="screenshots/plan3/id2-result.png" alt="Template id=2"><figcaption>id=2 — ok</figcaption></figure>
-      <figure><img src="screenshots/plan3/id3-result-BROKEN.png" alt="Template id=3, broken with long text"><figcaption class="bad">id=3 — lines overlap</figcaption></figure>
-      <figure><img src="screenshots/plan3/id4-result-no-line2.png" alt="Template id=4, second line not shown"><figcaption class="bad">id=4 — line2 doesn't render</figcaption></figure>
-      <figure><img src="screenshots/plan3/id5-result.png" alt="Template id=5"><figcaption>id=5 — ok</figcaption></figure>
+    <div class="note"><b>Look:</b> the same design from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> that we were asked to use as the reference in the first place. The background is solid black (not CSS transparency) — in OBS, transparency comes from a <b>Chroma Key</b> filter over that black, same as Plans 1/2. The panel only offers templates <b>id=1, id=2 and id=5</b> — the other two built-in templates break with a long question (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for the full comparison, and <code>lower.html?id=...</code> still works directly by URL if you want to try them anyway).</div>
+    <div class="shots">
+      <figure><img src="screenshots/plan3-panel-config.png" alt="Plan 3 panel setup"><figcaption>Panel setup</figcaption></figure>
+      <figure><img src="screenshots/plan3-result.png" alt="Plan 3 result"><figcaption>Result on the overlay</figcaption></figure>
     </div>
   </div>
 
