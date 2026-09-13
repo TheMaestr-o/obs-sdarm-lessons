@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>OBS — тестовый стенд</title>
+<title>SDARM Lesson Questions — OBS Lower Thirds</title>
 <style>
   :root{
     --ink:#1c1c1c; --muted:#666;
@@ -63,75 +63,75 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Тестовый стенд плашек для трансляции</h1>
-  <div class="sub">Место, где собраны все варианты плашек — пробуйте каждый, сравнивайте, добавляйте новые по мере поиска.</div>
+  <h1>SDARM Lesson Questions — OBS Lower Thirds</h1>
+  <div class="sub">A test bench collecting every overlay option we've tried — try each one, compare, add new ones as we find them.</div>
 
   <div class="callout">
-    <b>⚠️ Браузер ≠ OBS</b>
-    То, что видно здесь в обычном браузере (Chrome/Safari), — не гарантия того же вида внутри OBS.
-    OBS рендерит Browser Source через свой встроенный движок (CEF), у которого свои версии шрифтов
-    и возможны отличия в отступах/размерах. Открыть здесь для приблизительной проверки текста и логики
-    можно, но <b>финальный вид всегда проверяйте, добавив файл как настоящий Browser Source в самом OBS</b>
-    — только так видно то, что увидят зрители на трансляции.
+    <b>⚠️ Browser ≠ OBS</b>
+    What you see here in a regular browser (Chrome/Safari) isn't a guarantee of the same look inside OBS.
+    OBS renders a Browser Source through its own embedded engine (CEF), which may differ in font versions
+    and spacing. Opening files here is fine for a quick check of text and logic, but
+    <b>always verify the final look by adding the file as a real Browser Source inside OBS itself</b>
+    — that's the only way to see what viewers will actually see.
   </div>
 
   <div class="group">
-    <h2>План 1 — Animated Lower Thirds <span class="tag good">панель работает на Mac</span></h2>
+    <h2>Plan 1 — Animated Lower Thirds <span class="tag good">panel works on Mac</span></h2>
     <div class="pair">
-      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/control-panel.html"><b>control-panel.html</b><small>панель управления — тексты, тайминги, логотип</small></a>
-      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/browser-source.html"><b>browser-source.html</b><small>сама плашка — это добавляют в OBS как Browser Source</small></a>
+      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/control-panel.html"><b>control-panel.html</b><small>control panel — text, timing, logo</small></a>
+      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/browser-source.html"><b>browser-source.html</b><small>the overlay itself — this is what you add to OBS as a Browser Source</small></a>
     </div>
     <ol class="steps">
-      <li>Откройте обе ссылки в двух вкладках одного браузера</li>
-      <li>В панели включите верхний тумблер <b>Main settings</b> — без него все слоты принудительно выключены</li>
-      <li>Впишите текст в слот 1 (текстовые поля под логотипом), включите переключатель слота — плашка появится во второй вкладке</li>
+      <li>Open both links in two tabs of the same browser</li>
+      <li>In the panel, switch on the top <b>Main settings</b> toggle — without it, every slot is forced off</li>
+      <li>Type text into slot 1 (the text fields under the logo) and switch it on — the overlay appears in the other tab</li>
     </ol>
-    <div class="note"><b>Вид:</b> тёмная лента, логотип слева, вертикальная цветная черта-разделитель. Полностью офлайн — ничего не тянет из интернета.</div>
+    <div class="note"><b>Look:</b> a dark strip, logo on the left, a vertical colored divider line. Fully offline — nothing pulled from the internet.</div>
     <div class="shots">
-      <figure><img src="screenshots/plan1-panel-config.png" alt="Настройка панели Плана 1"><figcaption>Настройка панели</figcaption></figure>
-      <figure><img src="screenshots/plan1-result.png" alt="Результат Плана 1"><figcaption>Результат на плашке</figcaption></figure>
+      <figure><img src="screenshots/plan1-panel-config.png" alt="Plan 1 panel setup"><figcaption>Panel setup</figcaption></figure>
+      <figure><img src="screenshots/plan1-result.png" alt="Plan 1 result"><figcaption>Result on the overlay</figcaption></figure>
     </div>
   </div>
 
   <div class="group">
-    <h2>План 2 — Ultimate OBS Lower Thirds System <span class="tag warn">нужен интернет</span></h2>
+    <h2>Plan 2 — Ultimate OBS Lower Thirds System <span class="tag warn">needs internet</span></h2>
     <div class="pair">
-      <a class="btn" href="OBS_LowerThirds/obs_control_panel.html"><b>obs_control_panel.html</b><small>панель управления</small></a>
-      <a class="btn" href="OBS_LowerThirds/obs_lower_thirds_source.html"><b>obs_lower_thirds_source.html</b><small>сама плашка</small></a>
+      <a class="btn" href="OBS_LowerThirds/obs_control_panel.html"><b>obs_control_panel.html</b><small>control panel</small></a>
+      <a class="btn" href="OBS_LowerThirds/obs_lower_thirds_source.html"><b>obs_lower_thirds_source.html</b><small>the overlay itself</small></a>
     </div>
     <ol class="steps">
-      <li>Откройте обе ссылки в двух вкладках</li>
-      <li>В панели впишите текст в поля Name/Info слота 1, нажмите его кнопку <b>Show</b></li>
+      <li>Open both links in two tabs</li>
+      <li>In the panel, type text into slot 1's Name/Info fields, then click its <b>Show</b> button</li>
     </ol>
-    <div class="note"><b>Вид:</b> сине-фиолетовый градиент, компактная карточка, эффект печатной машинки. Тянет jQuery и шрифты с внешних серверов — без интернета на эфире может показаться без шрифтов.</div>
+    <div class="note"><b>Look:</b> a blue-purple gradient, a compact card, a typewriter effect. Pulls jQuery and fonts from external servers — without internet during the broadcast it may show up without fonts.</div>
     <div class="shots">
-      <figure><img src="screenshots/plan2-panel-config.png" alt="Настройка панели Плана 2"><figcaption>Настройка панели</figcaption></figure>
-      <figure><img src="screenshots/plan2-result.png" alt="Результат Плана 2"><figcaption>Результат на плашке</figcaption></figure>
+      <figure><img src="screenshots/plan2-panel-config.png" alt="Plan 2 panel setup"><figcaption>Panel setup</figcaption></figure>
+      <figure><img src="screenshots/plan2-result.png" alt="Plan 2 result"><figcaption>Result on the overlay</figcaption></figure>
     </div>
   </div>
 
   <div class="group">
-    <h2>План 3 — infor-r Lower Thirds <span class="tag good">офлайн, без панели</span></h2>
+    <h2>Plan 3 — infor-r Lower Thirds <span class="tag good">offline, no panel</span></h2>
     <div class="pair">
-      <a class="btn" href="OBS_InforR-Lower/lower.html?id=1&amp;line1=Вопрос%20а&amp;line2=Какое%20свидетельство%20о%20Божьей%20любви%20дано%20человечеству%3F"><b>lower.html</b><small>сама плашка — управляется через URL-параметры, без отдельной панели</small></a>
+      <a class="btn" href="OBS_InforR-Lower/lower.html?id=1&amp;line1=Question%20a&amp;line2=What%20evidence%20of%20God%E2%80%99s%20love%20is%20given%20to%20humanity%3F"><b>lower.html</b><small>the overlay itself — driven by URL parameters, no separate panel</small></a>
     </div>
     <ol class="steps">
-      <li>Не нужна вторая вкладка-панель: весь текст задаётся прямо в ссылке — <code>?id=1&amp;line1=...&amp;line2=...&amp;color1=fff&amp;color2=cf4c4e</code></li>
-      <li>Меняете текст урока — меняете URL в свойствах Browser Source в OBS, ничего больше настраивать не нужно</li>
-      <li>Есть Lua-скрипт (<code>OBS_InforR-Lower/scripts/lower-thirds-read-file.lua</code>) для переключения вопросов по хоткею из текстового файла — см. <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a></li>
+      <li>No second panel tab needed: the text is set directly in the link — <code>?id=1&amp;line1=...&amp;line2=...&amp;color1=fff&amp;color2=cf4c4e</code></li>
+      <li>Change the lesson text by changing the URL in the Browser Source properties — nothing else to configure</li>
+      <li>A Lua script (<code>OBS_InforR-Lower/scripts/lower-thirds-read-file.lua</code>) can switch questions by hotkey from a text file — see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a></li>
     </ol>
-    <div class="note"><b>Вид:</b> тот самый дизайн с <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a>, который изначально просили взять за референс. Фон сплошной чёрный (не CSS-прозрачность) — в OBS прозрачность достигается фильтром <b>Chroma Key</b> поверх чёрного, как и в Планах 1/2.</div>
+    <div class="note"><b>Look:</b> the same design from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> that we were asked to use as the reference in the first place. The background is solid black (not CSS transparency) — in OBS, transparency comes from a <b>Chroma Key</b> filter over that black, same as Plans 1/2.</div>
     <div class="idgrid">
-      <figure><img src="screenshots/plan3/id1-result.png" alt="Шаблон id=1"><figcaption>id=1 — ок</figcaption></figure>
-      <figure><img src="screenshots/plan3/id2-result.png" alt="Шаблон id=2"><figcaption>id=2 — ок</figcaption></figure>
-      <figure><img src="screenshots/plan3/id3-result-BROKEN.png" alt="Шаблон id=3, сломан на длинном тексте"><figcaption class="bad">id=3 — строки накладываются</figcaption></figure>
-      <figure><img src="screenshots/plan3/id4-result-no-line2.png" alt="Шаблон id=4, вторая строка не показывается"><figcaption class="bad">id=4 — line2 не рисуется</figcaption></figure>
-      <figure><img src="screenshots/plan3/id5-result.png" alt="Шаблон id=5"><figcaption>id=5 — ок</figcaption></figure>
+      <figure><img src="screenshots/plan3/id1-result.png" alt="Template id=1"><figcaption>id=1 — ok</figcaption></figure>
+      <figure><img src="screenshots/plan3/id2-result.png" alt="Template id=2"><figcaption>id=2 — ok</figcaption></figure>
+      <figure><img src="screenshots/plan3/id3-result-BROKEN.png" alt="Template id=3, broken with long text"><figcaption class="bad">id=3 — lines overlap</figcaption></figure>
+      <figure><img src="screenshots/plan3/id4-result-no-line2.png" alt="Template id=4, second line not shown"><figcaption class="bad">id=4 — line2 doesn't render</figcaption></figure>
+      <figure><img src="screenshots/plan3/id5-result.png" alt="Template id=5"><figcaption>id=5 — ok</figcaption></figure>
     </div>
   </div>
 
   <div class="group future">
-    План 4 — здесь появится следующий вариант, как только найдём и добавим
+    Plan 4 — the next option lands here once we find and add it
   </div>
 
 </div>

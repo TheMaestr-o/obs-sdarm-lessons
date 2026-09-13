@@ -1,49 +1,49 @@
-# OBS Lower Thirds — коллекция плашек для трансляции
+# SDARM Lesson Questions — OBS Lower Thirds
 
-Сравнение готовых и адаптированных решений для показа вопросов урока субботней школы во время прямой трансляции (OBS Studio / Wirecast).
+A comparison of ready-made "lower thirds" solutions for displaying Sabbath School lesson questions during a live OBS/Wirecast broadcast.
 
-## ⚠️ Важно: браузер ≠ OBS
+## ⚠️ Browser ≠ OBS
 
-То, что видно в обычном браузере (Chrome/Safari) при открытии этих файлов напрямую, — приближение, а не гарантия. OBS рендерит Browser Source через собственный встроенный движок (CEF), у которого свои версии шрифтов и возможны отличия в отступах/размерах. Открывать файлы в браузере можно для быстрой проверки текста и логики, но **финальный вид всегда нужно проверять, добавив файл как настоящий Browser Source внутри самого OBS**.
+What you see here when opening these files directly in a regular browser (Chrome/Safari) is an approximation, not a guarantee of the exact look inside OBS. OBS renders a Browser Source through its own embedded engine (CEF), which may differ in font versions and spacing. Opening files here is fine for a quick check of text and logic, but **always verify the final look by adding the file as a real Browser Source inside OBS itself** — that's the only way to see what viewers will actually see.
 
-Откройте [index.html](index.html) — там собраны ссылки на все планы с пошаговыми инструкциями.
+Open [index.html](index.html) — it collects links to every plan with step-by-step instructions.
 
-## Структура
+## Structure
 
 ```
 OBS/
-├── index.html                    — тестовый стенд со ссылками на все планы
-├── screenshots/                  — скриншоты «настройка → результат» для каждого плана
-├── sbl-question-card/            — наши наработки (скрипт извлечения реальных вопросов урока)
+├── index.html                    — test bench with links to all plans
+├── screenshots/                  — "config → result" screenshots for each plan
+├── sbl-question-card/            — our own work (script that extracts real lesson questions)
 │   ├── extract-questions.py
 │   └── STREAMING_GUIDE.md
-├── OBS_Animated-Lower-Thirds/    — План 1
-├── OBS_LowerThirds/              — План 2
-└── OBS_InforR-Lower/             — План 3
+├── OBS_Animated-Lower-Thirds/    — Plan 1
+├── OBS_LowerThirds/              — Plan 2
+└── OBS_InforR-Lower/             — Plan 3
 ```
 
-## Три плана
+## Three plans
 
-| # | Название | Связь панель↔плашка | Офлайн | Формат текста |
+| # | Name | Panel↔overlay link | Offline | Text format |
 |---|---|---|---|---|
-| 1 | Animated Lower Thirds | BroadcastChannel + localStorage | ✅ полностью | короткий: имя + подпись |
-| 2 | Ultimate OBS Lower Thirds | BroadcastChannel + localStorage | ⚠️ тянет jQuery/шрифты с CDN | короткий: имя + должность |
-| 3 | infor-r Lower Thirds | URL query-параметры (`?id=&line1=&line2=`) | ✅ полностью (после локализации путей) | короткий: две строки, анимированный CodePen-дизайн; 3 из 5 внутренних шаблонов (id) читаемы, 2 сломаны на длинном тексте |
+| 1 | Animated Lower Thirds | BroadcastChannel + localStorage | ✅ fully | short: name + subtitle |
+| 2 | Ultimate OBS Lower Thirds | BroadcastChannel + localStorage | ⚠️ pulls jQuery/fonts from a CDN | short: name + title |
+| 3 | infor-r Lower Thirds | URL query params (`?id=&line1=&line2=`) | ✅ fully (after localizing paths) | short: two lines, animated CodePen design; only 3 of its 5 built-in templates survive long text |
 
-**Общий вывод:** все три — инструменты под короткие титры формата «Имя — Подпись», рассчитанные на одну строку каждого поля. Ни один не предназначен для длинного многострочного библейского вопроса без переделки вёрстки. В Плане 3 из 5 встроенных шаблонов (`id=1..5`) реально читаемы только `id=1,2,5` — `id=3` накладывает строки друг на друга, `id=4` вторую строку вообще не показывает (см. скриншоты в [screenshots/plan3/](screenshots/plan3/) и подробности в [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md)).
+All three are built for short "Name — Title" lower thirds, one line per field, and would need layout changes to fit a long Bible lesson question. In Plan 3, out of the 5 built-in templates (`id=1..5`) only `id=1,2,5` stay readable — `id=3` overlaps its two lines, `id=4` doesn't render the second line at all (see the screenshots in [screenshots/plan3/](screenshots/plan3/) and details in [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md)).
 
-## Происхождение и авторство
+## Origin and credit
 
-- **План 1** — [Animated Lower Thirds](https://github.com/noeal-dac/Animated-Lower-Thirds) by NoeAL, MIT license
-- **План 2** — Ultimate OBS Lower Thirds System (источник не указан явно автором)
-- **План 3** — [lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs) by Vasco Cruz, основан на After Effects шаблоне Amaksi и [CodePen mattchestnut/dMrONe](https://codepen.io/mattchestnut/pen/dMrONe)
+- **Plan 1** — [Animated Lower Thirds](https://github.com/noeal-dac/Animated-Lower-Thirds) by NoeAL, MIT license
+- **Plan 2** — Ultimate OBS Lower Thirds System (source not explicitly credited by its author)
+- **Plan 3** — [lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs) by Vasco Cruz, based on an After Effects template by Amaksi and [CodePen mattchestnut/dMrONe](https://codepen.io/mattchestnut/pen/dMrONe)
 
-Оригинальные файлы каждого плана не изменялись, кроме случаев, явно отмеченных в соответствующей папке (см. `LOCAL-SETUP.md` внутри `OBS_InforR-Lower/`).
+Original files for each plan were left unchanged, except where explicitly noted inside that plan's own folder (see `LOCAL-SETUP.md` inside `OBS_InforR-Lower/`).
 
-## Наша собственная разработка
+## Our own work
 
-`sbl-question-card/extract-questions.py` — скрипт, вытаскивающий реальные вопросы урока (не придуманные) прямо из `/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-YYYY-Q.json` для любого урока квартала, на всех доступных языках.
+`sbl-question-card/extract-questions.py` — a script that pulls the real lesson questions (not made-up samples) straight from `/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-YYYY-Q.json` for any lesson in the quarter, in every available language.
 
-## Планы на будущее
+## Future plans
 
-Список не закрыт — по мере поиска сюда будут добавляться новые варианты (см. блок «План 4» на [index.html](index.html)), а также, вероятно, собственный дизайн с переносом строк под длинный текст вопроса.
+The list isn't closed — more options will be added here as we find them (see the "Plan 4" block on [index.html](index.html)), along with, likely, our own design that supports line-wrapping for a long question.
