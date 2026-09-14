@@ -8,6 +8,8 @@ What you see here when opening these files directly in a regular browser (Chrome
 
 Open [index.html](index.html) — it collects links to every plan with step-by-step instructions.
 
+**Ready to actually use this on a live stream?** See [HOW-TO-USE-IN-OBS.md](HOW-TO-USE-IN-OBS.md) — a practical walkthrough for setting up the Browser Source and control panel in real OBS Studio, not just testing in a regular browser tab.
+
 ## Structure
 
 ```

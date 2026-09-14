@@ -187,12 +187,11 @@ test screenshots referenced in this file's history).
 Usage:
 1. Open `panel.html` in one window.
 2. Open `result.html` in another window (or add it as an OBS Browser Source at the full
-   canvas size, pointing at its local file path). A Chroma Key filter is optional for
-   Option C specifically: `native/overlay.html`'s own background is real CSS
-   `transparent` (see above), and `result.html`'s surrounding page is solid black — so a
-   Chroma Key on black still works exactly as it does for Options A/B if you prefer one
-   consistent setup across all three, but strictly isn't required for Option C's overlay
-   itself.
+   canvas size, pointing at its local file path). No Chroma Key filter needed: both
+   `result.html`'s own page (`background: transparent` on `html, body`) and the
+   `native/overlay.html` it embeds are real CSS transparency — this is the one plan in
+   the repo where Chroma Key genuinely isn't required, unlike Plans 1/2 and Options A/B
+   of this same plan.
 3. In `panel.html`, fill in `line1`/`line2`, pick a style and colors, and press **Show**.
 4. `result.html` reloads its iframe into `native/overlay.html?...` with the new parameters,
    plays the appear animation once, and holds the fully-visible result at the bottom of the
