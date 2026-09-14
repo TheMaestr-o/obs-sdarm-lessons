@@ -58,7 +58,10 @@ URL from Option A.
   lesson question, which can be long), a choice of template (**id=1, id=2 or id=5 only** —
   see why below) presented as three named styles with a one-line motion description and a
   small looping preview swatch, two color pickers for `color1`/`color2` (defaulting to
-  `fff` and `cf4c4e`), and a **Show** button.
+  `fff` and `cf4c4e`) shown as a small round swatch each — clicking a swatch opens the
+  browser's native color picker directly, there is no separate visible hex text field
+  next to it (the hex value is still tracked internally for the Show payload, it's just
+  not rendered as its own control) — and a **Show** button.
 - `result.html` — the page to add as the OBS **Browser Source** (instead of `lower.html`
   directly), sized to the full canvas (e.g. 1920x1080). On its own it shows a black screen
   with a "Waiting for panel.html…" hint until the first message arrives. It embeds
@@ -254,41 +257,123 @@ Interact approach needs you to switch to the Control scene first.
 ## Lesson & Question picker
 
 `panel.html` has a third collapsible section, **Lesson & Question** (open by default,
-above **Style & colors** which stays collapsed — style/colors is set once and left
+above **Settings** which stays collapsed — Settings is set once per session and left
 alone, while picking a lesson/question is the thing actually used every single question
-during a stream). It lets you pick a language and lesson from dropdowns, click a
-question from that lesson's question list to auto-fill Line 1 (the lesson title) and
-Line 2 (`letter. question text`), and then step forward/back through that lesson's
-questions with **Previous**/**Next** buttons instead of reopening the list each time.
-Line 1/Line 2 stay plain, manually-editable text fields after a pick — this only fills
-them in as a starting point, e.g. so you can still shorten a long question by hand
-afterwards.
+during a stream). It lets you pick a lesson from a dropdown, then click a small letter
+button (**а**, **б**, **в**...) from that lesson's question list to auto-fill Line 1 and
+Line 2, and step forward/back through that lesson's questions with
+**Previous**/**Next** buttons instead of reopening the list each time. Line 1/Line 2
+stay plain, manually-editable text fields after a pick — this only fills them in as a
+starting point, e.g. so you can still shorten a long question by hand afterwards.
+
+The question list itself is a compact grid of small per-letter buttons, not a list of
+full question sentences — this is deliberately scannable for clicking through fast
+during a live stream instead of reading a wall of text each time. The full question
+text for any button is available two ways: hovering it shows the browser's native
+tooltip, and hovering/keyboard-focusing/clicking it also fills a small preview line
+just below the button grid with `letter. full text` — the preview is the faster of the
+two to read live, since a native tooltip is slow to appear and doesn't work on
+touch/keyboard.
+
+**Quarter** and **Language** live inside the collapsed **Settings** section instead
+(alongside style/colors) — picking those is a "choose once per session" action, unlike
+the Lesson dropdown and question list, which change every question. Changing Quarter or
+Language inside Settings still correctly repopulates the always-visible Lesson dropdown
+and question list above it, even though the control you just used is now tucked inside
+a collapsed section — that's intentional, not a bug: open Settings to change quarter or
+language, then collapse it again and forget about it for the rest of the stream.
 
 - **Language** defaults to `ru` (the base language this project's lesson content is
-  written in) if present, else whichever language code sorts first.
-- Switching **Language** preserves the current **Lesson** number rather than resetting
-  to lesson 1 — smoother if you're mid-question and just want the same lesson in a
-  different language. The question list resets (nothing "loaded") on any language or
-  lesson change, since there's no single obviously-correct question to jump to
-  automatically; click a question or use Previous/Next once one is loaded.
+  written in) if present, else whichever language code sorts first — unless a valid
+  saved value exists (see "Remembering your settings" below), which takes priority over
+  this default.
+- **Quarter** defaults to the newest quarter (the data's `"YYYY-Q"` keys sorted
+  descending) — unless a valid saved value exists, same as Language.
+- Switching **Quarter** or **Language** preserves the current **Lesson** number rather
+  than resetting to lesson 1 — smoother if you're mid-question and just want the same
+  lesson in a different language/quarter. Switching **Quarter** also preserves the
+  current **Language** selection when the new quarter still has it. The question list
+  resets (nothing "loaded") on any quarter, language, or lesson change, since there's no
+  single obviously-correct question to jump to automatically; click a question or use
+  Previous/Next once one is loaded.
 - **Previous**/**Next** are disabled (not wrapped) at the first/last question of a
   lesson, matching how disabled controls already behave elsewhere in this project.
+- Each lesson's letter buttons are grouped under their own **day heading** (e.g. "1. БОГ
+  ЕСТЬ ЛЮБОВЬ", "2. МИССИЯ ИИСУСА") rather than shown as one flat row. **Letters
+  restart at a/а for every day** — a lesson has multiple days, each with its own 2-3
+  questions lettered independently (day 1: а, б; day 2: а, б; day 4: а, б, в; etc.) — so
+  each group's heading is what makes that restart make sense instead of reading like a
+  bug. Clicking a letter button (or reaching it via Previous/Next) fills **Line 1 with
+  that question's own day heading** (not the lesson's overall title) and **Line 2 with
+  `letter. question text`** — crossing from one day's last question into the next day's
+  first question via Next/Previous correctly updates Line 1 to the new day's heading.
+- Both the letter and the day heading render in **exactly the case they have in the
+  source lesson data** — no CSS forces upper/lowercase on them. This matters because not
+  every language's day heading is stored the same way: Russian's happens to already be
+  written in full caps in the source ("1. БОГ ЕСТЬ ЛЮБОВЬ"), but German/English/French
+  are not ("1. Gott ist Liebe", "1. God Is Love") — forcing a transform would have shown
+  those in a case that doesn't match the actual lesson content.
+
+### Remembering your settings
+
+**Quarter**, **Language**, and the last-selected **Lesson** are saved to `localStorage`
+(key `infor-r-lower-thirds-panel-settings`) every time you change any of them, and
+restored automatically the next time you open `panel.html` — no need to re-pick your
+language every stream. This is a separate `localStorage` key from the one
+`panel.html`/`result.html` already use to hand off the currently-shown overlay to each
+other (`infor-r-lower-thirds-state`, see "Custom Browser Dock setup" above); the two
+don't interact. On load, a saved value is only restored if it's still valid against the
+freshly-fetched `lessons-data.json` (e.g. if a saved language was removed from a rebuilt
+bundle, or a saved lesson number doesn't exist in the restored quarter/language) —
+otherwise the normal defaults above apply. Works under the same `http://localhost:8001`
+setup the picker already requires (see below); no internet connection is used or needed,
+`localStorage` under `http://` persists locally regardless of whether the machine is
+online.
 
 ### Where the data comes from
 
-The picker reads `lessons-data.json` (in this same folder), a single bundle of every
-lesson/question in all 22 supported languages, built by `tools/build-lessons-data.py`
-from the same per-language source files the rest of this project's tooling reads
-(`/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-<year>-<quarter>.json`). **Re-run this
-script whenever a new quarter's data appears there:**
+The picker reads `lessons-data.json` (in this same folder), built by
+`tools/build-lessons-data.py` from the same per-language source files the rest of this
+project's tooling reads
+(`/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-<year>-<quarter>.json`). Its top-level
+shape is:
+
+```json
+{
+  "quarters": {
+    "2026-3": {
+      "year": 2026,
+      "quarter": 3,
+      "languages": {
+        "ru": { "quarterTitle": "...", "lessons": [ /* ... */ ] },
+        "en": { "quarterTitle": "...", "lessons": [ /* ... */ ] }
+      }
+    }
+  }
+}
+```
+
+Each `"YYYY-Q"` key under `quarters` bundles every lesson/question for that quarter, in
+all 22 supported languages. Each lesson's `questions` array is flattened from the
+source's per-day `dailyLessons`, but every question keeps its own `sectionTitle` (the
+day heading it came from) and its own `letter` (restarting at a/а per day) — see the
+"day heading" bullet above for why this matters to the UI.
+
+**Re-run this script whenever a new quarter's data appears** under
+`/Users/ohnedan/Developer/sbl/data/<lang>/`:
 
 ```
 cd /Users/ohnedan/Developer/OBS/OBS_InforR-Lower
-python3 tools/build-lessons-data.py --year YYYY --quarter Q
+python3 tools/build-lessons-data.py
 ```
 
-This overwrites `lessons-data.json` in place. `panel.html` just `fetch()`s it by its
+This scans every language's folder for whatever `<lang>-YYYY-Q.json` files actually
+exist there and overwrites `lessons-data.json` in place with all of them — no
+year/quarter arguments needed, and no code change needed here to pick up a new quarter,
+just drop its files in and rerun. `panel.html` just `fetch()`s the result by its
 relative path on page load — no other step is needed afterwards, just reload the panel.
+The new quarter will appear as an extra option in the Quarter dropdown (inside
+Settings) automatically.
 
 ### file:// vs. http:// — the picker needs the http:// dock setup
 
@@ -300,14 +385,23 @@ directly in this project with Playwright: Chromium refuses the request outright
 setup described above, `python3 -m http.server 8001`), fetching and parsing all 22
 languages without issue.
 
-Because of this, **the Lesson & Question picker only works when `panel.html` is opened
-over `http://localhost:8001/panel.html`, not as a plain `file://` path.** When opened
-via `file://`, `panel.html` detects this up front (checking `location.protocol` before
-ever calling `fetch()`, so no console error is thrown) and replaces the picker's
-controls with a short inline note — *"Lesson/question picker requires the http:// dock
-setup — see LOCAL-SETUP.md"* — instead of failing silently or leaving a broken control
-on screen. Line 1/Line 2, Style & colors, and the Show button are completely unaffected
-either way; only the picker itself needs the server.
+Because of this, **the Lesson & Question picker (and Quarter/Language inside Settings)
+only works when `panel.html` is opened over `http://localhost:8001/panel.html`, not as
+a plain `file://` path.** When opened via `file://`, `panel.html` detects this up front
+(checking `location.protocol` before ever calling `fetch()`, so no console error is
+thrown) and replaces both the Lesson/question controls and the Quarter/Language row
+with a short, friendly inline note — *"This panel needs the local server. Open it as
+**http://localhost:8001/panel.html** instead of double-clicking panel.html — see
+LOCAL-SETUP.md for details."* — instead of failing silently or leaving broken/empty
+controls on screen. The **Lesson & Question** section's own collapsed-summary label
+also changes to *"Lesson & Question (needs http://localhost:8001)"* in this state, so
+it's clear at a glance without even opening the section. If you ever see either of
+these, it almost always means `panel.html` was opened by double-clicking the file
+(giving a `file://...` address bar) instead of via the `http://localhost:8001/...` URL
+the launchd-started local server already serves — switch the tab/address to that URL
+and the picker works immediately, no other fix needed. Line 1/Line 2, the style/color
+template picker, and the Show button are unaffected either way; only the
+data-driven parts of the picker (Lesson/Question, Quarter, Language) need the server.
 
 ## Design limitation: short "Name — Title" format
 

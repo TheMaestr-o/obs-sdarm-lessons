@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
 Builds a single lessons-data.json bundling every lesson/question, in every
-available language, for the panel's Lesson/Language picker.
+available language AND every available quarter, for the panel's
+Lesson/Language/Quarter picker.
 
 Reads the same source the earlier extract-questions.py script reads from
-(/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-<year>-<quarter>.json) but
-walks ALL languages and ALL lessons in one pass instead of printing one
-lesson's JS snippet at a time, and writes real JSON instead.
+(/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-<year>-<quarter>.json), but
+instead of one hardcoded year/quarter, SCANS each language's folder for every
+"<lang>-YYYY-Q.json" file that actually exists there. This means: to add a
+new quarter later, just drop its per-language JSON files into
+/Users/ohnedan/Developer/sbl/data/<lang>/ (matching the existing naming) and
+rerun this script -- no code change needed here.
 
 Usage:
-    python3 build-lessons-data.py [--year YYYY] [--quarter Q]
+    python3 build-lessons-data.py
 
 Output: ../lessons-data.json (relative to this script), served by the same
 static file server as panel.html/result.html so the panel can `fetch()` it.
@@ -17,11 +21,11 @@ static file server as panel.html/result.html so the panel can `fetch()` it.
 import json
 import re
 import sys
-import argparse
 from pathlib import Path
 
 SOURCE_DIR = Path("/Users/ohnedan/Developer/sbl/data")
 OUT_PATH = Path(__file__).resolve().parent.parent / "lessons-data.json"
+QUARTER_FILE_RE = re.compile(r"^([a-z]{2})-(\d{4})-(\d)\.json$")
 
 
 def strip_leading_letter(text: str) -> str:
@@ -38,20 +42,52 @@ def first_question_text(sub: dict) -> str | None:
     return strip_leading_letter(parts[0])
 
 
-def load_quarter(lang: str, year: int, quarter: int):
-    path = SOURCE_DIR / lang / f"{lang}-{year}-{quarter}.json"
-    if not path.exists():
-        return None
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+def find_quarter_files(lang: str):
+    """Every "<lang>-YYYY-Q.json" file actually present in this language's
+    folder, as (year, quarter, path) tuples, newest first."""
+    lang_dir = SOURCE_DIR / lang
+    if not lang_dir.is_dir():
+        return []
+    found = []
+    for path in lang_dir.iterdir():
+        m = QUARTER_FILE_RE.match(path.name)
+        if m and m.group(1) == lang:
+            found.append((int(m.group(2)), int(m.group(3)), path))
+    return sorted(found, key=lambda t: (t[0], t[1]), reverse=True)
+
+
+def build_lesson_entries(data: dict, letters: list[str]):
+    lessons = []
+    for les in data.get("lessons", []):
+        questions = []
+        for day in les.get("dailyLessons", []):
+            # Each day carries its own subheading (e.g. "1. БОГ ЕСТЬ ЛЮБОВЬ",
+            # "2. МИССИЯ ИИСУСА"), and the letter sequence RESTARTS at "a" for
+            # every day -- the source data itself does this (see the raw text
+            # embedded in each question, which the earlier extract-questions.py
+            # script and this one both strip off). A single running counter
+            # across the whole lesson produces wrong letters for every day
+            # after the first, since it never resets: day 3's real "a., b."
+            # would show up mislabeled as "e., f." because days 1-2 already
+            # used up 4 letters.
+            day_title = day.get("sectionTitle", "").strip()
+            day_index = 0
+            for sub in day.get("subsections", []):
+                q = first_question_text(sub)
+                if q:
+                    letter = letters[day_index] if day_index < len(letters) else str(day_index + 1)
+                    questions.append({"letter": letter, "sectionTitle": day_title, "text": q})
+                    day_index += 1
+
+        lessons.append({
+            "no": les.get("no"),
+            "title": les.get("title", "").strip(),
+            "questions": questions,
+        })
+    return lessons
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--year", type=int, default=2026)
-    ap.add_argument("--quarter", type=int, default=3)
-    args = ap.parse_args()
-
     languages = sorted(p.name for p in SOURCE_DIR.iterdir() if p.is_dir())
 
     # Letter labels per lesson, regenerated per-language so e.g. Cyrillic
@@ -63,35 +99,32 @@ def main():
     def letters_for(lang: str):
         return CYRILLIC_LETTERS if lang in ("ru", "bg", "uk", "sr", "mk") else LATIN_LETTERS
 
-    bundle = {"year": args.year, "quarter": args.quarter, "languages": {}}
+    # Keyed by "YYYY-Q" so the panel can offer a Quarter dropdown even though
+    # only one quarter exists today -- adding a second one later is just
+    # dropping its files in and rerunning this script, no code change here.
+    quarters = {}
 
     for lang in languages:
-        data = load_quarter(lang, args.year, args.quarter)
-        if not data:
-            print(f"skip {lang}: no data file", file=sys.stderr)
-            continue
-
         letters = letters_for(lang)
-        lang_out = {"quarterTitle": data.get("title", ""), "lessons": []}
+        for year, quarter, path in find_quarter_files(lang):
+            key = f"{year}-{quarter}"
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
 
-        for les in data.get("lessons", []):
-            questions = []
-            for day in les.get("dailyLessons", []):
-                for sub in day.get("subsections", []):
-                    q = first_question_text(sub)
-                    if q:
-                        letter = letters[len(questions)] if len(questions) < len(letters) else str(len(questions) + 1)
-                        questions.append({"letter": letter, "text": q})
+            quarters.setdefault(key, {"year": year, "quarter": quarter, "languages": {}})
+            quarters[key]["languages"][lang] = {
+                "quarterTitle": data.get("title", ""),
+                "lessons": build_lesson_entries(data, letters),
+            }
 
-            lang_out["lessons"].append({
-                "no": les.get("no"),
-                "title": les.get("title", "").strip(),
-                "questions": questions,
-            })
+    if not quarters:
+        print("No quarter files found under", SOURCE_DIR, file=sys.stderr)
+        sys.exit(1)
 
-        bundle["languages"][lang] = lang_out
-        print(f"{lang}: {len(lang_out['lessons'])} lessons")
+    for key, q in sorted(quarters.items()):
+        print(f"{key}: {len(q['languages'])} languages")
 
+    bundle = {"quarters": quarters}
     OUT_PATH.write_text(json.dumps(bundle, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nWrote {OUT_PATH} ({OUT_PATH.stat().st_size} bytes)")
 

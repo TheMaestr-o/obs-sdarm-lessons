@@ -105,18 +105,54 @@
 			gap: 8px;
 		}
 
+		/* Small swatch-style icon rather than the browser's default oversized
+		   color input -- this is the ONLY visible color control now (the hex
+		   text input next to it, color1/color2, is `hidden`: its value is
+		   still read/written by JS for the Show payload, it's just not shown
+		   or tabbable as a separate redundant field -- see .color-row below).
+		   Clicking anywhere on this swatch opens the native OS color picker,
+		   same as any <input type="color">, just sized/shaped to read as a
+		   small icon instead of a big rectangular control. */
 		input[type="color"] {
-			width: 40px;
-			height: 30px;
-			padding: 2px;
+			width: 26px;
+			height: 26px;
+			padding: 0;
 			background: #13141A;
-			border: none;
-			border-radius: 3px;
+			border: 2px solid #272A33;
+			border-radius: 50%;
 			cursor: pointer;
+			/* Chromium/CEF draw this input's own internal swatch as a
+			   rectangle with default padding baked into its shadow DOM --
+			   these two rules make that inner swatch fill the circular
+			   border completely instead of floating a small rectangle
+			   inside it. Harmless no-ops in engines that ignore them. */
+			-webkit-appearance: none;
+			appearance: none;
 		}
 
+		input[type="color"]::-webkit-color-swatch-wrapper {
+			padding: 0;
+			border-radius: 50%;
+		}
+
+		input[type="color"]::-webkit-color-swatch {
+			border: none;
+			border-radius: 50%;
+		}
+
+		/* The hex value (color1/color2) stays a real, functional <input> in
+		   the DOM -- syncPickerToText/syncTextToPicker below still read and
+		   write it, and sanitizeHex() still reads it for the Show payload --
+		   it's just not rendered or reachable by Tab, since the swatch above
+		   is now the only interactive/visible control for picking a color.
+		   `hidden` (not the visually-hidden clip technique used elsewhere in
+		   this file for the template radio buttons) because there's no
+		   separate accessible identity worth preserving here: the color
+		   swatch already carries the label via `<label for>` pointing at it
+		   directly, so a focusable-but-invisible duplicate text field would
+		   only confuse a keyboard/screen-reader user, not help them. */
 		.color-row input[type="text"] {
-			flex: 1;
+			display: none;
 		}
 
 		.template-options {
@@ -212,8 +248,19 @@
 		   a whole -- so it also matched the Color 1 group (first child of
 		   .form-row) but not Color 2 (second child), giving them different
 		   top margins and knocking Color 1/Color 2 out of vertical alignment.
-		   Target the actual first child of .settings directly instead. */
-		.settings > .form-group:first-child {
+		   Target the actual first child of .settings directly instead.
+		   `:first-child` alone (not `.form-group:first-child`) because the
+		   structural first child is now #quarterLanguageUnavailable (the
+		   file://-only note, `hidden` in the normal http:// case -- CSS
+		   `:first-child` still counts a `[hidden]` element for its position,
+		   it just isn't painted) and the visible first child in the normal
+		   case is #quarterLanguageRow, a `.form-row` not a `.form-group` --
+		   listed explicitly by id alongside the structural `:first-child` so
+		   both the file:// note (were it ever unhidden by adding a visible
+		   style) and the normal Quarter/Language row get the same top
+		   margin, rather than assuming either is always a .form-group. */
+		.settings > *:first-child,
+		.settings > #quarterLanguageRow {
 			margin-top: 8px;
 		}
 
@@ -416,11 +463,15 @@
 		}
 
 		/*
-		Lesson & Question picker -- unlike .settings (style/colors, set once and
-		left alone), this section is used every single question during a live
-		stream, so it stays open by default (<details open>) instead of
+		Lesson & Question picker -- unlike .settings (now just "Settings":
+		style/colors PLUS Quarter/Language, all set once per stream/session
+		and left alone), this section is used every single question during a
+		live stream, so it stays open by default (<details open>) instead of
 		collapsed, and sits above .settings in document order so it reads as
-		the primary workflow, not a secondary option tucked below it.
+		the primary workflow, not a secondary option tucked below it. Quarter
+		and Language moved into .settings (see below) because picking those
+		is a one-time-per-session action, unlike the Lesson dropdown and
+		question list here, which change every question.
 		*/
 		.lesson-picker {
 			margin-bottom: 10px;
@@ -469,10 +520,16 @@
 			line-height: 1.5;
 		}
 
-		/* Question rows -- similar spirit to .template-options' clickable cards
-		   (a <button> per row, one accent fill for the "currently loaded" one)
-		   but deliberately simpler: no preview swatch, just letter + text on
-		   one line, since that's all a question row needs. */
+		/* Question list -- a scannable grid of small per-letter buttons
+		   grouped under each day's heading, not a wall of full-sentence
+		   rows. The live-stream workflow this panel serves is "click through
+		   questions fast while presenting", so the default view shows just
+		   "а", "б", "в"... per day; the full question text is available via
+		   the button's native `title` tooltip AND via #questionPreview below
+		   the list (updates on hover/focus/click -- a tooltip alone is too
+		   slow to appear and doesn't work on touch, so a live preview area
+		   is the actually-usable path during a stream, with the tooltip as a
+		   secondary/mouse-only convenience on top of it). */
 		.question-list {
 			display: flex;
 			flex-direction: column;
@@ -481,20 +538,63 @@
 			overflow-y: auto;
 		}
 
+		/* Each lesson's questions are grouped by the day/section they belong
+		   to -- letters restart at "a"/"а" for every day (see
+		   tools/build-lessons-data.py), so without a visible heading the
+		   restart would read as a bug ("why did it go back to a/b?") instead
+		   of the correct per-day behavior it actually is. Plain text, not a
+		   button/row -- it's not clickable, just a label above its group of
+		   letter buttons. Text renders exactly as sectionTitle appears in
+		   the data -- no text-transform here, some languages' sectionTitle
+		   is already stored uppercase (e.g. ru) and some aren't (e.g. de,
+		   en), forcing a transform would show a case that doesn't match the
+		   actual lesson content for the languages that aren't. */
+		.question-day-heading {
+			font-size: 10.5px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			color: #7d8291;
+			padding: 6px 2px 2px;
+		}
+
+		.question-day-heading:first-child {
+			padding-top: 0;
+		}
+
+		/* One flex-wrap row of letter buttons per day heading. Not
+		   `.question-row` itself (that class no longer exists) -- the
+		   buttons inside carry that class instead, see below. */
+		.question-letter-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px;
+			padding: 2px 0 4px;
+		}
+
+		/* Compact per-letter button -- similar spirit to .template-options'
+		   clickable cards (one accent fill for the "currently loaded" one)
+		   but sized as a small square rather than a full-width row, since
+		   the letter alone (not the question sentence) is what the default
+		   view needs to show. The full question text is the button's
+		   `title` tooltip and drives #questionPreview on hover/focus/click
+		   (see loadQuestion()/the row's own mouseenter/focus listeners in
+		   the script below) rather than being rendered inline here. */
 		.question-row {
 			display: flex;
-			gap: 7px;
-			align-items: baseline;
-			width: 100%;
-			text-align: left;
+			align-items: center;
+			justify-content: center;
+			min-width: 30px;
+			height: 30px;
+			padding: 0 8px;
+			text-align: center;
 			background: #272A33;
 			border: none;
-			border-radius: 3px;
-			padding: 7px 9px;
+			border-radius: 4px;
 			cursor: pointer;
-			color: #d4d4d4;
+			color: #c6a15b;
+			font-weight: 600;
 			font-family: inherit;
-			font-size: 12px;
+			font-size: 13px;
 		}
 
 		.question-row:hover {
@@ -508,19 +608,35 @@
 
 		/* The "currently loaded" question -- same accent fill used by the
 		   selected template card in .settings, for a consistent "this is the
-		   active one" signal across the panel. */
+		   active one" signal across the panel. Text color switches to the
+		   panel's normal light text (instead of the gold letter color used
+		   at rest) since gold-on-accent-blue reads poorly next to
+		   gold-on-dark everywhere else this accent fill is used. */
 		.question-row.current {
 			background: #2c445e;
+			color: #d4d4d4;
 		}
 
-		.question-row .q-letter {
-			flex: 0 0 auto;
+		/* Shows the full text of whichever question was most recently
+		   hovered, keyboard-focused, or clicked -- see questionListEl's
+		   'focusin'/mouseover delegated listeners and loadQuestion() in the
+		   script below. Empty/hidden-by-emptiness until the first such
+		   interaction (min-height reserves its space either way, so the nav
+		   buttons below don't jump position when it first populates). */
+		.question-preview {
+			font-size: 11.5px;
+			color: #a0a0a0;
+			background: #13141A;
+			border-radius: 3px;
+			padding: 7px 9px;
+			margin-top: 6px;
+			line-height: 1.4;
+			min-height: 32px;
+		}
+
+		.question-preview .q-letter {
 			font-weight: 600;
 			color: #c6a15b;
-		}
-
-		.question-row .q-text {
-			flex: 1 1 auto;
 		}
 
 		.question-nav {
@@ -579,40 +695,36 @@
 			</div>
 
 			<!--
-			Lesson & Question picker -- pulls language/lesson/question data from
+			Lesson & Question picker -- pulls lesson/question data from
 			lessons-data.json (see tools/build-lessons-data.py) so the presenter
-			can pick a lesson+language and click through its questions instead of
-			typing Line 1/Line 2 by hand every time. Open by default (unlike
-			.settings below): this is the thing actually used every question
-			during a stream, while style/colors is set once and forgotten.
-			Picking a question or pressing Next/Prev only fills Line 1/Line 2 as
-			a starting point -- both fields stay plain, manually-editable text
-			inputs from showBtn's point of view, same as if a human had typed
-			into them.
+			can pick a lesson and click through its questions instead of typing
+			Line 1/Line 2 by hand every time. Open by default (unlike .settings
+			below): this is the thing actually used every question during a
+			stream, while Quarter/Language (moved into .settings, see below)
+			and style/colors are set once and forgotten. Picking a question or
+			pressing Next/Prev only fills Line 1/Line 2 as a starting point --
+			both fields stay plain, manually-editable text inputs from
+			showBtn's point of view, same as if a human had typed into them.
 			-->
 			<details class="lesson-picker" id="lessonPicker" open>
 				<summary>Lesson &amp; Question</summary>
 
 				<div id="lessonPickerUnavailable" class="lesson-picker-unavailable" hidden>
-					Lesson/question picker requires the http:// dock setup -- see
-					LOCAL-SETUP.md.
+					This panel needs the local server. Open it as
+					<strong>http://localhost:8001/panel.html</strong> instead of
+					double-clicking panel.html -- see LOCAL-SETUP.md for details.
 				</div>
 
 				<div id="lessonPickerUi">
-					<div class="form-row">
-						<div class="form-group">
-							<label for="languageSelect">Language</label>
-							<select id="languageSelect"></select>
-						</div>
-						<div class="form-group">
-							<label for="lessonSelect">Lesson</label>
-							<select id="lessonSelect"></select>
-						</div>
+					<div class="form-group">
+						<label for="lessonSelect">Lesson</label>
+						<select id="lessonSelect"></select>
 					</div>
 
 					<div class="form-group">
 						<label>Questions</label>
 						<div class="question-list" id="questionList"></div>
+						<div class="question-preview" id="questionPreview"></div>
 					</div>
 
 					<div class="question-nav">
@@ -627,10 +739,31 @@
 			Style/colors are set once and rarely touched again, unlike line1/line2
 			which change every question -- collapsed by default via a plain <details>
 			(no JS needed, works the same in any browser/CEF) so the panel stays
-			short for the thing actually used during a stream.
+			short for the thing actually used during a stream. Also now holds
+			Quarter/Language (moved here from the always-visible Lesson & Question
+			section above): picking those is a "choose once per session" action
+			too, per the same reasoning as style/colors, unlike Lesson/questions
+			which change every question and so stay in the always-visible section.
 			-->
 			<details class="settings">
-				<summary>Style &amp; colors</summary>
+				<summary>Settings</summary>
+
+				<div id="quarterLanguageUnavailable" class="lesson-picker-unavailable" hidden>
+					This panel needs the local server. Open it as
+					<strong>http://localhost:8001/panel.html</strong> instead of
+					double-clicking panel.html -- see LOCAL-SETUP.md for details.
+				</div>
+
+				<div class="form-row" id="quarterLanguageRow">
+					<div class="form-group">
+						<label for="quarterSelect">Quarter</label>
+						<select id="quarterSelect"></select>
+					</div>
+					<div class="form-group">
+						<label for="languageSelect">Language</label>
+						<select id="languageSelect"></select>
+					</div>
+				</div>
 
 				<div class="form-group">
 					<!--
@@ -671,14 +804,14 @@
 
 				<div class="form-row">
 					<div class="form-group">
-						<label for="color1">Color 1</label>
+						<label for="color1picker">Color 1</label>
 						<div class="color-row">
 							<input type="color" id="color1picker" value="#ffffff">
 							<input type="text" id="color1" value="fff">
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="color2">Color 2</label>
+						<label for="color2picker">Color 2</label>
 						<div class="color-row">
 							<input type="color" id="color2picker" value="#c6a15b">
 							<input type="text" id="color2" value="c6a15b">
@@ -775,19 +908,26 @@
 
 		// --- Lesson & Question picker -----------------------------------------
 		// Reads lessons-data.json (built by tools/build-lessons-data.py) and lets
-		// the presenter pick a language + lesson, click a question to fill
-		// Line 1/Line 2, and step through that lesson's questions with
+		// the presenter pick a quarter + language + lesson, click a question to
+		// fill Line 1/Line 2, and step through that lesson's questions with
 		// Next/Previous. This never touches showBtn's click handler above or
-		// adds any BroadcastChannel/localStorage traffic of its own -- it only
-		// ever writes into line1El.value / line2El.value, exactly as if a human
-		// had typed into those fields by hand. Line 1/Line 2 stay fully
+		// adds any BroadcastChannel traffic of its own -- it only ever writes
+		// into line1El.value / line2El.value, exactly as if a human had typed
+		// into those fields by hand (plus its own separate localStorage key
+		// for remembering Quarter/Language/Lesson, see PICKER_STORAGE_KEY
+		// below -- unrelated to STORAGE_KEY above, which is showBtn's
+		// panel-to-result.html handoff channel). Line 1/Line 2 stay fully
 		// editable afterwards; nothing here locks them to mirror the picker.
 		(function () {
 			const unavailableEl = document.getElementById('lessonPickerUnavailable');
 			const uiEl = document.getElementById('lessonPickerUi');
+			const quarterLanguageUnavailableEl = document.getElementById('quarterLanguageUnavailable');
+			const quarterLanguageRowEl = document.getElementById('quarterLanguageRow');
+			const quarterSelectEl = document.getElementById('quarterSelect');
 			const languageSelectEl = document.getElementById('languageSelect');
 			const lessonSelectEl = document.getElementById('lessonSelect');
 			const questionListEl = document.getElementById('questionList');
+			const questionPreviewEl = document.getElementById('questionPreview');
 			const prevBtn = document.getElementById('prevBtn');
 			const nextBtn = document.getElementById('nextBtn');
 			const currentQuestionLabelEl = document.getElementById('currentQuestionLabel');
@@ -798,30 +938,108 @@
 			// server means there's nothing to answer the request, so the picker
 			// can't work there at all. Detect this up front from location.protocol
 			// rather than waiting for fetch() to fail, so the UI never flashes
-			// before hiding itself.
+			// before hiding itself. Covers BOTH halves of the picker now that
+			// Quarter/Language live in the separate .settings section rather
+			// than inside #lessonPickerUi -- without this, moving them out
+			// would have left two empty, non-functional <select>s sitting
+			// visibly inside Settings under file:// instead of being cleanly
+			// hidden behind the same explanatory note used elsewhere.
 			if (location.protocol === 'file:') {
-				document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (unavailable)';
+				document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (needs http://localhost:8001)';
 				uiEl.hidden = true;
 				unavailableEl.hidden = false;
+				quarterLanguageRowEl.hidden = true;
+				quarterLanguageUnavailableEl.hidden = false;
 				return;
 			}
 
-			let bundle = null;          // the full parsed lessons-data.json
+			// Separate localStorage key from showBtn's STORAGE_KEY above --
+			// that one is a live handoff channel to result.html (written on
+			// every Show press, holds the currently-displayed overlay's data).
+			// This one only remembers the presenter's Quarter/Language/Lesson
+			// picks so a page reload restores them instead of resetting to
+			// defaults. Works under http://localhost:8001 (which the picker
+			// already requires -- see the file:// early-return above), no
+			// network involved at any point, same "already offline, this just
+			// keeps working" reasoning as everything else in this file.
+			const PICKER_STORAGE_KEY = 'infor-r-lower-thirds-panel-settings';
+
+			function loadSavedPickerSettings() {
+				try {
+					const raw = localStorage.getItem(PICKER_STORAGE_KEY);
+					return raw ? JSON.parse(raw) : null;
+				} catch (e) {
+					// Malformed JSON from a future/older version of this key, or
+					// storage disabled -- treat exactly like "nothing saved yet".
+					return null;
+				}
+			}
+
+			function savePickerSettings() {
+				try {
+					localStorage.setItem(PICKER_STORAGE_KEY, JSON.stringify({
+						quarter: currentQuarter,
+						language: currentLang,
+						lessonNo: currentLessonNo
+					}));
+				} catch (e) {
+					// file:// origin (unreachable here, see early-return above) or
+					// storage disabled/full -- persistence is a convenience, not a
+					// requirement, so this fails silently same as showBtn's own
+					// localStorage write above.
+				}
+			}
+
+			let bundle = null;          // the full parsed lessons-data.json, shape: {quarters: {...}}
+			let currentQuarter = null;  // e.g. "2026-3", a key into bundle.quarters
 			let currentLang = null;     // e.g. "ru"
 			let currentLessonNo = null; // e.g. "1" (string, matches the JSON's "no")
 			let currentQuestionIndex = null; // index into the current lesson's questions[], or null if nothing loaded yet
 
-			function getLangData(lang) {
-				return bundle.languages[lang];
+			function getQuarterData(quarter) {
+				return bundle.quarters[quarter];
 			}
 
-			function getLesson(lang, lessonNo) {
-				const lessons = getLangData(lang).lessons;
+			function getLangData(quarter, lang) {
+				return getQuarterData(quarter).languages[lang];
+			}
+
+			function getLesson(quarter, lang, lessonNo) {
+				const lessons = getLangData(quarter, lang).lessons;
 				return lessons.find((l) => String(l.no) === String(lessonNo)) || null;
 			}
 
-			function populateLanguageSelect() {
-				const langs = Object.keys(bundle.languages).sort();
+			// Sorted descending (newest first) so the newest quarter is the
+			// default -- string comparison is correct here (not just
+			// coincidentally) because every key is "YYYY-Q" with a fixed-width
+			// 4-digit year and single-digit quarter, so lexicographic order
+			// matches numeric order. Works identically whether there's 1 quarter
+			// key or 5 -- no special-casing "only one exists today".
+			function sortedQuarterKeys() {
+				return Object.keys(bundle.quarters).sort().reverse();
+			}
+
+			function populateQuarterSelect(preferredQuarter) {
+				const quarters = sortedQuarterKeys();
+				quarterSelectEl.innerHTML = '';
+				for (const key of quarters) {
+					const q = getQuarterData(key);
+					const opt = document.createElement('option');
+					opt.value = key;
+					// e.g. "2026 Q3" -- the raw "2026-3" key doubles as a fine
+					// label too, but year/quarter are already tracked as separate
+					// numbers per-quarter in the data, so use those directly
+					// rather than re-parsing the key string.
+					opt.textContent = q.year + ' Q' + q.quarter;
+					quarterSelectEl.appendChild(opt);
+				}
+				const stillExists = preferredQuarter != null && quarters.includes(preferredQuarter);
+				currentQuarter = stillExists ? preferredQuarter : quarters[0];
+				quarterSelectEl.value = currentQuarter;
+			}
+
+			function populateLanguageSelect(preferredLang) {
+				const langs = Object.keys(getQuarterData(currentQuarter).languages).sort();
 				languageSelectEl.innerHTML = '';
 				for (const lang of langs) {
 					const opt = document.createElement('option');
@@ -829,14 +1047,18 @@
 					opt.textContent = lang.toUpperCase();
 					languageSelectEl.appendChild(opt);
 				}
-				// Default to ru if present (the base language used throughout this
-				// project's lesson content), else whatever sorts first.
-				currentLang = langs.includes('ru') ? 'ru' : langs[0];
+				// Preserve a still-valid preferred language (from a saved setting,
+				// or the previous quarter's pick) when the new quarter also has
+				// it; else default to ru if present (the base language used
+				// throughout this project's lesson content), else whatever sorts
+				// first.
+				const stillExists = preferredLang != null && langs.includes(preferredLang);
+				currentLang = stillExists ? preferredLang : (langs.includes('ru') ? 'ru' : langs[0]);
 				languageSelectEl.value = currentLang;
 			}
 
 			function populateLessonSelect(preserveLessonNo) {
-				const lessons = getLangData(currentLang).lessons;
+				const lessons = getLangData(currentQuarter, currentLang).lessons;
 				lessonSelectEl.innerHTML = '';
 				for (const lesson of lessons) {
 					const opt = document.createElement('option');
@@ -844,50 +1066,113 @@
 					opt.textContent = lesson.no + '. ' + lesson.title;
 					lessonSelectEl.appendChild(opt);
 				}
-				// Preserve the same lesson NUMBER across a language switch when
-				// possible (smoother if the presenter is mid-question and just
-				// wants the same lesson in a different language), else fall back
-				// to the first lesson in the list.
+				// Preserve the same lesson NUMBER across a language/quarter switch
+				// when possible (smoother if the presenter is mid-question and
+				// just wants the same lesson in a different language), else fall
+				// back to the first lesson in the list.
 				const stillExists = preserveLessonNo != null && lessons.some((l) => String(l.no) === String(preserveLessonNo));
 				currentLessonNo = stillExists ? preserveLessonNo : lessons[0].no;
 				lessonSelectEl.value = currentLessonNo;
 			}
 
+			// Shows one question's full text in #questionPreview -- driven by
+			// hover/focus (so scanning the compact letter buttons live still
+			// lets the presenter read the question before committing to a
+			// click) and by loadQuestion() (so the preview also reflects
+			// whichever question is actually currently loaded). Letter
+			// buttons additionally carry a native `title` tooltip with the
+			// same text as a mouse-only, no-JS-needed fallback -- this
+			// function is the actually-usable path during a live stream,
+			// since a tooltip alone is slow to appear and does nothing for
+			// keyboard/touch use.
+			function showPreview(q) {
+				questionPreviewEl.innerHTML = '';
+				const letterSpan = document.createElement('span');
+				letterSpan.className = 'q-letter';
+				letterSpan.textContent = q.letter + '. ';
+				questionPreviewEl.appendChild(letterSpan);
+				questionPreviewEl.appendChild(document.createTextNode(q.text));
+			}
+
+			// Renders the question list grouped by each question's OWN
+			// sectionTitle (the day/subsection heading it belongs to) as a
+			// heading followed by a compact row of small per-letter buttons
+			// ("а", "б"...) rather than one flat list of full-sentence rows
+			// -- letters restart at "a"/"а" for every day (see
+			// tools/build-lessons-data.py), so a heading is inserted before
+			// every run of consecutive questions that share a sectionTitle,
+			// making the restart make sense visually instead of looking like
+			// a bug, and the compact buttons make it fast to scan/click
+			// through questions live instead of reading a wall of sentences
+			// each time. Heading divs and the `.question-letter-row` wrapper
+			// are NOT `.question-row` elements themselves, so they don't
+			// affect the querySelectorAll('.question-row') indexing
+			// loadQuestion() relies on below -- that indexing still lines up
+			// 1:1 with `lesson.questions[idx]` in document order regardless
+			// of how many headings/wrapper rows are interspersed, since
+			// querySelectorAll walks the whole subtree, not just direct
+			// children.
 			function renderQuestionList() {
-				const lesson = getLesson(currentLang, currentLessonNo);
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				questionListEl.innerHTML = '';
+				questionPreviewEl.innerHTML = '';
+				let lastSectionTitle = null;
+				let letterRow = null;
 				lesson.questions.forEach((q, idx) => {
+					if (q.sectionTitle !== lastSectionTitle) {
+						const heading = document.createElement('div');
+						heading.className = 'question-day-heading';
+						heading.textContent = q.sectionTitle;
+						questionListEl.appendChild(heading);
+						lastSectionTitle = q.sectionTitle;
+
+						letterRow = document.createElement('div');
+						letterRow.className = 'question-letter-row';
+						questionListEl.appendChild(letterRow);
+					}
+
 					const row = document.createElement('button');
 					row.type = 'button';
 					row.className = 'question-row';
+					row.textContent = q.letter;
+					// Native tooltip -- a mouse-only, no-JS-needed fallback on
+					// top of showPreview() below, see the comment above
+					// showPreview() for why the preview area is the primary
+					// path, not this.
+					row.title = q.letter + '. ' + q.text;
 					if (idx === currentQuestionIndex) row.classList.add('current');
 
-					const letterSpan = document.createElement('span');
-					letterSpan.className = 'q-letter';
-					letterSpan.textContent = q.letter + '.';
-
-					const textSpan = document.createElement('span');
-					textSpan.className = 'q-text';
-					textSpan.textContent = q.text;
-
-					row.appendChild(letterSpan);
-					row.appendChild(textSpan);
+					row.addEventListener('mouseenter', () => showPreview(q));
+					row.addEventListener('focus', () => showPreview(q));
 					row.addEventListener('click', () => loadQuestion(idx));
-					questionListEl.appendChild(row);
+					letterRow.appendChild(row);
 				});
 				updateNav();
 			}
 
 			// Fills Line 1/Line 2 the same way for a list click or a Next/Prev
-			// press, and marks the given index as the "currently loaded" one.
+			// press, marks the given index as the "currently loaded" one, and
+			// updates #questionPreview to match. Line 1 gets the question's
+			// OWN sectionTitle (the day heading it belongs to), not the
+			// lesson's overall title -- this matches how the rest of this
+			// project treats "Line 1 = the subheading actually being
+			// discussed" vs. the lesson's umbrella title, and is why
+			// sectionTitle is tracked per-question in the first place. Reads
+			// q.sectionTitle fresh from the newly-indexed question every call,
+			// so stepping across a day boundary via Next/Prev (e.g. the last
+			// question of day 1 into the first question of day 2) updates Line 1
+			// to the NEW day's heading correctly rather than staying stale --
+			// there is no separate "current day" variable anywhere that could
+			// fall out of sync with idx.
 			function loadQuestion(idx) {
-				const lesson = getLesson(currentLang, currentLessonNo);
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				const q = lesson.questions[idx];
 				if (!q) return;
 
 				currentQuestionIndex = idx;
-				line1El.value = lesson.title;
+				line1El.value = q.sectionTitle;
 				line2El.value = q.letter + '. ' + q.text;
+				showPreview(q);
 
 				let currentRow = null;
 				questionListEl.querySelectorAll('.question-row').forEach((row, rowIdx) => {
@@ -903,7 +1188,7 @@
 			}
 
 			function updateNav() {
-				const lesson = getLesson(currentLang, currentLessonNo);
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				const total = lesson.questions.length;
 				const hasCurrent = currentQuestionIndex != null;
 
@@ -925,10 +1210,25 @@
 			});
 
 			nextBtn.addEventListener('click', () => {
-				const lesson = getLesson(currentLang, currentLessonNo);
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				if (currentQuestionIndex != null && currentQuestionIndex < lesson.questions.length - 1) {
 					loadQuestion(currentQuestionIndex + 1);
 				}
+			});
+
+			// Changing Quarter or Language lives inside the collapsed Settings
+			// section now, but both still have to repopulate the always-visible
+			// Lesson dropdown and question list above/outside it -- intentional
+			// per the presenter only needing to open Settings for this
+			// occasional change, not a bug where a hidden control silently
+			// fails to affect the visible UI.
+			quarterSelectEl.addEventListener('change', () => {
+				currentQuarter = quarterSelectEl.value;
+				populateLanguageSelect(currentLang);
+				populateLessonSelect(currentLessonNo);
+				currentQuestionIndex = null;
+				renderQuestionList();
+				savePickerSettings();
 			});
 
 			languageSelectEl.addEventListener('change', () => {
@@ -936,12 +1236,14 @@
 				populateLessonSelect(currentLessonNo);
 				currentQuestionIndex = null;
 				renderQuestionList();
+				savePickerSettings();
 			});
 
 			lessonSelectEl.addEventListener('change', () => {
 				currentLessonNo = lessonSelectEl.value;
 				currentQuestionIndex = null;
 				renderQuestionList();
+				savePickerSettings();
 			});
 
 			fetch('lessons-data.json')
@@ -951,8 +1253,17 @@
 				})
 				.then((data) => {
 					bundle = data;
-					populateLanguageSelect();
-					populateLessonSelect(null);
+					const saved = loadSavedPickerSettings();
+					// Each restore step passes its saved value as a "preferred"
+					// candidate that the populate function itself validates against
+					// the freshly-fetched bundle (falls back to sensible defaults
+					// if the saved quarter/language/lesson no longer exists) --
+					// same validate-or-fall-back shape already used for preserving
+					// the lesson number across a language switch below, just fed
+					// from localStorage instead of the in-memory previous value.
+					populateQuarterSelect(saved ? saved.quarter : null);
+					populateLanguageSelect(saved ? saved.language : null);
+					populateLessonSelect(saved ? saved.lessonNo : null);
 					renderQuestionList();
 				})
 				.catch((err) => {
@@ -961,10 +1272,17 @@
 					// still fail to fetch this file for other reasons (server not
 					// running, file missing/moved, malformed JSON). Same graceful
 					// degradation as the file:// case rather than a silent failure.
-					document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (unavailable)';
+					// Distinct wording from the file:// case above (which is the
+					// far more common trigger -- opening panel.html by double-click
+					// instead of via the localhost URL): this one keeps err.message
+					// visible since it points at an actual server/file problem an
+					// http://localhost:8001 open alone won't fix.
+					document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (could not load data)';
 					uiEl.hidden = true;
 					unavailableEl.hidden = false;
-					unavailableEl.textContent = 'Lesson/question picker could not load lessons-data.json (' + err.message + ') -- see LOCAL-SETUP.md.';
+					unavailableEl.textContent = 'Could not load lessons-data.json (' + err.message + '). Make sure the local server is running (see LOCAL-SETUP.md) and this page was opened as http://localhost:8001/panel.html.';
+					quarterLanguageRowEl.hidden = true;
+					quarterLanguageUnavailableEl.hidden = false;
 				});
 		})();
 	</script>
