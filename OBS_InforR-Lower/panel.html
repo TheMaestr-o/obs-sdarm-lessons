@@ -195,7 +195,13 @@
 			transform: rotate(90deg);
 		}
 
-		.settings .form-group:first-of-type {
+		/* Was `.settings .form-group:first-of-type`, which matches the first
+		   .form-group under EVERY parent, not just the first one in .settings as
+		   a whole -- so it also matched the Color 1 group (first child of
+		   .form-row) but not Color 2 (second child), giving them different
+		   top margins and knocking Color 1/Color 2 out of vertical alignment.
+		   Target the actual first child of .settings directly instead. */
+		.settings > .form-group:first-child {
 			margin-top: 8px;
 		}
 
