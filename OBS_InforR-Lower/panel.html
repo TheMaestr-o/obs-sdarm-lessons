@@ -20,7 +20,13 @@
 		body {
 			margin: 0;
 			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			background: #1e1e1e;
+			/* #1D1F26 is OBS's own --bg_window value from its bundled Yami (dark)
+			   theme (/Applications/OBS.app/Contents/Resources/themes/Yami.obt) --
+			   matching it exactly instead of an approximate grey removes the
+			   visible seam between the dock's real background and this page's,
+			   which showed as a slightly-too-light/too-neutral rectangle floating
+			   inside the actual dock. */
+			background: #1D1F26;
 			color: #d4d4d4;
 			padding: 12px;
 			min-height: 100vh;
@@ -58,7 +64,9 @@
 		select {
 			width: 100%;
 			padding: 7px 9px;
-			background: #1a1a1a;
+			/* #13141A = OBS's own --grey8, its darkest tone -- for a field that
+			   should read as "recessed" relative to the #1D1F26 page background. */
+			background: #13141A;
 			border: 1px solid transparent;
 			border-radius: 3px;
 			color: #d4d4d4;
@@ -79,7 +87,9 @@
 		}
 
 		select option {
-			background: #262626;
+			/* #272A33 = OBS's own --grey6 -- one step lighter than the page
+			   background, for a dropdown list that visibly sits on top of it. */
+			background: #272A33;
 			color: #d4d4d4;
 		}
 
@@ -99,7 +109,7 @@
 			width: 40px;
 			height: 30px;
 			padding: 2px;
-			background: #1a1a1a;
+			background: #13141A;
 			border: none;
 			border-radius: 3px;
 			cursor: pointer;
@@ -123,7 +133,9 @@
 			flex-direction: column;
 			align-items: center;
 			gap: 6px;
-			background: #1e1e1e;
+			/* #272A33 = OBS's own --grey6, matching select option's fill above so
+			   both read as "a step up" from the same #1D1F26 base consistently. */
+			background: #272A33;
 			border: none;
 			border-radius: 4px;
 			padding: 9px 7px 11px;
@@ -245,7 +257,7 @@
 			height: 28px;
 			position: relative;
 			overflow: hidden;
-			background: #141414;
+			background: #13141A;
 			border-radius: 3px;
 		}
 
