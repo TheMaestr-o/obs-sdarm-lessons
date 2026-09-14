@@ -161,7 +161,38 @@
 		/* Tiny looping preview swatches: a simplified, isolated re-creation of each
 		   animation's transform direction (not the real lower.css keyframes), just
 		   enough to show "which way does it move" at a glance next to the text
-		   description. Fully self-contained so it cannot collide with lower.css. */
+		   description. Fully self-contained so it cannot collide with lower.css.
+
+		   Defensive note: `opacity` on every animated element here is a plain,
+		   constant `1` that is never touched by any @keyframes rule -- only
+		   `transform` (and, for preview 5's frame, `clip-path`) moves during the
+		   "entrance" phase. This means there is no point anywhere in the loop,
+		   however/whenever a paint happens to sample it, where the element is
+		   invisible: worst case if frozen mid-entrance it just sits slightly
+		   offset from its settled position, which still reads as "a visible
+		   swatch", not a blank box. This was a real bug, not a theoretical one:
+		   these elements used to rely entirely on their @keyframes' 0% state
+		   (opacity:0 / off-screen transform) as their ONLY source of visibility,
+		   and when panel.html was opened inside OBS Studio's embedded Browser
+		   Source (CEF) via right-click -> Interact, two of the three swatches
+		   rendered nothing at all and the third showed only a static frame --
+		   consistent with CEF applying an early animation frame once and then
+		   never painting a later one, even though the exact same markup/CSS
+		   animates correctly in a regular Chromium test. Two approaches were
+		   tried and measured directly (via Playwright + getComputedStyle, freezing
+		   the animation at many different elapsed times) before landing here:
+		   simply adding a base `opacity:1` alongside the animation does NOT work
+		   -- an attached CSS animation's keyframe values override the base value
+		   for any property it touches, from the instant it's attached, so 0%
+		   still wins. Making the @keyframes' 0% itself the settled state also
+		   does NOT fully work -- if CEF's freeze lands even slightly *after* 0%
+		   (measured: as little as ~50ms into a 2.4s loop), it can still land
+		   inside the dip and go blank. Keeping opacity constant at 1 throughout
+		   the whole animation (confirmed visible at every freeze point tested,
+		   0ms-2000ms across the loop) is the only approach that has no invisible
+		   window at all. will-change hints below are a secondary, defensive
+		   addition for CEF's compositing, not the fix itself. Keep any future
+		   edits here opacity-constant first, animated-transform second. */
 		.template-preview {
 			width: 100%;
 			height: 28px;
@@ -184,45 +215,75 @@
 			background: #ffffff;
 		}
 
-		/* Preview 1: diagonal slash fades in, two bars slide in from the left */
+		/* Preview 1: diagonal slash fades in, two bars slide in from the left.
+		   opacity stays a constant 1 (never animated); only transform moves
+		   during the entrance -- see the defensive note above .template-preview. */
 		.preview-1 .slash {
 			top: 3px;
 			height: 22px;
 			width: 6px;
 			left: 6%;
 			background: linear-gradient(135deg, #c6a15b, #ffffff);
-			transform: skewX(-20deg);
+			opacity: 1;
+			transform: skewX(-20deg) translateX(0);
+			will-change: transform;
 			animation: preview-1-slash 2.4s ease-in-out infinite;
 		}
-		.preview-1 .bar1 { top: 7px; animation: preview-1-line 2.4s ease-in-out infinite; }
-		.preview-1 .bar2 { top: 16px; animation: preview-1-line 2.4s ease-in-out 0.15s infinite; }
+		.preview-1 .bar1 {
+			top: 7px;
+			opacity: 1;
+			transform: translateX(0);
+			will-change: transform;
+			animation: preview-1-line 2.4s ease-in-out infinite;
+		}
+		.preview-1 .bar2 {
+			top: 16px;
+			opacity: 1;
+			transform: translateX(0);
+			will-change: transform;
+			animation: preview-1-line 2.4s ease-in-out 0.15s infinite;
+		}
 		@keyframes preview-1-slash {
-			0%, 10% { opacity: 0; transform: skewX(-20deg) translateX(40px); }
-			30%, 85% { opacity: 1; transform: skewX(-20deg) translateX(0); }
-			100% { opacity: 1; transform: skewX(-20deg) translateX(0); }
+			0%, 10% { transform: skewX(-20deg) translateX(40px); }
+			30%, 100% { transform: skewX(-20deg) translateX(0); }
 		}
 		@keyframes preview-1-line {
-			0%, 14% { transform: translateX(-100%); opacity: 0; }
-			34%, 90% { transform: translateX(0); opacity: 1; }
-			100% { transform: translateX(0); opacity: 1; }
+			0%, 14% { transform: translateX(-100%); }
+			34%, 100% { transform: translateX(0); }
 		}
 
-		/* Preview 2: line 1 rises from below, line 2 drops from above */
-		.preview-2 .bar1 { top: 16px; animation: preview-2-up 2.4s ease-out infinite; }
-		.preview-2 .bar2 { top: 6px; animation: preview-2-down 2.4s ease-out infinite; }
+		/* Preview 2: line 1 rises from below, line 2 drops from above. Same
+		   constant-opacity approach as preview 1, see comment above. */
+		.preview-2 .bar1 {
+			top: 16px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-2-up 2.4s ease-out infinite;
+		}
+		.preview-2 .bar2 {
+			top: 6px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-2-down 2.4s ease-out infinite;
+		}
 		@keyframes preview-2-up {
-			0%, 10% { transform: translateY(18px); opacity: 0; }
-			30%, 90% { transform: translateY(0); opacity: 1; }
-			100% { transform: translateY(0); opacity: 1; }
+			0%, 10% { transform: translateY(18px); }
+			30%, 100% { transform: translateY(0); }
 		}
 		@keyframes preview-2-down {
-			0%, 10% { transform: translateY(-18px); opacity: 0; }
-			30%, 90% { transform: translateY(0); opacity: 1; }
-			100% { transform: translateY(0); opacity: 1; }
+			0%, 10% { transform: translateY(-18px); }
+			30%, 100% { transform: translateY(0); }
 		}
 
 		/* Preview 5: three frame edges draw in, then the two lines slide from
-		   below/above -- simplified to a growing frame outline plus the two bars. */
+		   below/above -- simplified to a growing frame outline plus the two bars.
+		   Same constant-opacity approach as previews 1/2, see comment above.
+		   The frame's clip-path dip is also kept from ever fully closing (12%
+		   inset short of 100%, not a full 100%), so the frame's outline stays at
+		   least partly visible even if frozen mid-entrance, instead of vanishing
+		   to a zero-size box. */
 		.preview-5 .frame {
 			top: 2px;
 			left: 8%;
@@ -231,19 +292,34 @@
 			background: none;
 			border: 2px solid #c6a15b;
 			border-radius: 2px;
+			opacity: 1;
+			clip-path: inset(0 0 0 0);
+			will-change: clip-path;
 			animation: preview-5-frame 2.4s ease-out infinite;
 		}
-		.preview-5 .bar1 { top: 8px; height: 4px; animation: preview-5-text 2.4s ease-out 0.35s infinite; }
-		.preview-5 .bar2 { top: 16px; height: 4px; animation: preview-5-text 2.4s ease-out 0.5s infinite; }
+		.preview-5 .bar1 {
+			top: 8px;
+			height: 4px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-5-text 2.4s ease-out 0.35s infinite;
+		}
+		.preview-5 .bar2 {
+			top: 16px;
+			height: 4px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-5-text 2.4s ease-out 0.5s infinite;
+		}
 		@keyframes preview-5-frame {
-			0%, 8% { clip-path: inset(0 100% 100% 0); opacity: 0.6; }
-			28%, 90% { clip-path: inset(0 0 0 0); opacity: 1; }
-			100% { clip-path: inset(0 0 0 0); opacity: 1; }
+			0%, 8% { clip-path: inset(0 88% 88% 0); }
+			28%, 100% { clip-path: inset(0 0 0 0); }
 		}
 		@keyframes preview-5-text {
-			0%, 16% { transform: translateY(10px); opacity: 0; }
-			36%, 90% { transform: translateY(0); opacity: 1; }
-			100% { transform: translateY(0); opacity: 1; }
+			0%, 16% { transform: translateY(10px); }
+			36%, 100% { transform: translateY(0); }
 		}
 
 		@media (prefers-reduced-motion: reduce) {
@@ -403,6 +479,11 @@
 			return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
 		}
 
+		// localStorage key used as a fallback handoff channel -- see the big comment
+		// block below the BroadcastChannel line at the top of this script for why
+		// this exists alongside BroadcastChannel rather than replacing it.
+		const STORAGE_KEY = 'infor-r-lower-thirds-state';
+
 		document.getElementById('showBtn').addEventListener('click', () => {
 			const templateEl = document.querySelector('input[name="template"]:checked');
 			const data = {
@@ -410,10 +491,34 @@
 				line1: line1El.value,
 				line2: line2El.value,
 				color1: sanitizeHex(color1El.value, 'fff'),
-				color2: sanitizeHex(color2El.value, 'c6a15b')
+				color2: sanitizeHex(color2El.value, 'c6a15b'),
+				_t: Date.now() // lets result.html tell two identical presses apart
 			};
 
+			// Primary channel: works when panel.html and result.html are both Browser
+			// Sources/Interact windows inside the SAME OBS scene-source CEF context
+			// (the originally-documented "Control scene + Interact" setup).
 			channel.postMessage(data);
+
+			// Fallback channel: BroadcastChannel does NOT cross from a Custom Browser
+			// DOCK (View/Docks -> Custom Browser Docks) to a scene's Browser Source,
+			// even though both are "inside OBS" -- confirmed live: dock UI works fine,
+			// but Show never reached result.html. Docks appear to run in a separate
+			// CEF request context from scene sources, so BroadcastChannel/localStorage
+			// under file:// don't share state across that boundary either.
+			//
+			// localStorage works here ONLY if this page is loaded over http://, not
+			// file:// (both need the same origin, and file:// origins don't share
+			// storage the way a real host:port does) -- see LOCAL-SETUP.md, "Custom
+			// Browser Dock setup" for how to serve this folder over http:// for that
+			// reason. Writing is a no-op error under file:// in most engines, so this
+			// is wrapped defensively rather than assumed to always succeed.
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+			} catch (e) {
+				// file:// origin, or storage disabled -- BroadcastChannel-only is fine
+				// for the Interact-based setup, so this is silently ignored.
+			}
 
 			statusEl.textContent = 'Sent to result.html at ' + new Date().toLocaleTimeString();
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);

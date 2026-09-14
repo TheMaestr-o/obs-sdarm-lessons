@@ -17,30 +17,6 @@
 			background: transparent;
 			overflow: hidden;
 		}
-		#waiting {
-			position: fixed;
-			top: 0;
-			left: 0;
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			color: #666;
-			font-family: sans-serif;
-			font-size: 1.2em;
-			text-align: center;
-			padding: 1em;
-			box-sizing: border-box;
-		}
-
-		/* #waiting's own `display:flex` (an ID rule) otherwise outranks the browser's
-		   default `[hidden]{display:none}` (an attribute rule), so the `hidden`
-		   property set from script would silently fail to hide it without this. */
-		#waiting[hidden] {
-			display: none;
-		}
-
 		/*
 		Bottom-anchor strip: native/overlay.html now bottom-anchors ITSELF
 		(position:fixed;left:0;bottom:0 on its own #overlay-root -- see that file),
@@ -60,8 +36,9 @@
 			background: transparent;
 		}
 
-		/* Same specificity issue as #waiting above: this ID rule's `display:block`
-		   would otherwise outrank the browser's default `[hidden]{display:none}`. */
+		/* This ID rule's `display:block` would otherwise outrank the browser's
+		   default `[hidden]{display:none}` (an attribute rule), so the `hidden`
+		   property set from script would silently fail to hide it without this. */
 		#overlayFrame[hidden] {
 			display: none;
 		}
@@ -96,18 +73,26 @@
 	(e.g. 1920x1080), not native/overlay.html directly, and keep panel.html open in
 	a separate window/tab to control it.
 	-->
-	<div id="waiting">Waiting for panel.html&hellip;<br>Open panel.html in another window, fill in the question, and press Show.</div>
 	<iframe id="overlayFrame" title="Lower third overlay" hidden></iframe>
 
 	<script>
 		const CHANNEL_NAME = 'infor-r-lower-thirds';
+		const STORAGE_KEY = 'infor-r-lower-thirds-state';
 		const channel = new BroadcastChannel(CHANNEL_NAME);
 
-		const waitingEl = document.getElementById('waiting');
 		const frameEl = document.getElementById('overlayFrame');
+		let lastAppliedAt = 0; // dedupes the same Show press arriving on both channels
 
-		channel.onmessage = function (event) {
-			const data = event.data || {};
+		function applyData(data) {
+			if (!data) return;
+			// data._t (panel.html's Date.now() at press time) uniquely identifies one
+			// Show press. Both BroadcastChannel and the storage event can fire for the
+			// SAME press (e.g. if this page and the dock somehow end up sharing an
+			// origin after all, or during local testing) -- applying it twice is
+			// harmless but restarts the entrance animation pointlessly, so skip a
+			// repeat of the exact same press.
+			if (data._t && data._t === lastAppliedAt) return;
+			if (data._t) lastAppliedAt = data._t;
 
 			const params = new URLSearchParams();
 			params.set('id', data.id || '1');
@@ -129,8 +114,33 @@
 			// cleanly the moment the presenter presses Show again.
 			frameEl.src = 'native/overlay.html?' + params.toString();
 			frameEl.hidden = false;
-			waitingEl.hidden = true;
+		}
+
+		// Primary channel: works when panel.html and this page are both Browser
+		// Sources/Interact windows inside the same scene-source CEF context (the
+		// "Control scene + Interact" setup documented in LOCAL-SETUP.md).
+		channel.onmessage = function (event) {
+			applyData(event.data);
 		};
+
+		// Fallback channel: a Custom Browser Dock (View/Docks -> Custom Browser
+		// Docks) runs in a separate CEF context from scene Browser Sources, so
+		// BroadcastChannel never reaches this page from a docked panel.html, even
+		// though both are "inside OBS" -- confirmed live. The `storage` event fires
+		// in OTHER same-origin documents whenever localStorage changes (never in the
+		// document that made the change, which is exactly the cross-window signal
+		// needed here) -- but only within the SAME origin, and file:// origins don't
+		// share storage across windows the way a real host:port does. This only
+		// fires at all if this page is served over http://, not opened as
+		// file://; see LOCAL-SETUP.md, "Custom Browser Dock setup".
+		window.addEventListener('storage', function (event) {
+			if (event.key !== STORAGE_KEY || !event.newValue) return;
+			try {
+				applyData(JSON.parse(event.newValue));
+			} catch (e) {
+				// Malformed value somehow -- ignore rather than throw.
+			}
+		});
 	</script>
 </body>
 </html>

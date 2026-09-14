@@ -197,6 +197,60 @@ Usage:
    plays the appear animation once, and holds the fully-visible result at the bottom of the
    frame until you press **Show** again.
 
+### Custom Browser Dock setup (an alternative to Control scene + Interact)
+
+The steps above assume `panel.html` runs as a Browser Source inside a dedicated,
+never-live "Control" scene, opened via right-click → **Interact** while you work — that
+setup is confirmed working live. OBS also has a second way to keep a page permanently
+on screen: **View → Docks → Custom Browser Docks**, which embeds a page directly into
+OBS's own main window, alongside panels like Audio Mixer or Loudness (no scene, no
+Interact needed — it's just always there).
+
+**`BroadcastChannel` does not cross from a Custom Browser Dock to a scene's Browser
+Source**, even though both run "inside OBS" — confirmed live: a docked `panel.html`'s
+own UI works fine (clicking, typing), but pressing Show never updates `result.html`.
+Docks appear to run in a separate CEF (Chromium Embedded Framework) request context
+from scene sources, so `BroadcastChannel` — and `localStorage` under `file://` — don't
+share state across that boundary, the same way two entirely different browsers
+wouldn't.
+
+The fix is the same category of fix as the dock-vs-source browser-isolation problem
+generally: use something that isn't a same-context, in-memory browser API.
+`panel.html` and `result.html` now also write/read a shared `localStorage` key
+(`infor-r-lower-thirds-state`) as a fallback alongside `BroadcastChannel`, and
+`result.html` listens for the browser's `storage` event (which fires in *other*
+same-origin documents when `localStorage` changes — the correct primitive for
+"another window/dock changed something, react to it"). This only works if both pages
+share a real origin, though — and `file://` origins are partitioned per-directory/tab
+in ways that don't reliably share storage across dock vs. scene-source contexts
+either, mirroring the `BroadcastChannel` problem instead of solving it.
+
+So Custom Browser Dock setup additionally requires serving this folder over
+`http://` instead of `file://`:
+
+1. Run a tiny static file server rooted at this folder, e.g.:
+   ```
+   cd /Users/ohnedan/Developer/OBS/OBS_InforR-Lower
+   python3 -m http.server 8001
+   ```
+   (A `launchd` LaunchAgent — `~/Library/LaunchAgents/com.ohnedan.obs-lowerthirds-server.plist`
+   — is set up on this machine to start this automatically at login, matching the same
+   pattern already used for the unrelated `sbl` lesson project's own server. `launchctl
+   list | grep obs-lowerthirds` should show it registered.)
+2. In OBS, **View → Docks → Custom Browser Docks** → add one, URL:
+   `http://localhost:8001/panel.html` (not `file://...` this time).
+3. Set the live `result.html` Browser Source's URL to `http://localhost:8001/result.html`
+   too — both pages need to be on the exact same origin (`http://localhost:8001`) for
+   `localStorage`/the `storage` event to bridge them. Mixing `file://` for one and
+   `http://` for the other will not work.
+4. Everything else (fill in `line1`/`line2`, pick a style, press Show) works the same
+   as the Interact-based setup.
+
+The `Control` scene + Interact setup from the main steps above still works exactly as
+documented and does not need the local server — use whichever fits how you like to
+work; a docked panel stays visible regardless of which scene is live, while the
+Interact approach needs you to switch to the Control scene first.
+
 ## Design limitation: short "Name — Title" format
 
 Like Plans 1 and 2, this design (based on the original CodePen

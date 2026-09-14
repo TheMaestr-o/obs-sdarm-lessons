@@ -24,8 +24,8 @@ needs internet for fonts.
 4. Set **Width: 1920, Height: 1080** (or match your canvas size).
 5. Leave **Shutdown source when not visible** unchecked, so it doesn't reset
    between scene switches.
-6. Click OK. The source will look empty/black for now — that's expected,
-   it's waiting for the control panel.
+6. Click OK. The source will look empty for now — that's expected, nothing
+   shows until you press Show in the control panel (see below).
 7. Position it in your scene: it always renders at the **bottom-left** of
    its own 1920×1080 box, so if your Browser Source is full-canvas, the
    overlay will sit at the bottom of the stream. Resize/reposition the
@@ -35,11 +35,33 @@ needs internet for fonts.
 
 ### Controlling it during the stream
 
-1. Open `/Users/ohnedan/Developer/OBS/OBS_InforR-Lower/panel.html` in a
-   regular browser window (Chrome, Safari, whatever you normally use) — on
-   the same computer running OBS, or on your second monitor. This is your
-   control panel; it never appears on stream itself.
-2. For each question, fill in:
+**Important — do not open `panel.html` in a regular browser (Chrome, Safari,
+Brave...).** The panel and the overlay talk to each other over a mechanism
+(`BroadcastChannel`) that only works between pages running inside the *same*
+browser engine. OBS's Browser Source runs its own separate, isolated engine
+— a page open in Chrome/Safari/Brave cannot reach it, even though it's the
+same file on the same computer. The panel has to run *inside OBS too*.
+
+Set this up once:
+
+1. Create a **new, separate scene** just for the panel — click the **+**
+   under the Scenes list, name it something like "Control". Never switch
+   this scene to live/program output; it's only for your own use.
+2. With the "Control" scene selected, add another **Sources → (+) →
+   Browser** — a brand-new source, not the same one as `result.html`.
+3. Local file → browse to:
+   ```
+   /Users/ohnedan/Developer/OBS/OBS_InforR-Lower/panel.html
+   ```
+   Size doesn't matter much — 900×800 is comfortable.
+
+To actually type into it during the stream:
+
+1. Switch to the "Control" scene (this never goes live, so it's safe to sit
+   on it while you work).
+2. Right-click the panel source in the Sources list → **Interact**. A
+   separate window opens where the panel is actually clickable/typeable.
+3. In that window, for each question, fill in:
    - **Line 1** — the lesson topic (e.g. "God's Love for Man")
    - **Line 2** — the letter and the question (e.g. "a. What evidence of
      God's love is given to humanity?")
@@ -57,6 +79,38 @@ needs internet for fonts.
    need to hide the Browser Source in OBS itself (click the eye icon next
    to the source) and unhide it later — there's currently no "hide" button
    in the panel itself, only "show the next thing."
+
+### Alternative: a permanent dock instead of a Control scene
+
+The Control-scene setup above works, but you have to switch to that scene
+every time you want to type a new question. OBS has a way to keep the panel
+**permanently visible** in its own main window instead — a **Custom Browser
+Dock**, the same kind of panel as the built-in Audio Mixer or Loudness
+meters. This needs one extra piece of setup (a small local server) but then
+you never have to switch scenes to reach the panel again.
+
+**One-time setup:**
+
+1. A small file server for this folder already runs automatically on this
+   machine (via a `launchd` LaunchAgent, `com.ohnedan.obs-lowerthirds-server`)
+   at `http://localhost:8001` — nothing to start manually. If it's ever not
+   responding, run `launchctl list | grep obs-lowerthirds` to check, or start
+   it by hand with `cd /Users/ohnedan/Developer/OBS/OBS_InforR-Lower && python3
+   -m http.server 8001`.
+2. **View → Docks → Custom Browser Docks** → add one → URL:
+   ```
+   http://localhost:8001/panel.html
+   ```
+3. **Important:** the live `result.html` Browser Source's URL must also be
+   switched to `http://localhost:8001/result.html` (uncheck "Local file",
+   type that URL instead) — the panel and the overlay only talk to each
+   other correctly when both are loaded from the exact same
+   `http://localhost:8001` address. Mixing a `file://` result.html with an
+   `http://` docked panel will not work.
+
+Once both are on `http://localhost:8001`, the dock behaves exactly like the
+Control-scene panel — fill in Line 1/Line 2, pick a style, press Show — except
+it's always on screen in OBS's own window, regardless of which scene is live.
 
 ### Quick pre-stream checklist
 
