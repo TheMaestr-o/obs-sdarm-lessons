@@ -22,19 +22,20 @@
 			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 			background: #1e1e1e;
 			color: #d4d4d4;
-			padding: 16px;
+			padding: 12px;
 			min-height: 100vh;
 		}
 
+		/*
+		No separate card background anymore -- the panel used to sit as its own
+		#262626 rectangle inside the dock's own #1e1e1e background, which on a
+		real OBS dock reads as a frame-within-a-frame (the dock's own edge, plus
+		this panel's edge just inside it). Content now sits directly on the
+		dock's background, full width, so it reads as part of the dock rather
+		than a separate box floating inside it.
+		*/
 		.container {
-			max-width: 640px;
-			margin: 0 auto;
-		}
-
-		.panel {
-			background: #262626;
-			border-radius: 4px;
-			padding: 12px;
+			width: 100%;
 		}
 
 		.form-group {
@@ -131,12 +132,30 @@
 			text-align: center;
 		}
 
+		/* The whole card is a clickable <label>, and the selected state is already
+		   shown by the card's own background fill below -- the native radio dot
+		   is redundant on top of that and, unstyled, reads as a stray dot on the
+		   card's edge. Visually hidden but still focusable/keyboard-operable
+		   (not display:none, which would remove it from the tab order). */
 		.template-options input[type="radio"] {
-			margin: 0;
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
 		}
 
 		.template-options label:has(input:checked) {
 			background: #2c445e;
+		}
+
+		.template-options label:has(input:focus-visible) {
+			outline: 2px solid #4a9eff;
+			outline-offset: 1px;
 		}
 
 		.template-name {
