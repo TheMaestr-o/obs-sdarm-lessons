@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>Lower Third Overlay (native)</title>
+	<style>
+		/*
+		Background is true CSS transparent, not lower.css's solid black. This is a
+		deliberate improvement over the original (see LOCAL-SETUP.md "Option C" for
+		the reasoning): lower.html/css/lower.css is meant to fill the FULL OBS canvas
+		and relies on a Chroma Key filter (keying out black) for transparency, which
+		was fine there. This page is OUR code and is only ever loaded as a small
+		iframe inside result.html's bottom strip (see result.html), never as a
+		full-canvas Browser Source by itself -- so real alpha transparency via
+		`background: transparent` is both possible and strictly better: no Chroma Key
+		filter needed at all, no risk of keying out a dark color that happens to
+		appear in the lesson text or a dark theme, and it composites correctly over
+		any OBS scene regardless of what's behind it. If a future use of this page
+		DOES want the old solid-black-plus-Chroma-Key behavior (e.g. loading it
+		full-canvas directly, matching Option A), that's a one-line change here.
+		*/
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			background: transparent;
+			overflow: hidden;
+		}
+
+		/*
+		Bottom-anchor natively: unlike the old lower.html-in-an-iframe trick (which
+		needed a short "screen" purely so lower.css's `height:100%` centering would
+		resolve against a short box), this page IS the short box. No iframe-within
+		this page is needed. #overlay-root is sized to match result.html's previous
+		220px strip -- the height derivation (tallest template content vs a
+		1080px-tall OBS canvas) is unchanged and documented in result.html/
+		LOCAL-SETUP.md; this page keeps the same number since it's loaded inside an
+		iframe of that same size by result.html.
+		*/
+		#overlay-root {
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			height: 220px;
+			box-sizing: border-box;
+			padding: 0 2em;
+		}
+	</style>
+	<link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+	<div id="overlay-root"></div>
+
+	<script>
+		/*
+		Reads the SAME URL parameters panel.html already sends (via result.html's
+		iframe `src`): id, line1, line2, color1, color2. Builds the markup for
+		whichever of the 3 styles was requested using plain DOM APIs (no
+		document.writeln -- that only works when a script runs during the initial
+		parse, and we want this page to be able to re-render without a reload).
+
+		render() clears and rebuilds #overlay-root's markup from scratch. Right now
+		it's only called once, at load, from the URL's own query string (this page
+		is still reloaded via the iframe's `src` on every "Show" press, same as the
+		old lower.html approach, since that's simple and already proven reliable --
+		see LOCAL-SETUP.md). But render() takes plain arguments rather than reading
+		location.search itself, and does not assume it's called exactly once, so a
+		future postMessage-driven live-update path (no reload at all) can call it
+		directly without any changes to this function.
+		*/
+
+		function getParam(params, name, fallback) {
+			const value = params.get(name);
+			return value === null || value === '' ? fallback : value;
+		}
+
+		function sanitizeHex(value, fallback) {
+			const hex = (value || '').replace('#', '').trim();
+			return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
+		}
+
+		// Small helper to build an element with class names and children in one go,
+		// so the render functions below read close to the markup they produce.
+		function el(tag, className, children) {
+			const node = document.createElement(tag);
+			if (className) node.className = className;
+			(children || []).forEach((child) => node.appendChild(child));
+			return node;
+		}
+
+		function textDiv(text) {
+			const inner = document.createElement('div');
+			inner.textContent = text;
+			return inner;
+		}
+
+		function renderSlashSlide(root, line1, line2) {
+			root.className = 'overlay-root style-slash-slide';
+			const block = el('div', 'overlay-block', [
+				el('div', 'ss-slash color2', []),
+				el('div', 'ss-line ss-line1 color1 mask', [textDiv(line1)]),
+				el('div', 'ss-line ss-line2 color1 mask', [textDiv(line2)])
+			]);
+			block.querySelector('.ss-slash').textContent = '/';
+			root.appendChild(block);
+		}
+
+		function renderSlideUpDown(root, line1, line2) {
+			root.className = 'overlay-root style-slide-up-down';
+			const block = el('div', 'overlay-block', [
+				el('div', 'sud-block sud-line1 color2 arimo mask', [textDiv(line1)]),
+				el('div', 'sud-block sud-line2 color1 mask', [textDiv(line2)])
+			]);
+			root.appendChild(block);
+		}
+
+		// Builds the same 5-<line>/3-<clipPath> SVG frame structure lower.js writes
+		// for id=5 (see js/lower.js's document.writeln calls in the "case '5':"
+		// branch), via the SVG DOM API instead of innerHTML/writeln, so attributes
+		// like clip-path (which need the url(#id) to already exist in the document)
+		// resolve correctly.
+		const SVG_NS = 'http://www.w3.org/2000/svg';
+
+		function svgEl(tag, attrs) {
+			const node = document.createElementNS(SVG_NS, tag);
+			Object.keys(attrs || {}).forEach((key) => node.setAttribute(key, attrs[key]));
+			return node;
+		}
+
+		function renderFramedReveal(root, line1, line2) {
+			root.className = 'overlay-root style-framed-reveal';
+			const block = el('div', 'overlay-block', []);
+
+			const svg = svgEl('svg', { xmlns: SVG_NS, width: '100%', height: '100%' });
+			const defs = svgEl('defs', {});
+
+			const maskBR = svgEl('clipPath', { id: 'fr-mask-bottom-right' });
+			maskBR.appendChild(svgEl('rect', { class: 'clip-path', x: '70%', y: '0', width: '30%', height: '100%' }));
+			const maskTop = svgEl('clipPath', { id: 'fr-mask-top' });
+			maskTop.appendChild(svgEl('rect', { class: 'clip-path', x: '0', y: '0', width: '100%', height: '100%' }));
+			const maskBL = svgEl('clipPath', { id: 'fr-mask-bottom-left' });
+			maskBL.appendChild(svgEl('rect', { class: 'clip-path', x: '0', y: '0', width: '30%', height: '100%' }));
+
+			defs.appendChild(maskBR);
+			defs.appendChild(maskTop);
+			defs.appendChild(maskBL);
+			svg.appendChild(defs);
+
+			svg.appendChild(svgEl('line', { class: 'fr-bottom-right', x1: '70%', y1: '100%', x2: '100%', y2: '100%' }));
+			svg.appendChild(svgEl('line', { class: 'fr-right', x1: '100%', y1: '0', x2: '100%', y2: '100%' }));
+			svg.appendChild(svgEl('line', { class: 'fr-top', x1: '0', y1: '0', x2: '100%', y2: '0' }));
+			svg.appendChild(svgEl('line', { class: 'fr-left', x1: '0', y1: '0', x2: '0', y2: '100%' }));
+			svg.appendChild(svgEl('line', { class: 'fr-bottom-left', x1: '0', y1: '100%', x2: '30%', y2: '100%' }));
+
+			block.appendChild(svg);
+			block.appendChild(el('div', 'fr-line1 color1 arimo mask', [textDiv(line1)]));
+			block.appendChild(el('div', 'fr-line2 color1 mask', [textDiv(line2)]));
+
+			root.appendChild(block);
+		}
+
+		function render(id, line1, line2, color1, color2) {
+			const root = document.getElementById('overlay-root');
+			// Clear any previous render entirely (removes old elements + any inline
+			// styles/animation state) so a second "Show" with new text starts every
+			// animation fresh rather than being affected by the previous run's
+			// now-`forwards`-held end state.
+			root.replaceChildren();
+			root.removeAttribute('style');
+
+			const safeColor1 = sanitizeHex(color1, 'fff');
+			const safeColor2 = sanitizeHex(color2, 'cf4c4e');
+			root.style.setProperty('--line1-color', '#' + safeColor1);
+			root.style.setProperty('--line2-color', '#' + safeColor2);
+
+			const safeLine1 = line1 || 'John Doe';
+			const safeLine2 = line2 || 'Motion Designer';
+
+			switch (id) {
+				case '2':
+					renderSlideUpDown(root, safeLine1, safeLine2);
+					break;
+				case '5':
+					renderFramedReveal(root, safeLine1, safeLine2);
+					break;
+				case '1':
+				default:
+					renderSlashSlide(root, safeLine1, safeLine2);
+					break;
+			}
+		}
+
+		const params = new URLSearchParams(window.location.search);
+		render(
+			getParam(params, 'id', '1'),
+			getParam(params, 'line1', ''),
+			getParam(params, 'line2', ''),
+			getParam(params, 'color1', 'fff'),
+			getParam(params, 'color2', 'cf4c4e')
+		);
+	</script>
+</body>
+</html>

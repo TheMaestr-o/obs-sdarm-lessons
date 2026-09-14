@@ -28,7 +28,7 @@ OBS/
 |---|---|---|---|---|
 | 1 | Animated Lower Thirds | BroadcastChannel + localStorage | ✅ fully | short: name + subtitle |
 | 2 | Ultimate OBS Lower Thirds | BroadcastChannel + localStorage | ⚠️ pulls jQuery/fonts from a CDN | short: name + title |
-| 3 | infor-r Lower Thirds | BroadcastChannel panel (`panel.html` → `result.html`), or raw URL params | ✅ fully (after localizing paths) | short: two lines, animated CodePen design; 3 named styles (Slash & Slide, Slide Up / Down, Framed Reveal), always bottom-anchored |
+| 3 | infor-r Lower Thirds | BroadcastChannel panel (`panel.html` → `result.html`), or raw URL params | ✅ fully (after localizing paths) | short: two lines, animated CodePen design rebuilt as our own CSS; 3 named styles (Slash & Slide, Slide Up / Down, Framed Reveal), always bottom-anchored, holds on screen indefinitely instead of auto-hiding |
 
 All three are built for short "Name — Title" lower thirds, one line per field, and would need layout changes to fit a long Bible lesson question. In Plan 3, out of the 5 built-in templates (`id=1..5`) only `id=1,2,5` stay readable — `id=3` overlaps its two lines, `id=4` doesn't render the second line at all (see the screenshots in [screenshots/plan3/](screenshots/plan3/) and details in [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md)).
 

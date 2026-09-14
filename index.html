@@ -118,10 +118,10 @@
     </div>
     <ol class="steps">
       <li>Open both links in two tabs of the same browser</li>
-      <li>In the panel, fill in line 1 (a short label) and line 2 (the actual question), pick a style, and press <b>Show</b></li>
-      <li><code>result.html</code> reloads a pinned bottom-strip iframe with the new text and replays the animation from the start — the strip stays anchored at the bottom of the frame no matter which style is picked</li>
+      <li>In the panel, fill in line 1 (the lesson topic) and line 2 (a letter + the question, e.g. "a. What evidence..."), pick a style, and press <b>Show</b></li>
+      <li>The overlay plays its entrance animation once and then <b>holds indefinitely</b> — it does not auto-hide. Press <b>Show</b> again whenever you're ready to advance to the next question</li>
     </ol>
-    <div class="note"><b>Look:</b> the same design from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> that we were asked to use as the reference in the first place. The background is solid black (not CSS transparency) — in OBS, transparency comes from a <b>Chroma Key</b> filter over that black, same as Plans 1/2. The panel only offers three named styles — the other two built-in templates break with a long question (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for the full comparison, and <code>lower.html?id=...</code> still works directly by URL if you want to try them anyway).</div>
+    <div class="note"><b>Look:</b> the same design from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> that we were asked to use as the reference in the first place, rebuilt as our own CSS (<code>OBS_InforR-Lower/native/</code>) so the entrance animation can hold forever instead of auto-reversing after a couple of seconds. Background is true CSS transparency — no Chroma Key filter needed in OBS, unlike Plans 1/2. The panel only offers three named styles — the other two built-in templates break with a long question (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for the full comparison, and the original <code>lower.html?id=...</code> still works directly by URL if you want to see all 5, auto-hide included).</div>
     <div class="shots">
       <figure><img src="screenshots/plan3-panel-config.png" alt="Plan 3 panel setup with the named style picker"><figcaption>Panel setup — pick a style by name, not a number</figcaption></figure>
       <figure><img src="screenshots/plan3-result.png" alt="Plan 3 result"><figcaption>Result, bottom-anchored</figcaption></figure>

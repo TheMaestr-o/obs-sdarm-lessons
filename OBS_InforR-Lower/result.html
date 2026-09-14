@@ -10,7 +10,11 @@
 			padding: 0;
 			width: 100%;
 			height: 100%;
-			background-color: black;
+			/* True transparency: native/overlay.html (loaded in the iframe below) is
+			   transparent too, so nothing on this page needs a black backdrop for a
+			   Chroma Key filter to key out anymore -- add this file directly as an
+			   OBS Browser Source with no Chroma Key filter required. */
+			background: transparent;
 			overflow: hidden;
 		}
 		#waiting {
@@ -38,18 +42,12 @@
 		}
 
 		/*
-		Bottom-anchor strip: lower.html's own CSS (css/lower.css, untouched) centers
-		its content with `main{position:absolute;height:100%}` plus
-		`.animation{margin:1em auto}`. We don't edit that file. Instead, this iframe
-		gives lower.html a short "screen" to live in: percentage heights inside it
-		resolve against THIS box's height, not the full page, so the same centered
-		layout ends up centered within a short strip pinned to the bottom of the
-		real canvas -- which reads as a standard bottom-anchored lower third.
-		220px was picked by measuring the tallest content in css/lower.css
-		(animation-1's first line at font-size:5em = 80px, animation-5's frame at
-		3.8em = ~61px, both inside a 4em/64px `.animation` box) against a 1080px-tall
-		OBS canvas: it comfortably contains every template with margin to spare
-		while keeping the same visual weight as Plans 1/2's lower-third strip.
+		Bottom-anchor strip: native/overlay.html now bottom-anchors ITSELF
+		(position:fixed;left:0;bottom:0 on its own #overlay-root -- see that file),
+		so this iframe no longer needs to be short purely as a CSS trick. It's kept
+		short anyway (same 220px as before) simply because that's the intended
+		lower-third size on the 1920x1080 canvas -- see native/overlay.html's own
+		comment for the height reasoning, unchanged from the original derivation.
 		*/
 		#overlayFrame {
 			position: fixed;
@@ -71,23 +69,32 @@
 </head>
 <body>
 	<!--
-	This page is a thin wrapper around lower.html. It does not render the lower third
-	itself: lower.html builds its markup once at load time (via document.writeln, reading
-	URL query parameters), so it is not a page that can be updated live. Instead, this
-	wrapper listens on a BroadcastChannel for new data sent from panel.html and reloads
-	an <iframe> pointed at lower.html with the new parameters, which makes lower.js run its
-	document.writeln logic again from scratch and replay the animation -- without
-	navigating result.html itself away.
+	This page is a thin wrapper around native/overlay.html (OUR OWN code -- see
+	LOCAL-SETUP.md, "Option C"). It does not render the lower third itself: it
+	listens on a BroadcastChannel for new data sent from panel.html and points an
+	<iframe> at native/overlay.html with the new parameters.
 
-	The iframe is pinned to a short strip at the bottom of this page (see #overlayFrame
-	above). lower.html/css/lower.css/js/lower.js are completely unmodified; this short
-	container is what turns their centered layout into a bottom-anchored lower third,
-	matching Plans 1/2's standard position. See LOCAL-SETUP.md, "Option C", for the full
-	explanation.
+	Earlier versions of this file pointed at the third-party lower.html and, after
+	loading it, reached INTO the iframe's contentDocument to pause its
+	animation mid-hold (freezing it before its built-in reverse phase could play).
+	That approach could not work: Chromium enforces same-origin restrictions
+	between file:// documents strictly enough that a parent file:// page cannot
+	read another file:// iframe's contentDocument, even though both report the
+	same "file://" origin -- confirmed from inside this page's own script, not
+	just from an external test harness. Since OBS's Browser Source is Chromium
+	(CEF) too, that failure mode is real in actual OBS use, not just local testing.
+
+	native/overlay.html sidesteps the problem entirely: its CSS animations are our
+	own, written to run their "appear" phase once and then hold forever
+	(`animation-fill-mode: forwards`, no `alternate`, no auto-reverse) -- so there
+	is nothing left to freeze, and no need to reach into the iframe at all. This
+	page only ever WRITES the iframe's `src`; it never reads anything back out of
+	it. See native/overlay.css and native/overlay.html for the implementation, and
+	LOCAL-SETUP.md for the full writeup.
 
 	Add THIS file (result.html) as the OBS Browser Source at the full canvas size
-	(e.g. 1920x1080), not lower.html directly, and keep panel.html open in a separate
-	window/tab to control it.
+	(e.g. 1920x1080), not native/overlay.html directly, and keep panel.html open in
+	a separate window/tab to control it.
 	-->
 	<div id="waiting">Waiting for panel.html&hellip;<br>Open panel.html in another window, fill in the question, and press Show.</div>
 	<iframe id="overlayFrame" title="Lower third overlay" hidden></iframe>
@@ -103,28 +110,24 @@
 			const data = event.data || {};
 
 			const params = new URLSearchParams();
-			// Only id, line1 and line2 are required by lower.js; color1/color2/duration
-			// are optional and lower.js falls back to its own defaults when they are
-			// missing or empty, so we only add them when panel.html actually sent one.
 			params.set('id', data.id || '1');
 			params.set('line1', data.line1 || '');
 			params.set('line2', data.line2 || '');
 			if (data.color1) params.set('color1', data.color1);
 			if (data.color2) params.set('color2', data.color2);
-			if (data.duration) params.set('duration', data.duration);
 			// Cache-bust so pressing "Show" twice with identical text still forces the
 			// iframe to reload: setting .src to a string identical to its current
-			// value is a no-op in every browser, and lower.js only runs its
-			// document.writeln + animation on load.
+			// value is a no-op in every browser, and native/overlay.html currently
+			// reads its render() parameters from the URL once at load.
 			params.set('_t', Date.now().toString());
 
-			// Reset the iframe's src on every message so lower.js's document.writeln +
-			// animation always replays from the start. lower.js is a top-level script
-			// that writes its markup once via document.writeln() when its page first
-			// loads, with no exported function to call again -- so re-showing it means
-			// reloading that page, which the iframe lets us do without touching
-			// result.html's own top-level location.
-			frameEl.src = 'lower.html?' + params.toString();
+			// Reset the iframe's src on every message so native/overlay.html's
+			// render() always runs again with the new text -- this replaces whatever
+			// was showing (including a still-held, previously-"forwards"-completed
+			// animation) with the new question, satisfying both halves of the
+			// requirement: the overlay holds indefinitely on its own, AND changes
+			// cleanly the moment the presenter presses Show again.
+			frameEl.src = 'native/overlay.html?' + params.toString();
 			frameEl.hidden = false;
 			waitingEl.hidden = true;
 		};

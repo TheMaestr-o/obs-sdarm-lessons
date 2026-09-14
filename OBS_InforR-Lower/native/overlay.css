@@ -1,0 +1,375 @@
+/*
+ * native/overlay.css
+ *
+ * Our OWN implementation of the three "lower third" visual styles referenced
+ * from ../css/lower.css (ids 1, 2, 5 -- "Slash & Slide", "Slide Up / Down",
+ * "Framed Reveal"). This file does not import from, extend, or modify
+ * ../css/lower.css in any way -- see LOCAL-SETUP.md for why: lower.css's
+ * keyframes are built as `-webkit-animation-iteration-count: 2` + `alternate`,
+ * which plays the "in" animation once and then IMMEDIATELY plays it backwards
+ * to hide the text again, with no way to ask it to just stop after appearing.
+ * That's the opposite of what a lesson-question overlay needs (stay up until
+ * the presenter advances to the next question), and it can't be patched from
+ * outside (see result.html's history / LOCAL-SETUP.md for the iframe
+ * same-origin dead end that was tried first).
+ *
+ * Every animation below:
+ *   - Reproduces the ORIGINAL's "appear" keyframe shape and easing as closely
+ *     as possible (same cubic-bezier / easing function, same relative timing
+ *     offsets between line1 / line2 / decorative elements).
+ *   - Runs exactly ONCE (`animation-iteration-count: 1`, no `alternate`).
+ *   - Ends with `animation-fill-mode: forwards`, landing on and staying on
+ *     the fully-revealed end state forever -- no reverse, no auto-hide.
+ *
+ * Timing note: the original keyframes spend their first chunk sitting at the
+ * "hidden" starting position (e.g. animation-1-slash sits at 0% opacity from
+ * 0% to 25% of a 4s duration) before actually moving -- that's how the
+ * original staggers line1 vs line2 vs decorative elements within one shared
+ * @keyframes block. Rather than reproduce that with a lot of dead keyframe
+ * space, each element below gets its OWN short `animation-duration` (long
+ * enough to reproduce that element's original absolute movement, converted
+ * from the original's percentage-of-duration into seconds) plus an
+ * `animation-delay` equal to that element's original absolute start time --
+ * so the wall-clock relative timing between elements is preserved exactly,
+ * just expressed as delay instead of dead keyframe percentage. Comments next
+ * to each block show the original id/keyframe/absolute-time math used.
+ */
+
+.overlay-root {
+  font-family: 'Open Sans', sans-serif;
+  text-transform: uppercase;
+  line-height: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--line1-color, #fff);
+}
+
+.overlay-root .arimo {
+  font-family: 'Arimo', sans-serif;
+}
+
+.overlay-block {
+  width: 100%;
+  height: 4em;
+  margin: 1em auto;
+  position: relative;
+}
+
+.mask {
+  overflow: hidden;
+  position: relative;
+}
+
+.color1 {
+  color: var(--line1-color, #fff);
+}
+
+.color2 {
+  color: var(--line2-color, #cf4c4e);
+}
+
+/* ============================================================
+ * Style 1 -- "Slash & Slide" (native re-implementation of lower.css's
+ * animation-1: a diagonal slash fades/slides in, then line1 and line2
+ * slide in from the left underneath it).
+ *
+ * Original absolute times (base duration 4s):
+ *   slash:  0% hidden -> 25% (1.0s) still hidden -> 45% (1.8s) opacity 1
+ *           -> 50% (2.0s) final translateX(0)
+ *   line1:  0%..45% (1.8s) at left:-100% -> 65% (2.6s) at left:0
+ *   line2:  0%..55% (2.2s) at left:-100% -> 75% (3.0s) at left:0
+ * ============================================================ */
+.style-slash-slide {
+  text-align: left;
+}
+
+.style-slash-slide .ss-slash {
+  position: absolute;
+  font-size: 5em;
+  top: -.15em;
+  left: 0;
+  opacity: 0;
+  transform: translate3d(6em, 0, 0);
+  animation: ss-slash 1.8s cubic-bezier(0.19, 0.76, 0.32, 1) 0s 1 forwards;
+}
+
+.style-slash-slide .ss-line {
+  position: absolute;
+  font-size: 2em;
+  height: 1em;
+  width: 100%;
+  font-weight: 300;
+}
+
+.style-slash-slide .ss-line1 {
+  top: 0;
+  left: .93em;
+}
+
+.style-slash-slide .ss-line2 {
+  top: .9em;
+  left: .55em;
+}
+
+.style-slash-slide .ss-line > div {
+  position: relative;
+  left: -100%;
+}
+
+.style-slash-slide .ss-line1 > div {
+  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 1.8s 1 forwards;
+}
+
+.style-slash-slide .ss-line2 > div {
+  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 2.2s 1 forwards;
+}
+
+@keyframes ss-slash {
+  0% {
+    opacity: 0;
+    transform: translate3d(6em, 0, 0);
+  }
+  55% {
+    /* 1.0s of this 1.8s block corresponds to the original's 25%-of-4s mark */
+    opacity: 0;
+    transform: translate3d(6em, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes ss-line-in {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 0;
+  }
+}
+
+/* ============================================================
+ * Style 2 -- "Slide Up / Down" (native re-implementation of lower.css's
+ * animation-2: line1 rises up from below, line2 drops down from above).
+ *
+ * Original absolute times (base duration 3s):
+ *   name (line1):  0%..30% (0.9s) at translateY(100%) -> 60% (1.8s) at 0
+ *   title (line2): 0%..30% (0.9s) at translateY(-100%) -> 60% (1.8s) at 0
+ *   (both start moving at the same absolute time in the original, just
+ *   travelling opposite directions)
+ * ============================================================ */
+.style-slide-up-down {
+  text-align: center;
+}
+
+.style-slide-up-down .sud-block {
+  width: 100%;
+  height: 0.9em;
+  padding-top: 0.04em;
+  overflow: hidden;
+  position: relative;
+}
+
+.style-slide-up-down .sud-line1 {
+  font-size: 2.8em;
+  font-weight: 700;
+}
+
+.style-slide-up-down .sud-line1 > div {
+  transform: translate3d(0, 100%, 0);
+  animation: sud-up 0.9s ease-out 0.9s 1 forwards;
+}
+
+.style-slide-up-down .sud-line2 {
+  font-size: 1.1em;
+  font-weight: 300;
+  margin-top: 0.3em;
+}
+
+.style-slide-up-down .sud-line2 > div {
+  transform: translate3d(0, -100%, 0);
+  animation: sud-down 0.9s ease-out 0.9s 1 forwards;
+}
+
+@keyframes sud-up {
+  0% {
+    transform: translate3d(0, 100%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes sud-down {
+  0% {
+    transform: translate3d(0, -100%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ============================================================
+ * Style 5 -- "Framed Reveal" (native re-implementation of lower.css's
+ * animation-5: an SVG frame draws itself in via three clip-path sweeps,
+ * then line1 slides up from below and line2 drops down from above).
+ *
+ * Original absolute times (base duration 3.1s):
+ *   bottom-right sweep: 0%..8% (0.248s) hidden -> 30% (0.93s) slid across
+ *                        -> 38% (1.178s) final position
+ *   top sweep:          0%..38% (1.178s) hidden -> 58% (1.798s) final
+ *   bottom-left sweep:  0%..58% (1.798s) hidden -> 64% (1.984s) partial
+ *                        -> 84% (2.604s) final position
+ *   line1 (text-name):  0%..25% (0.775s) below -> 45% (1.395s) final
+ *   line2 (text-title): 0%..35% (1.085s) above -> 55% (1.705s) final
+ *
+ * Structural note: the original builds the frame out of 5 separate <line>
+ * elements (bottom-right, right, top, left, bottom-left) each clipped by one
+ * of 3 <clipPath> rects that animate via `transform` on the clip-path's
+ * rect (not on the <line> itself) -- 2 lines share each of the
+ * bottom-right/bottom-left clip masks (see lower.js's SVG markup). We
+ * reproduce that exact structure here so the frame's geometry (a frame with
+ * gaps top-left and bottom-right, matching the original's asymmetric look)
+ * is identical, just driven by our own single-run keyframes.
+ * ============================================================ */
+.style-framed-reveal {
+  text-align: center;
+  height: 3.8em;
+  position: relative;
+}
+
+.style-framed-reveal svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.style-framed-reveal line {
+  stroke-width: 4px;
+  stroke: var(--line2-color, #cf4c4e);
+}
+
+.style-framed-reveal .clip-path {
+  animation-timing-function: ease-out;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+}
+
+.style-framed-reveal .fr-bottom-right,
+.style-framed-reveal .fr-right {
+  clip-path: url(#fr-mask-bottom-right);
+}
+
+.style-framed-reveal .fr-top {
+  clip-path: url(#fr-mask-top);
+}
+
+.style-framed-reveal .fr-bottom-left,
+.style-framed-reveal .fr-left {
+  clip-path: url(#fr-mask-bottom-left);
+}
+
+#fr-mask-bottom-right > .clip-path {
+  transform: translate3d(-100%, 96%, 0);
+  animation-name: fr-bottom-right;
+  animation-duration: 0.93s;
+  animation-delay: 0s;
+}
+
+#fr-mask-top > .clip-path {
+  transform: translate3d(100%, 0, 0);
+  animation-name: fr-top;
+  animation-duration: 0.62s;
+  animation-delay: 1.178s;
+}
+
+#fr-mask-bottom-left > .clip-path {
+  transform: translate3d(-98%, -100%, 0);
+  animation-name: fr-bottom-left;
+  animation-duration: 0.806s;
+  animation-delay: 1.798s;
+}
+
+@keyframes fr-bottom-right {
+  0% {
+    transform: translate3d(-100%, 96%, 0);
+  }
+  27% {
+    /* corresponds to the original's 8%-of-3.1s mark within this 0.93s span */
+    transform: translate3d(-100%, 96%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fr-top {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fr-bottom-left {
+  0% {
+    transform: translate3d(-98%, -100%, 0);
+  }
+  23% {
+    /* corresponds to the original's 64%-of-3.1s mark within this 0.806s span */
+    transform: translate3d(-98%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.style-framed-reveal .fr-line1 {
+  font-size: 2em;
+  padding-top: .4em;
+  font-weight: 700;
+  overflow: hidden;
+  position: relative;
+}
+
+.style-framed-reveal .fr-line1 > div {
+  transform: translate3d(0, 110%, 0);
+  animation: fr-text-name 0.62s ease-out 0.775s 1 forwards;
+}
+
+.style-framed-reveal .fr-line2 {
+  font-size: .9em;
+  letter-spacing: .7px;
+  margin-top: .2em;
+  overflow: hidden;
+  position: relative;
+}
+
+.style-framed-reveal .fr-line2 > div {
+  transform: translate3d(0, -100%, 0);
+  animation: fr-text-title 0.62s ease-out 1.085s 1 forwards;
+}
+
+@keyframes fr-text-name {
+  0% {
+    transform: translate3d(0, 110%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fr-text-title {
+  0% {
+    transform: translate3d(0, -100%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
