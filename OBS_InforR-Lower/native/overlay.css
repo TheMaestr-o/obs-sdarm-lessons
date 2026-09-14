@@ -67,7 +67,7 @@
 }
 
 .color2 {
-  color: var(--line2-color, #cf4c4e);
+  color: var(--line2-color, #c6a15b);
 }
 
 /* ============================================================
@@ -251,7 +251,7 @@
 
 .style-framed-reveal line {
   stroke-width: 4px;
-  stroke: var(--line2-color, #cf4c4e);
+  stroke: var(--line2-color, #c6a15b);
 }
 
 .style-framed-reveal .clip-path {
