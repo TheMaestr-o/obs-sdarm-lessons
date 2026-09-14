@@ -31,30 +31,14 @@
 			margin: 0 auto;
 		}
 
-		h1 {
-			text-align: center;
-			margin: 0 0 4px;
-			font-size: 15px;
-			font-weight: 600;
-			color: #d4d4d4;
-		}
-
-		.subtitle {
-			text-align: center;
-			color: #808080;
-			font-size: 11px;
-			margin-bottom: 16px;
-		}
-
 		.panel {
 			background: #262626;
-			border: 1px solid #3a3a3a;
 			border-radius: 4px;
-			padding: 14px;
+			padding: 12px;
 		}
 
 		.form-group {
-			margin-bottom: 14px;
+			margin-bottom: 10px;
 		}
 
 		label {
@@ -156,16 +140,44 @@
 		}
 
 		.template-name {
-			font-size: 11.5px;
+			font-size: 11px;
 			font-weight: 600;
 			color: #d4d4d4;
 		}
 
-		.template-desc {
-			font-size: 10px;
-			font-weight: 400;
-			color: #808080;
-			line-height: 1.35;
+		/* Native <details>/<summary> for the collapsible style/colors section --
+		   no JS needed, works identically in any browser/CEF. Styled to look like
+		   part of the panel rather than a default browser widget. */
+		.settings {
+			margin-bottom: 10px;
+		}
+
+		.settings summary {
+			cursor: pointer;
+			font-size: 11px;
+			color: #a0a0a0;
+			padding: 4px 0;
+			list-style: none;
+		}
+
+		.settings summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.settings summary::before {
+			content: '\25B8';
+			display: inline-block;
+			margin-right: 5px;
+			font-size: 9px;
+			transition: transform 0.15s;
+		}
+
+		.settings[open] summary::before {
+			transform: rotate(90deg);
+		}
+
+		.settings .form-group:first-of-type {
+			margin-top: 8px;
 		}
 
 		/* Tiny looping preview swatches: a simplified, isolated re-creation of each
@@ -366,87 +378,84 @@
 			min-height: 14px;
 		}
 
-		.hint {
-			font-size: 10.5px;
-			color: #808080;
-			margin-top: 4px;
-		}
 	</style>
 </head>
 <body>
 	<div class="container">
-		<h1>Lower Third Control Panel</h1>
-		<div class="subtitle">Plan 3 &mdash; drives result.html</div>
-
 		<div class="panel">
 			<div class="form-group">
-				<label for="line1">Line 1 (lesson topic, e.g. "God's Love for Man")</label>
+				<label for="line1">Line 1</label>
 				<input type="text" id="line1" placeholder="God's Love for Man" value="God's Love for Man">
 			</div>
 
 			<div class="form-group">
-				<label for="line2">Line 2 (letter + question, e.g. "a. What evidence...")</label>
+				<label for="line2">Line 2</label>
 				<textarea id="line2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
 			</div>
 
-			<div class="form-group">
-				<label>Template</label>
-				<!--
-				Only id=1, id=2 and id=5 are offered here. id=3 overlaps line1/line2 when
-				line2 is long, and id=4 does not render line2 at all -- both are unusable
-				for a full lesson question, so they are intentionally left out of this
-				panel. See LOCAL-SETUP.md for the full comparison table.
-				-->
-				<div class="template-options">
-					<label>
-						<input type="radio" name="template" value="1" checked>
-						<span class="template-preview preview-1" aria-hidden="true">
-							<span class="bar slash"></span>
-							<span class="bar bar1"></span>
-							<span class="bar alt bar2"></span>
-						</span>
-						<span class="template-name">Slash &amp; Slide</span>
-						<span class="template-desc">Diagonal accent slash fades in, both lines slide in from the left</span>
-					</label>
-					<label>
-						<input type="radio" name="template" value="2">
-						<span class="template-preview preview-2" aria-hidden="true">
-							<span class="bar bar1"></span>
-							<span class="bar alt bar2"></span>
-						</span>
-						<span class="template-name">Slide Up / Down</span>
-						<span class="template-desc">Line 1 rises from below, line 2 drops from above</span>
-					</label>
-					<label>
-						<input type="radio" name="template" value="5">
-						<span class="template-preview preview-5" aria-hidden="true">
-							<span class="frame"></span>
-							<span class="bar bar1"></span>
-							<span class="bar alt bar2"></span>
-						</span>
-						<span class="template-name">Framed Reveal</span>
-						<span class="template-desc">An animated frame draws itself in, then both lines slide in from below/above</span>
-					</label>
-				</div>
-			</div>
+			<!--
+			Style/colors are set once and rarely touched again, unlike line1/line2
+			which change every question -- collapsed by default via a plain <details>
+			(no JS needed, works the same in any browser/CEF) so the panel stays
+			short for the thing actually used during a stream.
+			-->
+			<details class="settings">
+				<summary>Style &amp; colors</summary>
 
-			<div class="form-row">
 				<div class="form-group">
-					<label for="color1">Color 1 (line1 / main text)</label>
-					<div class="color-row">
-						<input type="color" id="color1picker" value="#ffffff">
-						<input type="text" id="color1" value="fff">
+					<!--
+					Only id=1, id=2 and id=5 are offered here. id=3 overlaps line1/line2 when
+					line2 is long, and id=4 does not render line2 at all -- both are unusable
+					for a full lesson question, so they are intentionally left out of this
+					panel. See LOCAL-SETUP.md for the full comparison table.
+					-->
+					<div class="template-options">
+						<label>
+							<input type="radio" name="template" value="1" checked>
+							<span class="template-preview preview-1" aria-hidden="true">
+								<span class="bar slash"></span>
+								<span class="bar bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Slash &amp; Slide</span>
+						</label>
+						<label>
+							<input type="radio" name="template" value="2">
+							<span class="template-preview preview-2" aria-hidden="true">
+								<span class="bar bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Slide Up / Down</span>
+						</label>
+						<label>
+							<input type="radio" name="template" value="5">
+							<span class="template-preview preview-5" aria-hidden="true">
+								<span class="frame"></span>
+								<span class="bar bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Framed Reveal</span>
+						</label>
 					</div>
 				</div>
-				<div class="form-group">
-					<label for="color2">Color 2 (accent)</label>
-					<div class="color-row">
-						<input type="color" id="color2picker" value="#c6a15b">
-						<input type="text" id="color2" value="c6a15b">
+
+				<div class="form-row">
+					<div class="form-group">
+						<label for="color1">Color 1</label>
+						<div class="color-row">
+							<input type="color" id="color1picker" value="#ffffff">
+							<input type="text" id="color1" value="fff">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="color2">Color 2</label>
+						<div class="color-row">
+							<input type="color" id="color2picker" value="#c6a15b">
+							<input type="text" id="color2" value="c6a15b">
+						</div>
 					</div>
 				</div>
-			</div>
-			<div class="hint">Hex values without "#" -- matches lower.js's color1/color2 URL parameters.</div>
+			</details>
 
 			<button class="btn-show" id="showBtn">Show</button>
 			<div class="status" id="status"></div>
