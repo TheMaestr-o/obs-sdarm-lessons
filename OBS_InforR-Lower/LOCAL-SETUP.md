@@ -56,33 +56,73 @@ URL from Option A.
 - `panel.html` — the control panel. Open it in a normal browser window/tab. It has a text
   field for `line1` (a short label, e.g. "Question a"), a textarea for `line2` (the actual
   lesson question, which can be long), a choice of template (**id=1, id=2 or id=5 only** —
-  see why below), two color pickers for `color1`/`color2` (defaulting to `fff` and
-  `cf4c4e`), and a **Show** button.
+  see why below) presented as three named styles with a one-line motion description and a
+  small looping preview swatch, two color pickers for `color1`/`color2` (defaulting to
+  `fff` and `cf4c4e`), and a **Show** button.
 - `result.html` — the page to add as the OBS **Browser Source** (instead of `lower.html`
-  directly). On its own it just shows a black screen with a "Waiting for panel.html…" hint.
+  directly), sized to the full canvas (e.g. 1920x1080). On its own it shows a black screen
+  with a "Waiting for panel.html…" hint until the first message arrives.
 
-How it works: `panel.html` sends `{id, line1, line2, color1, color2}` over a
-`BroadcastChannel` named `infor-r-lower-thirds` whenever you press **Show**. `result.html`
-listens on that same channel and, on receiving a message, does a full
-`window.location.href = 'lower.html?id=...&line1=...&line2=...&color1=...&color2=...'`
-redirect to itself.
+### The three template styles
 
-This full-page redirect is intentional, not a workaround: `js/lower.js` is not a page that
-can be updated live — it is a top-level script that runs its `document.writeln()` calls
-exactly once, reading `id`/`line1`/`line2`/`color1`/`color2` from the URL at load time.
-There is no function inside it that can be called again to redraw with new text, so the
-only reliable way to show new text is to reload `lower.html` with a new query string —
-which is exactly what happens on the animation's normal page-load path, so nothing about
-the original animation is touched. `lower.html`, `js/lower.js` and `css/lower.css` are left
-completely unmodified; `result.html` is a thin wrapper placed next to them.
+| Style name | id | Motion |
+|---|---|---|
+| **Slash & Slide** | 1 | A diagonal accent slash fades in, then both lines slide in from the left |
+| **Slide Up / Down** | 2 | Line 1 rises from below, line 2 drops from above |
+| **Framed Reveal** | 5 | An animated frame draws itself in, then both lines slide in from below/above |
+
+These are just friendlier names/descriptions for the same three `id` values `lower.js`
+already understood — nothing about the underlying animations changed, only how `panel.html`
+presents the choice.
+
+### How it works
+
+`panel.html` sends `{id, line1, line2, color1, color2}` over a `BroadcastChannel` named
+`infor-r-lower-thirds` whenever you press **Show**. `result.html` keeps a single, persistent
+`<iframe id="overlayFrame">` (created once, on page load) and, on receiving a message, sets
+that iframe's `src` to `lower.html?id=...&line1=...&line2=...&color1=...&color2=...&_t=...`
+(the trailing `_t` is just a cache-buster timestamp so pressing **Show** twice with
+identical text still forces a reload — setting `.src` to an unchanged value is a no-op in
+every browser). Reloading only the iframe re-triggers `lower.js`'s `document.writeln` logic
+and replays the animation, without navigating `result.html` itself away — unlike the
+previous version of this file, which did a full top-level `window.location.href` redirect.
+
+This reload-via-iframe approach is intentional, not a workaround: `js/lower.js` is not a
+script that can be updated live — it runs its `document.writeln()` calls exactly once,
+reading `id`/`line1`/`line2`/`color1`/`color2` from the URL at load time, with no exported
+function to call again. Reloading the page it lives on is still the only reliable way to
+show new text; doing that reload inside an iframe instead of at the top level is what makes
+bottom-anchoring possible (see next section) and lets `result.html`'s own "Waiting for
+panel.html…" message stay visible as a background fallback. `lower.html`, `js/lower.js` and
+`css/lower.css` are left completely unmodified; `result.html` is a thin wrapper placed next
+to them.
+
+### Bottom-anchored positioning
+
+`css/lower.css` centers its content on the full page (`main{position:absolute;height:100%}`
+plus `.animation{margin:1em auto}`), which is fine when `lower.html` fills the whole OBS
+canvas, but Plans 1 and 2 both anchor their overlay to the bottom-left corner instead — the
+conventional "lower third" position. Rather than edit `css/lower.css` to change that
+centering, `result.html` pins its `#overlayFrame` iframe to a **short strip at the bottom**
+of the page (`position:fixed;left:0;bottom:0;width:100%;height:220px`). Percentage heights
+inside an iframe resolve against the iframe's own height, not the outer page's — so
+`lower.html`'s `main{height:100%}` becomes "100% of 220px", and its already-centered
+`.animation` block ends up centered *within that short strip*, which reads visually as
+bottom-anchored on the real 1920x1080 canvas. 220px was sized by checking the tallest
+element in `css/lower.css` (animation 1's first line at `font-size:5em` = 80px, inside a
+`.animation{height:4em}` = 64px box; animation 5's frame at `height:3.8em` ≈ 61px) — every
+template fits comfortably with margin to spare. This was verified visually with Playwright
+screenshots for all three templates (see the repo's `screenshots/plan3/` folder).
 
 Usage:
 1. Open `panel.html` in one window.
-2. Open `result.html` in another window (or add it as an OBS Browser Source pointing at its
-   local file path).
-3. In `panel.html`, fill in `line1`/`line2`, pick a template and colors, and press **Show**.
-4. `result.html` reloads itself into `lower.html?...` with the new parameters and plays the
-   animation from the start.
+2. Open `result.html` in another window (or add it as an OBS Browser Source at the full
+   canvas size, pointing at its local file path — no separate Chroma Key region setup is
+   needed beyond the usual black-background keying, since the overlay is already confined
+   to the bottom strip by the iframe).
+3. In `panel.html`, fill in `line1`/`line2`, pick a style and colors, and press **Show**.
+4. `result.html` reloads its iframe into `lower.html?...` with the new parameters and plays
+   the animation from the start, anchored at the bottom of the frame.
 
 ## Design limitation: short "Name — Title" format
 

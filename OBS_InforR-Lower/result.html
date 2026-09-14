@@ -11,6 +11,7 @@
 			width: 100%;
 			height: 100%;
 			background-color: black;
+			overflow: hidden;
 		}
 		#waiting {
 			position: fixed;
@@ -28,6 +29,44 @@
 			padding: 1em;
 			box-sizing: border-box;
 		}
+
+		/* #waiting's own `display:flex` (an ID rule) otherwise outranks the browser's
+		   default `[hidden]{display:none}` (an attribute rule), so the `hidden`
+		   property set from script would silently fail to hide it without this. */
+		#waiting[hidden] {
+			display: none;
+		}
+
+		/*
+		Bottom-anchor strip: lower.html's own CSS (css/lower.css, untouched) centers
+		its content with `main{position:absolute;height:100%}` plus
+		`.animation{margin:1em auto}`. We don't edit that file. Instead, this iframe
+		gives lower.html a short "screen" to live in: percentage heights inside it
+		resolve against THIS box's height, not the full page, so the same centered
+		layout ends up centered within a short strip pinned to the bottom of the
+		real canvas -- which reads as a standard bottom-anchored lower third.
+		220px was picked by measuring the tallest content in css/lower.css
+		(animation-1's first line at font-size:5em = 80px, animation-5's frame at
+		3.8em = ~61px, both inside a 4em/64px `.animation` box) against a 1080px-tall
+		OBS canvas: it comfortably contains every template with margin to spare
+		while keeping the same visual weight as Plans 1/2's lower-third strip.
+		*/
+		#overlayFrame {
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			height: 220px;
+			border: 0;
+			display: block;
+			background: transparent;
+		}
+
+		/* Same specificity issue as #waiting above: this ID rule's `display:block`
+		   would otherwise outrank the browser's default `[hidden]{display:none}`. */
+		#overlayFrame[hidden] {
+			display: none;
+		}
 	</style>
 </head>
 <body>
@@ -36,18 +75,29 @@
 	itself: lower.html builds its markup once at load time (via document.writeln, reading
 	URL query parameters), so it is not a page that can be updated live. Instead, this
 	wrapper listens on a BroadcastChannel for new data sent from panel.html and reloads
-	itself into lower.html with the new parameters, which makes lower.js run its
-	document.writeln logic again from scratch and replay the animation.
+	an <iframe> pointed at lower.html with the new parameters, which makes lower.js run its
+	document.writeln logic again from scratch and replay the animation -- without
+	navigating result.html itself away.
 
-	Add THIS file (result.html) as the OBS Browser Source, not lower.html directly, and
-	keep panel.html open in a separate window/tab to control it. See LOCAL-SETUP.md,
-	"Option C", for the full explanation.
+	The iframe is pinned to a short strip at the bottom of this page (see #overlayFrame
+	above). lower.html/css/lower.css/js/lower.js are completely unmodified; this short
+	container is what turns their centered layout into a bottom-anchored lower third,
+	matching Plans 1/2's standard position. See LOCAL-SETUP.md, "Option C", for the full
+	explanation.
+
+	Add THIS file (result.html) as the OBS Browser Source at the full canvas size
+	(e.g. 1920x1080), not lower.html directly, and keep panel.html open in a separate
+	window/tab to control it.
 	-->
 	<div id="waiting">Waiting for panel.html&hellip;<br>Open panel.html in another window, fill in the question, and press Show.</div>
+	<iframe id="overlayFrame" title="Lower third overlay" hidden></iframe>
 
 	<script>
 		const CHANNEL_NAME = 'infor-r-lower-thirds';
 		const channel = new BroadcastChannel(CHANNEL_NAME);
+
+		const waitingEl = document.getElementById('waiting');
+		const frameEl = document.getElementById('overlayFrame');
 
 		channel.onmessage = function (event) {
 			const data = event.data || {};
@@ -62,12 +112,21 @@
 			if (data.color1) params.set('color1', data.color1);
 			if (data.color2) params.set('color2', data.color2);
 			if (data.duration) params.set('duration', data.duration);
+			// Cache-bust so pressing "Show" twice with identical text still forces the
+			// iframe to reload: setting .src to a string identical to its current
+			// value is a no-op in every browser, and lower.js only runs its
+			// document.writeln + animation on load.
+			params.set('_t', Date.now().toString());
 
-			// Full reload on purpose: lower.js is a top-level script that writes its
-			// markup once via document.writeln() when the page first loads. There is no
-			// exported function to call again, so re-running it means re-loading the
-			// page with the new query string.
-			window.location.href = 'lower.html?' + params.toString();
+			// Reset the iframe's src on every message so lower.js's document.writeln +
+			// animation always replays from the start. lower.js is a top-level script
+			// that writes its markup once via document.writeln() when its page first
+			// loads, with no exported function to call again -- so re-showing it means
+			// reloading that page, which the iframe lets us do without touching
+			// result.html's own top-level location.
+			frameEl.src = 'lower.html?' + params.toString();
+			frameEl.hidden = false;
+			waitingEl.hidden = true;
 		};
 	</script>
 </body>

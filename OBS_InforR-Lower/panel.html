@@ -126,25 +126,130 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 4px;
+			gap: 6px;
 			background: rgba(255, 255, 255, 0.06);
 			border: 1px solid rgba(255, 255, 255, 0.15);
 			border-radius: 6px;
-			padding: 10px 6px;
+			padding: 10px 8px 12px;
 			cursor: pointer;
-			font-size: 12px;
-			font-weight: 600;
 			margin: 0;
 			text-align: center;
 		}
 
 		.template-options input[type="radio"] {
-			margin: 0 0 2px;
+			margin: 0;
 		}
 
 		.template-options label:has(input:checked) {
 			border-color: #3b82f6;
 			background: rgba(59, 130, 246, 0.2);
+		}
+
+		.template-name {
+			font-size: 12px;
+			font-weight: 700;
+			color: #ffffff;
+		}
+
+		.template-desc {
+			font-size: 10.5px;
+			font-weight: 400;
+			color: #9ca3af;
+			line-height: 1.35;
+		}
+
+		/* Tiny looping preview swatches: a simplified, isolated re-creation of each
+		   animation's transform direction (not the real lower.css keyframes), just
+		   enough to show "which way does it move" at a glance next to the text
+		   description. Fully self-contained so it cannot collide with lower.css. */
+		.template-preview {
+			width: 100%;
+			height: 28px;
+			position: relative;
+			overflow: hidden;
+			background: rgba(0, 0, 0, 0.35);
+			border-radius: 3px;
+		}
+
+		.template-preview .bar {
+			position: absolute;
+			left: 8%;
+			width: 84%;
+			height: 5px;
+			border-radius: 2px;
+			background: #cf4c4e;
+		}
+
+		.template-preview .bar.alt {
+			background: #ffffff;
+		}
+
+		/* Preview 1: diagonal slash fades in, two bars slide in from the left */
+		.preview-1 .slash {
+			top: 3px;
+			height: 22px;
+			width: 6px;
+			left: 6%;
+			background: linear-gradient(135deg, #cf4c4e, #ffffff);
+			transform: skewX(-20deg);
+			animation: preview-1-slash 2.4s ease-in-out infinite;
+		}
+		.preview-1 .bar1 { top: 7px; animation: preview-1-line 2.4s ease-in-out infinite; }
+		.preview-1 .bar2 { top: 16px; animation: preview-1-line 2.4s ease-in-out 0.15s infinite; }
+		@keyframes preview-1-slash {
+			0%, 10% { opacity: 0; transform: skewX(-20deg) translateX(40px); }
+			30%, 85% { opacity: 1; transform: skewX(-20deg) translateX(0); }
+			100% { opacity: 1; transform: skewX(-20deg) translateX(0); }
+		}
+		@keyframes preview-1-line {
+			0%, 14% { transform: translateX(-100%); opacity: 0; }
+			34%, 90% { transform: translateX(0); opacity: 1; }
+			100% { transform: translateX(0); opacity: 1; }
+		}
+
+		/* Preview 2: line 1 rises from below, line 2 drops from above */
+		.preview-2 .bar1 { top: 16px; animation: preview-2-up 2.4s ease-out infinite; }
+		.preview-2 .bar2 { top: 6px; animation: preview-2-down 2.4s ease-out infinite; }
+		@keyframes preview-2-up {
+			0%, 10% { transform: translateY(18px); opacity: 0; }
+			30%, 90% { transform: translateY(0); opacity: 1; }
+			100% { transform: translateY(0); opacity: 1; }
+		}
+		@keyframes preview-2-down {
+			0%, 10% { transform: translateY(-18px); opacity: 0; }
+			30%, 90% { transform: translateY(0); opacity: 1; }
+			100% { transform: translateY(0); opacity: 1; }
+		}
+
+		/* Preview 5: three frame edges draw in, then the two lines slide from
+		   below/above -- simplified to a growing frame outline plus the two bars. */
+		.preview-5 .frame {
+			top: 2px;
+			left: 8%;
+			width: 84%;
+			height: 24px;
+			background: none;
+			border: 2px solid #cf4c4e;
+			border-radius: 2px;
+			animation: preview-5-frame 2.4s ease-out infinite;
+		}
+		.preview-5 .bar1 { top: 8px; height: 4px; animation: preview-5-text 2.4s ease-out 0.35s infinite; }
+		.preview-5 .bar2 { top: 16px; height: 4px; animation: preview-5-text 2.4s ease-out 0.5s infinite; }
+		@keyframes preview-5-frame {
+			0%, 8% { clip-path: inset(0 100% 100% 0); opacity: 0.6; }
+			28%, 90% { clip-path: inset(0 0 0 0); opacity: 1; }
+			100% { clip-path: inset(0 0 0 0); opacity: 1; }
+		}
+		@keyframes preview-5-text {
+			0%, 16% { transform: translateY(10px); opacity: 0; }
+			36%, 90% { transform: translateY(0); opacity: 1; }
+			100% { transform: translateY(0); opacity: 1; }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.template-preview * {
+				animation: none !important;
+			}
 		}
 
 		.btn-show {
@@ -209,15 +314,32 @@
 				<div class="template-options">
 					<label>
 						<input type="radio" name="template" value="1" checked>
-						id=1
+						<span class="template-preview preview-1" aria-hidden="true">
+							<span class="bar slash"></span>
+							<span class="bar bar1"></span>
+							<span class="bar alt bar2"></span>
+						</span>
+						<span class="template-name">Slash &amp; Slide</span>
+						<span class="template-desc">Diagonal accent slash fades in, both lines slide in from the left</span>
 					</label>
 					<label>
 						<input type="radio" name="template" value="2">
-						id=2
+						<span class="template-preview preview-2" aria-hidden="true">
+							<span class="bar bar1"></span>
+							<span class="bar alt bar2"></span>
+						</span>
+						<span class="template-name">Slide Up / Down</span>
+						<span class="template-desc">Line 1 rises from below, line 2 drops from above</span>
 					</label>
 					<label>
 						<input type="radio" name="template" value="5">
-						id=5
+						<span class="template-preview preview-5" aria-hidden="true">
+							<span class="frame"></span>
+							<span class="bar bar1"></span>
+							<span class="bar alt bar2"></span>
+						</span>
+						<span class="template-name">Framed Reveal</span>
+						<span class="template-desc">An animated frame draws itself in, then both lines slide in from below/above</span>
 					</label>
 				</div>
 			</div>
