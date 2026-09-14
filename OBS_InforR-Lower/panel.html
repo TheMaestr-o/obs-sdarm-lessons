@@ -9,12 +9,20 @@
 			box-sizing: border-box;
 		}
 
+		/*
+		Flat, dark, no gradients -- matches OBS's own dock panels (Audio Mixer,
+		Loudness) rather than reading as a separate web app dropped into the
+		window. One background color, one accent color (#4a9eff, close to OBS's
+		own selection blue), plain borders instead of glow/blur, no text-fill
+		gradients on headings. Changed on request after the original brighter
+		blue/purple + green gradient look; the underlying markup/JS is untouched.
+		*/
 		body {
 			margin: 0;
-			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
-			color: #ffffff;
-			padding: 20px;
+			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: #1e1e1e;
+			color: #d4d4d4;
+			padding: 16px;
 			min-height: 100vh;
 		}
 
@@ -26,25 +34,23 @@
 		h1 {
 			text-align: center;
 			margin: 0 0 4px;
-			font-size: 22px;
-			background: linear-gradient(135deg, #3b82f6, #9333ea);
-			-webkit-background-clip: text;
-			-webkit-text-fill-color: transparent;
-			background-clip: text;
+			font-size: 15px;
+			font-weight: 600;
+			color: #d4d4d4;
 		}
 
 		.subtitle {
 			text-align: center;
-			color: #9ca3af;
-			font-size: 12px;
-			margin-bottom: 20px;
+			color: #808080;
+			font-size: 11px;
+			margin-bottom: 16px;
 		}
 
 		.panel {
-			background: rgba(255, 255, 255, 0.05);
-			border: 1px solid rgba(255, 255, 255, 0.1);
-			border-radius: 8px;
-			padding: 16px;
+			background: #262626;
+			border: 1px solid #3a3a3a;
+			border-radius: 4px;
+			padding: 14px;
 		}
 
 		.form-group {
@@ -54,40 +60,42 @@
 		label {
 			display: block;
 			margin-bottom: 5px;
-			font-weight: 500;
-			color: #e0e0e0;
-			font-size: 12px;
+			font-weight: 400;
+			color: #a0a0a0;
+			font-size: 11px;
 		}
 
+		/* No border at rest -- the fields read by their own darker fill against
+		   the panel background, not by an outline. A border only appears on
+		   focus, as the one deliberate accent signal. */
 		input[type="text"],
 		textarea,
 		select {
 			width: 100%;
-			padding: 8px 10px;
-			background: rgba(255, 255, 255, 0.1);
-			border: 1px solid rgba(255, 255, 255, 0.2);
-			border-radius: 4px;
-			color: #ffffff;
-			font-size: 13px;
+			padding: 7px 9px;
+			background: #1a1a1a;
+			border: 1px solid transparent;
+			border-radius: 3px;
+			color: #d4d4d4;
+			font-size: 12.5px;
 			font-family: inherit;
 		}
 
 		textarea {
 			resize: vertical;
-			min-height: 70px;
+			min-height: 64px;
 		}
 
 		input:focus,
 		select:focus,
 		textarea:focus {
 			outline: none;
-			border-color: #3b82f6;
-			background: rgba(255, 255, 255, 0.15);
+			border-color: #4a9eff;
 		}
 
 		select option {
-			background: #2d2d2d;
-			color: #ffffff;
+			background: #262626;
+			color: #d4d4d4;
 		}
 
 		.form-row {
@@ -103,12 +111,12 @@
 		}
 
 		input[type="color"] {
-			width: 44px;
-			height: 34px;
+			width: 40px;
+			height: 30px;
 			padding: 2px;
-			background: rgba(255, 255, 255, 0.1);
-			border: 1px solid rgba(255, 255, 255, 0.2);
-			border-radius: 4px;
+			background: #1a1a1a;
+			border: none;
+			border-radius: 3px;
 			cursor: pointer;
 		}
 
@@ -119,18 +127,21 @@
 		.template-options {
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
-			gap: 8px;
+			gap: 6px;
 		}
 
+		/* No resting border on the cards -- only their fill (a shade lighter than
+		   the panel) separates them, and the selected one is marked purely by a
+		   solid accent fill instead of adding a border on top of a border. */
 		.template-options label {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 			gap: 6px;
-			background: rgba(255, 255, 255, 0.06);
-			border: 1px solid rgba(255, 255, 255, 0.15);
-			border-radius: 6px;
-			padding: 10px 8px 12px;
+			background: #1e1e1e;
+			border: none;
+			border-radius: 4px;
+			padding: 9px 7px 11px;
 			cursor: pointer;
 			margin: 0;
 			text-align: center;
@@ -141,20 +152,19 @@
 		}
 
 		.template-options label:has(input:checked) {
-			border-color: #3b82f6;
-			background: rgba(59, 130, 246, 0.2);
+			background: #2c445e;
 		}
 
 		.template-name {
-			font-size: 12px;
-			font-weight: 700;
-			color: #ffffff;
+			font-size: 11.5px;
+			font-weight: 600;
+			color: #d4d4d4;
 		}
 
 		.template-desc {
-			font-size: 10.5px;
+			font-size: 10px;
 			font-weight: 400;
-			color: #9ca3af;
+			color: #808080;
 			line-height: 1.35;
 		}
 
@@ -198,7 +208,7 @@
 			height: 28px;
 			position: relative;
 			overflow: hidden;
-			background: rgba(0, 0, 0, 0.35);
+			background: #141414;
 			border-radius: 3px;
 		}
 
@@ -330,35 +340,35 @@
 
 		.btn-show {
 			width: 100%;
-			padding: 12px;
-			margin-top: 6px;
+			padding: 10px;
+			margin-top: 4px;
 			border: none;
-			border-radius: 6px;
-			font-size: 14px;
-			font-weight: 700;
-			letter-spacing: 0.5px;
+			border-radius: 3px;
+			font-size: 12.5px;
+			font-weight: 600;
+			letter-spacing: 0.4px;
 			text-transform: uppercase;
 			cursor: pointer;
-			color: white;
-			background: linear-gradient(135deg, #10b981, #059669);
-			transition: opacity 0.2s;
+			color: #ffffff;
+			background: #4a9eff;
+			transition: background 0.15s;
 		}
 
 		.btn-show:hover {
-			opacity: 0.9;
+			background: #62aeff;
 		}
 
 		.status {
-			margin-top: 10px;
+			margin-top: 8px;
 			text-align: center;
-			font-size: 12px;
-			color: #10b981;
-			min-height: 16px;
+			font-size: 11px;
+			color: #7fc97f;
+			min-height: 14px;
 		}
 
 		.hint {
-			font-size: 11px;
-			color: #9ca3af;
+			font-size: 10.5px;
+			color: #808080;
 			margin-top: 4px;
 		}
 	</style>
@@ -366,7 +376,7 @@
 <body>
 	<div class="container">
 		<h1>Lower Third Control Panel</h1>
-		<div class="subtitle">Plan 3 &mdash; drives result.html over BroadcastChannel</div>
+		<div class="subtitle">Plan 3 &mdash; drives result.html</div>
 
 		<div class="panel">
 			<div class="form-group">
