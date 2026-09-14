@@ -50,6 +50,21 @@
   font-family: 'Arimo', sans-serif;
 }
 
+/* line2 (the actual question text, with its letter -- "a. What evidence...")
+   renders in whatever case it's actually written in the lesson data, not
+   forced uppercase like line1's day/section heading above it -- line1 is a
+   short topic label where the original CodePen design's all-caps styling
+   still fits, but a full question sentence read in caps live on stream reads
+   as shouting and doesn't match how the lesson itself presents it. One rule
+   per template's own line2 class (see overlay.html's renderSlashSlide /
+   renderSlideUpDown / renderFramedReveal) since each template names it
+   differently. */
+.ss-line2,
+.sud-line2,
+.fr-line2 {
+  text-transform: none;
+}
+
 .overlay-block {
   width: 100%;
   height: 4em;

@@ -617,6 +617,33 @@
 			color: #d4d4d4;
 		}
 
+		/* Names which lesson the Settings > Lesson pick currently resolves
+		   to -- plain text, not a button/select, since the actual picker
+		   lives in .settings now and this is only here so the presenter
+		   doesn't have to open that section just to check. Set by
+		   populateLessonSelect() in the script below, same place that
+		   drives lessonSelectEl itself. */
+		.active-lesson-label {
+			font-size: 11px;
+			font-weight: 600;
+			color: #a0a0a0;
+			margin-bottom: 6px;
+		}
+
+		/* Labels #questionPreview below as a PREVIEW, not the question
+		   currently on air -- hovering/focusing a letter button updates this
+		   box before Show is ever pressed, so without this label it could
+		   read as "this is what's live right now". Hidden until the preview
+		   box actually has something in it (see loadQuestion() in the
+		   script), same reasoning as the box itself starting empty. */
+		.question-preview-label {
+			font-size: 10px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			color: #7d8291;
+			margin-top: 6px;
+		}
+
 		/* Shows the full text of whichever question was most recently
 		   hovered, keyboard-focused, or clicked -- see questionListEl's
 		   'focusin'/mouseover delegated listeners and loadQuestion() in the
@@ -629,7 +656,7 @@
 			background: #13141A;
 			border-radius: 3px;
 			padding: 7px 9px;
-			margin-top: 6px;
+			margin-top: 3px;
 			line-height: 1.4;
 			min-height: 32px;
 		}
@@ -671,6 +698,15 @@
 			cursor: not-allowed;
 		}
 
+		/* Trimmed for compactness: used to read "Question б (11 of 13)" plus an
+		   instructional "Click a question below to load it" default state --
+		   both duplicated info already shown elsewhere in this same section
+		   (which letter is current: the accent-filled .question-row.current
+		   button, AND the letter in #questionPreview above) or were pure
+		   instruction text of the kind already trimmed elsewhere in this panel.
+		   Now shows ONLY the position-within-lesson count ("11 of 13"), the one
+		   piece of info not duplicated anywhere else on screen, and stays empty
+		   until a question is actually loaded -- see updateNav() in the script. */
 		.current-question-label {
 			font-size: 11px;
 			color: #a0a0a0;
@@ -685,26 +721,27 @@
 	<div class="container">
 		<div class="panel">
 			<div class="form-group">
-				<label for="line1">Line 1</label>
-				<input type="text" id="line1" placeholder="God's Love for Man" value="God's Love for Man">
+				<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
 			</div>
 
 			<div class="form-group">
-				<label for="line2">Line 2</label>
-				<textarea id="line2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
+				<textarea id="line2" aria-label="Line 2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
 			</div>
 
 			<!--
 			Lesson & Question picker -- pulls lesson/question data from
 			lessons-data.json (see tools/build-lessons-data.py) so the presenter
-			can pick a lesson and click through its questions instead of typing
-			Line 1/Line 2 by hand every time. Open by default (unlike .settings
-			below): this is the thing actually used every question during a
-			stream, while Quarter/Language (moved into .settings, see below)
-			and style/colors are set once and forgotten. Picking a question or
-			pressing Next/Prev only fills Line 1/Line 2 as a starting point --
-			both fields stay plain, manually-editable text inputs from
-			showBtn's point of view, same as if a human had typed into them.
+			can click through a lesson's questions instead of typing Line 1/Line 2
+			by hand every time. Open by default (unlike .settings below): this is
+			the thing actually used every question during a stream, while
+			Quarter/Language/Lesson itself (all moved into .settings, see below)
+			and style/colors are chosen once per session and forgotten --
+			#activeLessonLabel below just names which lesson that settings pick
+			currently resolves to, so the presenter doesn't have to open Settings
+			to check. Picking a question or pressing Next/Prev only fills Line
+			1/Line 2 as a starting point -- both fields stay plain,
+			manually-editable text inputs from showBtn's point of view, same as
+			if a human had typed into them.
 			-->
 			<details class="lesson-picker" id="lessonPicker" open>
 				<summary>Lesson &amp; Question</summary>
@@ -716,14 +753,11 @@
 				</div>
 
 				<div id="lessonPickerUi">
-					<div class="form-group">
-						<label for="lessonSelect">Lesson</label>
-						<select id="lessonSelect"></select>
-					</div>
+					<div class="active-lesson-label" id="activeLessonLabel"></div>
 
 					<div class="form-group">
-						<label>Questions</label>
 						<div class="question-list" id="questionList"></div>
+						<div class="question-preview-label" id="questionPreviewLabel" hidden>Preview</div>
 						<div class="question-preview" id="questionPreview"></div>
 					</div>
 
@@ -763,6 +797,11 @@
 						<label for="languageSelect">Language</label>
 						<select id="languageSelect"></select>
 					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="lessonSelect">Lesson</label>
+					<select id="lessonSelect"></select>
 				</div>
 
 				<div class="form-group">
@@ -926,8 +965,10 @@
 			const quarterSelectEl = document.getElementById('quarterSelect');
 			const languageSelectEl = document.getElementById('languageSelect');
 			const lessonSelectEl = document.getElementById('lessonSelect');
+			const activeLessonLabelEl = document.getElementById('activeLessonLabel');
 			const questionListEl = document.getElementById('questionList');
 			const questionPreviewEl = document.getElementById('questionPreview');
+			const questionPreviewLabelEl = document.getElementById('questionPreviewLabel');
 			const prevBtn = document.getElementById('prevBtn');
 			const nextBtn = document.getElementById('nextBtn');
 			const currentQuestionLabelEl = document.getElementById('currentQuestionLabel');
@@ -1073,6 +1114,17 @@
 				const stillExists = preserveLessonNo != null && lessons.some((l) => String(l.no) === String(preserveLessonNo));
 				currentLessonNo = stillExists ? preserveLessonNo : lessons[0].no;
 				lessonSelectEl.value = currentLessonNo;
+				updateActiveLessonLabel();
+			}
+
+			// Keeps #activeLessonLabel (in the always-visible area) in sync with
+			// currentLessonNo -- called from populateLessonSelect() and from
+			// lessonSelectEl's own 'change' handler below, the two places that
+			// change currentLessonNo.
+			function updateActiveLessonLabel() {
+				const lessons = getLangData(currentQuarter, currentLang).lessons;
+				const lesson = lessons.find((l) => String(l.no) === String(currentLessonNo));
+				activeLessonLabelEl.textContent = lesson ? lesson.no + '. ' + lesson.title : '';
 			}
 
 			// Shows one question's full text in #questionPreview -- driven by
@@ -1086,6 +1138,7 @@
 			// since a tooltip alone is slow to appear and does nothing for
 			// keyboard/touch use.
 			function showPreview(q) {
+				questionPreviewLabelEl.hidden = false;
 				questionPreviewEl.innerHTML = '';
 				const letterSpan = document.createElement('span');
 				letterSpan.className = 'q-letter';
@@ -1116,6 +1169,7 @@
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				questionListEl.innerHTML = '';
 				questionPreviewEl.innerHTML = '';
+				questionPreviewLabelEl.hidden = true;
 				let lastSectionTitle = null;
 				let letterRow = null;
 				lesson.questions.forEach((q, idx) => {
@@ -1196,10 +1250,23 @@
 				nextBtn.disabled = !hasCurrent || currentQuestionIndex >= total - 1;
 
 				if (hasCurrent) {
-					const q = lesson.questions[currentQuestionIndex];
-					currentQuestionLabelEl.textContent = 'Question ' + q.letter + ' (' + (currentQuestionIndex + 1) + ' of ' + total + ')';
+					// Just the position-within-lesson count, not "Question X" --
+					// which letter is loaded is already shown by the accent-filled
+					// .question-row.current button AND by the letter in
+					// #questionPreview above, so repeating it a third time here
+					// would be pure duplication. The count (e.g. "11 of 13") is
+					// the only piece of information not already visible elsewhere
+					// on screen, so that's all this element keeps.
+					currentQuestionLabelEl.textContent = (currentQuestionIndex + 1) + ' of ' + total;
 				} else {
-					currentQuestionLabelEl.textContent = total > 0 ? 'Click a question below to load it' : 'No questions found for this lesson';
+					// No more "Click a question below to load it" -- that's
+					// instructional filler of the same kind already trimmed
+					// elsewhere in this panel (e.g. the old Line 1/Line 2 field
+					// labels, replaced by placeholder text alone). Stay empty
+					// until a question is actually loaded; "No questions found"
+					// is kept since that's a genuine data/error condition, not
+					// an instruction.
+					currentQuestionLabelEl.textContent = total > 0 ? '' : 'No questions found for this lesson';
 				}
 			}
 
@@ -1242,6 +1309,7 @@
 			lessonSelectEl.addEventListener('change', () => {
 				currentLessonNo = lessonSelectEl.value;
 				currentQuestionIndex = null;
+				updateActiveLessonLabel();
 				renderQuestionList();
 				savePickerSettings();
 			});

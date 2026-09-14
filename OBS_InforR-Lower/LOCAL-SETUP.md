@@ -259,12 +259,16 @@ Interact approach needs you to switch to the Control scene first.
 `panel.html` has a third collapsible section, **Lesson & Question** (open by default,
 above **Settings** which stays collapsed — Settings is set once per session and left
 alone, while picking a lesson/question is the thing actually used every single question
-during a stream). It lets you pick a lesson from a dropdown, then click a small letter
-button (**а**, **б**, **в**...) from that lesson's question list to auto-fill Line 1 and
-Line 2, and step forward/back through that lesson's questions with
-**Previous**/**Next** buttons instead of reopening the list each time. Line 1/Line 2
-stay plain, manually-editable text fields after a pick — this only fills them in as a
-starting point, e.g. so you can still shorten a long question by hand afterwards.
+during a stream). It shows which lesson is currently active as a small label (e.g. "1.
+Любовь Божья к человеку" — the **Lesson** dropdown itself lives inside **Settings**, see
+below), then lets you click a small letter button (**а**, **б**, **в**...) from that
+lesson's question list to auto-fill Line 1 and Line 2, and step forward/back through
+that lesson's questions with **Previous**/**Next** buttons instead of reopening the list
+each time. Line 1/Line 2 stay plain, manually-editable text fields after a pick — this
+only fills them in as a starting point, e.g. so you can still shorten a long question by
+hand afterwards. Line 1/Line 2 have no visible field labels above them either (just a
+placeholder shown only while empty) — keeping this section short is the point, since it
+sits on screen for the whole stream.
 
 The question list itself is a compact grid of small per-letter buttons, not a list of
 full question sentences — this is deliberately scannable for clicking through fast
@@ -275,13 +279,16 @@ just below the button grid with `letter. full text` — the preview is the faste
 two to read live, since a native tooltip is slow to appear and doesn't work on
 touch/keyboard.
 
-**Quarter** and **Language** live inside the collapsed **Settings** section instead
-(alongside style/colors) — picking those is a "choose once per session" action, unlike
-the Lesson dropdown and question list, which change every question. Changing Quarter or
-Language inside Settings still correctly repopulates the always-visible Lesson dropdown
-and question list above it, even though the control you just used is now tucked inside
-a collapsed section — that's intentional, not a bug: open Settings to change quarter or
-language, then collapse it again and forget about it for the rest of the stream.
+**Quarter**, **Language**, and the **Lesson** dropdown itself all live inside the
+collapsed **Settings** section (alongside style/colors) — picking those is a "choose
+once per session" action, unlike the question list, which changes every question. The
+always-visible Lesson & Question area only shows which lesson is currently active, as a
+small label (e.g. "1. Любовь Божья к человеку") — the actual Lesson dropdown, like
+Quarter and Language, is inside Settings. Changing Quarter, Language, or Lesson inside
+Settings still correctly updates that label and repopulates the always-visible question
+list above it, even though the controls you just used are tucked inside a collapsed
+section — that's intentional, not a bug: open Settings to change quarter, language, or
+lesson, then collapse it again and forget about it for the rest of the stream.
 
 - **Language** defaults to `ru` (the base language this project's lesson content is
   written in) if present, else whichever language code sorts first — unless a valid
@@ -313,6 +320,25 @@ language, then collapse it again and forget about it for the rest of the stream.
   written in full caps in the source ("1. БОГ ЕСТЬ ЛЮБОВЬ"), but German/English/French
   are not ("1. Gott ist Liebe", "1. God Is Love") — forcing a transform would have shown
   those in a case that doesn't match the actual lesson content.
+
+This case-preservation is specific to the panel's own question list. The **overlay
+itself** (`native/overlay.css`) still renders Line 1 in caps by design — that's the
+lower-third's day/topic heading, styled after the original CodePen reference, which was
+already all-caps. Line 2 (the actual question) on the overlay is NOT forced to caps
+either, for the same reason as the panel's list: a full question sentence shown in caps
+on stream reads as shouting and doesn't match how the lesson itself presents it. Only
+Line 1 keeps the caps styling on the overlay; Line 2 renders in whatever case it was
+typed/loaded in.
+
+### Color pickers
+
+**Color 1** and **Color 2** are shown as small circular swatches only — clicking one
+opens your OS's native color picker directly, same as any `<input type="color">`, just
+styled to read as a compact icon instead of the browser's default rectangular control.
+The hex value next to each swatch (e.g. `fff`, `c6a15b`) is no longer shown as a visible
+text field — it still exists in the page (kept in sync with the swatch, and read when
+building the Show payload), it's just not rendered as a separate control anymore, since
+the swatch alone is enough to pick and see the current color.
 
 ### Remembering your settings
 
