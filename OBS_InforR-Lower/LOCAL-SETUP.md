@@ -251,6 +251,64 @@ documented and does not need the local server — use whichever fits how you lik
 work; a docked panel stays visible regardless of which scene is live, while the
 Interact approach needs you to switch to the Control scene first.
 
+## Lesson & Question picker
+
+`panel.html` has a third collapsible section, **Lesson & Question** (open by default,
+above **Style & colors** which stays collapsed — style/colors is set once and left
+alone, while picking a lesson/question is the thing actually used every single question
+during a stream). It lets you pick a language and lesson from dropdowns, click a
+question from that lesson's question list to auto-fill Line 1 (the lesson title) and
+Line 2 (`letter. question text`), and then step forward/back through that lesson's
+questions with **Previous**/**Next** buttons instead of reopening the list each time.
+Line 1/Line 2 stay plain, manually-editable text fields after a pick — this only fills
+them in as a starting point, e.g. so you can still shorten a long question by hand
+afterwards.
+
+- **Language** defaults to `ru` (the base language this project's lesson content is
+  written in) if present, else whichever language code sorts first.
+- Switching **Language** preserves the current **Lesson** number rather than resetting
+  to lesson 1 — smoother if you're mid-question and just want the same lesson in a
+  different language. The question list resets (nothing "loaded") on any language or
+  lesson change, since there's no single obviously-correct question to jump to
+  automatically; click a question or use Previous/Next once one is loaded.
+- **Previous**/**Next** are disabled (not wrapped) at the first/last question of a
+  lesson, matching how disabled controls already behave elsewhere in this project.
+
+### Where the data comes from
+
+The picker reads `lessons-data.json` (in this same folder), a single bundle of every
+lesson/question in all 22 supported languages, built by `tools/build-lessons-data.py`
+from the same per-language source files the rest of this project's tooling reads
+(`/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-<year>-<quarter>.json`). **Re-run this
+script whenever a new quarter's data appears there:**
+
+```
+cd /Users/ohnedan/Developer/OBS/OBS_InforR-Lower
+python3 tools/build-lessons-data.py --year YYYY --quarter Q
+```
+
+This overwrites `lessons-data.json` in place. `panel.html` just `fetch()`s it by its
+relative path on page load — no other step is needed afterwards, just reload the panel.
+
+### file:// vs. http:// — the picker needs the http:// dock setup
+
+`fetch('lessons-data.json')` (a relative path) **throws under `file://`** — confirmed
+directly in this project with Playwright: Chromium refuses the request outright
+(`Fetch API cannot load file://... URL scheme "file" is not supported`), the same
+`TypeError: Failed to fetch` behavior this project had already run into elsewhere with
+`file://` and local JSON. It works cleanly under `http://` (the Custom Browser Dock
+setup described above, `python3 -m http.server 8001`), fetching and parsing all 22
+languages without issue.
+
+Because of this, **the Lesson & Question picker only works when `panel.html` is opened
+over `http://localhost:8001/panel.html`, not as a plain `file://` path.** When opened
+via `file://`, `panel.html` detects this up front (checking `location.protocol` before
+ever calling `fetch()`, so no console error is thrown) and replaces the picker's
+controls with a short inline note — *"Lesson/question picker requires the http:// dock
+setup — see LOCAL-SETUP.md"* — instead of failing silently or leaving a broken control
+on screen. Line 1/Line 2, Style & colors, and the Show button are completely unaffected
+either way; only the picker itself needs the server.
+
 ## Design limitation: short "Name — Title" format
 
 Like Plans 1 and 2, this design (based on the original CodePen

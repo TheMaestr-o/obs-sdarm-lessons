@@ -415,6 +415,154 @@
 			min-height: 14px;
 		}
 
+		/*
+		Lesson & Question picker -- unlike .settings (style/colors, set once and
+		left alone), this section is used every single question during a live
+		stream, so it stays open by default (<details open>) instead of
+		collapsed, and sits above .settings in document order so it reads as
+		the primary workflow, not a secondary option tucked below it.
+		*/
+		.lesson-picker {
+			margin-bottom: 10px;
+		}
+
+		.lesson-picker summary {
+			cursor: pointer;
+			font-size: 11px;
+			color: #a0a0a0;
+			padding: 4px 0;
+			list-style: none;
+		}
+
+		.lesson-picker summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.lesson-picker summary::before {
+			content: '\25B8';
+			display: inline-block;
+			margin-right: 5px;
+			font-size: 9px;
+			transition: transform 0.15s;
+		}
+
+		.lesson-picker[open] summary::before {
+			transform: rotate(90deg);
+		}
+
+		.lesson-picker > .form-group:first-child {
+			margin-top: 8px;
+		}
+
+		/* Note shown instead of the picker UI when opened via file:// -- fetch()
+		   of a relative local JSON path throws under file:// in Chromium (no
+		   server to answer it), confirmed with Playwright against this exact
+		   file before writing this fallback (see LOCAL-SETUP.md). Rather than
+		   silently failing or leaving a console error the user never sees, the
+		   picker UI is hidden and this note takes its place. */
+		.lesson-picker-unavailable {
+			font-size: 11.5px;
+			color: #a0a0a0;
+			background: #13141A;
+			border-radius: 3px;
+			padding: 9px 10px;
+			line-height: 1.5;
+		}
+
+		/* Question rows -- similar spirit to .template-options' clickable cards
+		   (a <button> per row, one accent fill for the "currently loaded" one)
+		   but deliberately simpler: no preview swatch, just letter + text on
+		   one line, since that's all a question row needs. */
+		.question-list {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			max-height: 220px;
+			overflow-y: auto;
+		}
+
+		.question-row {
+			display: flex;
+			gap: 7px;
+			align-items: baseline;
+			width: 100%;
+			text-align: left;
+			background: #272A33;
+			border: none;
+			border-radius: 3px;
+			padding: 7px 9px;
+			cursor: pointer;
+			color: #d4d4d4;
+			font-family: inherit;
+			font-size: 12px;
+		}
+
+		.question-row:hover {
+			background: #2e323d;
+		}
+
+		.question-row:focus-visible {
+			outline: 2px solid #4a9eff;
+			outline-offset: 1px;
+		}
+
+		/* The "currently loaded" question -- same accent fill used by the
+		   selected template card in .settings, for a consistent "this is the
+		   active one" signal across the panel. */
+		.question-row.current {
+			background: #2c445e;
+		}
+
+		.question-row .q-letter {
+			flex: 0 0 auto;
+			font-weight: 600;
+			color: #c6a15b;
+		}
+
+		.question-row .q-text {
+			flex: 1 1 auto;
+		}
+
+		.question-nav {
+			display: flex;
+			gap: 8px;
+			margin-top: 8px;
+		}
+
+		/* Secondary buttons (Prev/Next) -- same flat shape as .btn-show but a
+		   muted fill instead of the accent blue, so Show still reads as the
+		   one primary action on the panel. */
+		.btn-secondary {
+			flex: 1 1 0;
+			padding: 8px;
+			border: none;
+			border-radius: 3px;
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			cursor: pointer;
+			color: #d4d4d4;
+			background: #272A33;
+			transition: background 0.15s;
+		}
+
+		.btn-secondary:hover:not(:disabled) {
+			background: #323644;
+		}
+
+		.btn-secondary:disabled {
+			opacity: 0.4;
+			cursor: not-allowed;
+		}
+
+		.current-question-label {
+			font-size: 11px;
+			color: #a0a0a0;
+			text-align: center;
+			margin-top: 6px;
+			min-height: 14px;
+		}
+
 	</style>
 </head>
 <body>
@@ -429,6 +577,51 @@
 				<label for="line2">Line 2</label>
 				<textarea id="line2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
 			</div>
+
+			<!--
+			Lesson & Question picker -- pulls language/lesson/question data from
+			lessons-data.json (see tools/build-lessons-data.py) so the presenter
+			can pick a lesson+language and click through its questions instead of
+			typing Line 1/Line 2 by hand every time. Open by default (unlike
+			.settings below): this is the thing actually used every question
+			during a stream, while style/colors is set once and forgotten.
+			Picking a question or pressing Next/Prev only fills Line 1/Line 2 as
+			a starting point -- both fields stay plain, manually-editable text
+			inputs from showBtn's point of view, same as if a human had typed
+			into them.
+			-->
+			<details class="lesson-picker" id="lessonPicker" open>
+				<summary>Lesson &amp; Question</summary>
+
+				<div id="lessonPickerUnavailable" class="lesson-picker-unavailable" hidden>
+					Lesson/question picker requires the http:// dock setup -- see
+					LOCAL-SETUP.md.
+				</div>
+
+				<div id="lessonPickerUi">
+					<div class="form-row">
+						<div class="form-group">
+							<label for="languageSelect">Language</label>
+							<select id="languageSelect"></select>
+						</div>
+						<div class="form-group">
+							<label for="lessonSelect">Lesson</label>
+							<select id="lessonSelect"></select>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Questions</label>
+						<div class="question-list" id="questionList"></div>
+					</div>
+
+					<div class="question-nav">
+						<button type="button" class="btn-secondary" id="prevBtn">&larr; Previous</button>
+						<button type="button" class="btn-secondary" id="nextBtn">Next &rarr;</button>
+					</div>
+					<div class="current-question-label" id="currentQuestionLabel"></div>
+				</div>
+			</details>
 
 			<!--
 			Style/colors are set once and rarely touched again, unlike line1/line2
@@ -579,6 +772,201 @@
 			statusEl.textContent = 'Sent to result.html at ' + new Date().toLocaleTimeString();
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);
 		});
+
+		// --- Lesson & Question picker -----------------------------------------
+		// Reads lessons-data.json (built by tools/build-lessons-data.py) and lets
+		// the presenter pick a language + lesson, click a question to fill
+		// Line 1/Line 2, and step through that lesson's questions with
+		// Next/Previous. This never touches showBtn's click handler above or
+		// adds any BroadcastChannel/localStorage traffic of its own -- it only
+		// ever writes into line1El.value / line2El.value, exactly as if a human
+		// had typed into those fields by hand. Line 1/Line 2 stay fully
+		// editable afterwards; nothing here locks them to mirror the picker.
+		(function () {
+			const unavailableEl = document.getElementById('lessonPickerUnavailable');
+			const uiEl = document.getElementById('lessonPickerUi');
+			const languageSelectEl = document.getElementById('languageSelect');
+			const lessonSelectEl = document.getElementById('lessonSelect');
+			const questionListEl = document.getElementById('questionList');
+			const prevBtn = document.getElementById('prevBtn');
+			const nextBtn = document.getElementById('nextBtn');
+			const currentQuestionLabelEl = document.getElementById('currentQuestionLabel');
+
+			// fetch() of a relative local file throws under file:// in Chromium
+			// (confirmed with Playwright against this exact file: "Fetch API
+			// cannot load file://... URL scheme 'file' is not supported") -- no
+			// server means there's nothing to answer the request, so the picker
+			// can't work there at all. Detect this up front from location.protocol
+			// rather than waiting for fetch() to fail, so the UI never flashes
+			// before hiding itself.
+			if (location.protocol === 'file:') {
+				document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (unavailable)';
+				uiEl.hidden = true;
+				unavailableEl.hidden = false;
+				return;
+			}
+
+			let bundle = null;          // the full parsed lessons-data.json
+			let currentLang = null;     // e.g. "ru"
+			let currentLessonNo = null; // e.g. "1" (string, matches the JSON's "no")
+			let currentQuestionIndex = null; // index into the current lesson's questions[], or null if nothing loaded yet
+
+			function getLangData(lang) {
+				return bundle.languages[lang];
+			}
+
+			function getLesson(lang, lessonNo) {
+				const lessons = getLangData(lang).lessons;
+				return lessons.find((l) => String(l.no) === String(lessonNo)) || null;
+			}
+
+			function populateLanguageSelect() {
+				const langs = Object.keys(bundle.languages).sort();
+				languageSelectEl.innerHTML = '';
+				for (const lang of langs) {
+					const opt = document.createElement('option');
+					opt.value = lang;
+					opt.textContent = lang.toUpperCase();
+					languageSelectEl.appendChild(opt);
+				}
+				// Default to ru if present (the base language used throughout this
+				// project's lesson content), else whatever sorts first.
+				currentLang = langs.includes('ru') ? 'ru' : langs[0];
+				languageSelectEl.value = currentLang;
+			}
+
+			function populateLessonSelect(preserveLessonNo) {
+				const lessons = getLangData(currentLang).lessons;
+				lessonSelectEl.innerHTML = '';
+				for (const lesson of lessons) {
+					const opt = document.createElement('option');
+					opt.value = lesson.no;
+					opt.textContent = lesson.no + '. ' + lesson.title;
+					lessonSelectEl.appendChild(opt);
+				}
+				// Preserve the same lesson NUMBER across a language switch when
+				// possible (smoother if the presenter is mid-question and just
+				// wants the same lesson in a different language), else fall back
+				// to the first lesson in the list.
+				const stillExists = preserveLessonNo != null && lessons.some((l) => String(l.no) === String(preserveLessonNo));
+				currentLessonNo = stillExists ? preserveLessonNo : lessons[0].no;
+				lessonSelectEl.value = currentLessonNo;
+			}
+
+			function renderQuestionList() {
+				const lesson = getLesson(currentLang, currentLessonNo);
+				questionListEl.innerHTML = '';
+				lesson.questions.forEach((q, idx) => {
+					const row = document.createElement('button');
+					row.type = 'button';
+					row.className = 'question-row';
+					if (idx === currentQuestionIndex) row.classList.add('current');
+
+					const letterSpan = document.createElement('span');
+					letterSpan.className = 'q-letter';
+					letterSpan.textContent = q.letter + '.';
+
+					const textSpan = document.createElement('span');
+					textSpan.className = 'q-text';
+					textSpan.textContent = q.text;
+
+					row.appendChild(letterSpan);
+					row.appendChild(textSpan);
+					row.addEventListener('click', () => loadQuestion(idx));
+					questionListEl.appendChild(row);
+				});
+				updateNav();
+			}
+
+			// Fills Line 1/Line 2 the same way for a list click or a Next/Prev
+			// press, and marks the given index as the "currently loaded" one.
+			function loadQuestion(idx) {
+				const lesson = getLesson(currentLang, currentLessonNo);
+				const q = lesson.questions[idx];
+				if (!q) return;
+
+				currentQuestionIndex = idx;
+				line1El.value = lesson.title;
+				line2El.value = q.letter + '. ' + q.text;
+
+				let currentRow = null;
+				questionListEl.querySelectorAll('.question-row').forEach((row, rowIdx) => {
+					const isCurrent = rowIdx === idx;
+					row.classList.toggle('current', isCurrent);
+					if (isCurrent) currentRow = row;
+				});
+				// Next/Previous can walk the "current" row outside the question
+				// list's scrollable viewport (max-height: 220px) -- keep it in
+				// view so the presenter can always see which question is loaded.
+				if (currentRow) currentRow.scrollIntoView({ block: 'nearest' });
+				updateNav();
+			}
+
+			function updateNav() {
+				const lesson = getLesson(currentLang, currentLessonNo);
+				const total = lesson.questions.length;
+				const hasCurrent = currentQuestionIndex != null;
+
+				prevBtn.disabled = !hasCurrent || currentQuestionIndex <= 0;
+				nextBtn.disabled = !hasCurrent || currentQuestionIndex >= total - 1;
+
+				if (hasCurrent) {
+					const q = lesson.questions[currentQuestionIndex];
+					currentQuestionLabelEl.textContent = 'Question ' + q.letter + ' (' + (currentQuestionIndex + 1) + ' of ' + total + ')';
+				} else {
+					currentQuestionLabelEl.textContent = total > 0 ? 'Click a question below to load it' : 'No questions found for this lesson';
+				}
+			}
+
+			prevBtn.addEventListener('click', () => {
+				if (currentQuestionIndex != null && currentQuestionIndex > 0) {
+					loadQuestion(currentQuestionIndex - 1);
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				const lesson = getLesson(currentLang, currentLessonNo);
+				if (currentQuestionIndex != null && currentQuestionIndex < lesson.questions.length - 1) {
+					loadQuestion(currentQuestionIndex + 1);
+				}
+			});
+
+			languageSelectEl.addEventListener('change', () => {
+				currentLang = languageSelectEl.value;
+				populateLessonSelect(currentLessonNo);
+				currentQuestionIndex = null;
+				renderQuestionList();
+			});
+
+			lessonSelectEl.addEventListener('change', () => {
+				currentLessonNo = lessonSelectEl.value;
+				currentQuestionIndex = null;
+				renderQuestionList();
+			});
+
+			fetch('lessons-data.json')
+				.then((res) => {
+					if (!res.ok) throw new Error('HTTP ' + res.status);
+					return res.json();
+				})
+				.then((data) => {
+					bundle = data;
+					populateLanguageSelect();
+					populateLessonSelect(null);
+					renderQuestionList();
+				})
+				.catch((err) => {
+					// Belt-and-suspenders: the file:// case is already handled above
+					// before this fetch ever runs, but a real http:// setup could
+					// still fail to fetch this file for other reasons (server not
+					// running, file missing/moved, malformed JSON). Same graceful
+					// degradation as the file:// case rather than a silent failure.
+					document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (unavailable)';
+					uiEl.hidden = true;
+					unavailableEl.hidden = false;
+					unavailableEl.textContent = 'Lesson/question picker could not load lessons-data.json (' + err.message + ') -- see LOCAL-SETUP.md.';
+				});
+		})();
 	</script>
 </body>
 </html>
