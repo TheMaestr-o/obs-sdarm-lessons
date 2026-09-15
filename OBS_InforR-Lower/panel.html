@@ -71,6 +71,13 @@
 			min-height: 100vh;
 			font-size: 13px;
 			-webkit-font-smoothing: antialiased;
+			/* Everything a tenth smaller than the mockup draws it, so more of
+			   the panel fits in the dock without redrawing the design. `zoom`
+			   rather than `transform: scale()` on purpose: zoom shrinks the
+			   layout itself, so the page still reports its true reduced height
+			   and nothing is left scrolling behind a scaled-down box. To change
+			   the size, change this one number. */
+			zoom: 0.9;
 		}
 
 		.container {
@@ -2118,7 +2125,13 @@
 				}
 				const rowBox = sectionRowEl.getBoundingClientRect();
 				const box = active.getBoundingClientRect();
-				const centre = box.left - rowBox.left + box.width / 2;
+				// getBoundingClientRect reports pixels AFTER body's `zoom` has
+				// been applied, but the value goes back into CSS, where it is
+				// scaled again. Dividing by the zoom cancels the double count --
+				// without this the connector drifts further from its circle the
+				// further along the row that circle sits.
+				const zoom = parseFloat(getComputedStyle(document.body).zoom) || 1;
+				const centre = (box.left - rowBox.left + box.width / 2) / zoom;
 				connectorEl.style.setProperty('--connector-x', centre + 'px');
 			}
 
