@@ -4,6 +4,17 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
 	<title>Lower Third Overlay (native)</title>
+	<!--
+	Copyright (c) 2026 Maestro. MIT licence -- see /LICENSE at the repository root.
+
+	This page builds the overlay markup itself, with ordinary DOM calls, and shares
+	no code with lower.js -- which does the same job with document.writeln(). What
+	it draws is not equally original in every part, and overlay.css says exactly
+	where the line falls: styles 1 and 2 reproduce the motion of Matt Chestnut's
+	CodePen (https://codepen.io/mattchestnut/pen/dMrONe, reached via
+	https://github.com/vjccruz/lower-thirds-obs, MIT), while style 3 "Quiet Rule" is
+	ours. The implementation on both sides of that line is ours.
+	-->
 	<style>
 		/*
 		Background is true CSS transparent, not lower.css's solid black. This is a

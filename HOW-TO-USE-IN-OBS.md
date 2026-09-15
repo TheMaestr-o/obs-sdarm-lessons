@@ -5,9 +5,8 @@ each plan's own folder. Pick one plan, follow its steps below.
 
 **Recommended: Plan 3 (`OBS_InforR-Lower/`)** — it's the only one that (a)
 holds the question on screen until you manually advance it, (b) needs no
-Chroma Key filter at all, and (c) works fully offline. Plans 1 and 2 are
-included for comparison but both auto-hide after a few seconds and Plan 2
-needs internet for fonts.
+Chroma Key filter at all, and (c) works fully offline. Plan 1 is kept for
+comparison but auto-hides after a few seconds.
 
 ---
 
@@ -66,7 +65,7 @@ To actually type into it during the stream:
    - **Line 2** — the letter and the question (e.g. "a. What evidence of
      God's love is given to humanity?")
    - **Template** — pick one of the three style cards (Slash & Slide, Slide
-     Up / Down, Framed Reveal) — click to preview the little animation
+     Up / Down, Quiet Rule) — click to preview the little animation
      right in the panel before committing
    - **Colors** — leave as-is (gold accent, matching the lesson) or pick
      your own
@@ -146,25 +145,12 @@ should have time to read and discuss.
 5. No Chroma Key needed here either — this plan already renders on a
    transparent page.
 
-## Plan 2 — Ultimate OBS Lower Thirds System (alternative)
-
-Needs internet during the stream (pulls jQuery and fonts from a CDN) — skip
-this one if your connection isn't reliable.
-
-1. **Sources → (+) → Browser**, Local file, browse to:
-   ```
-   /Users/ohnedan/Developer/OBS/OBS_LowerThirds/obs_lower_thirds_source.html
-   ```
-2. Open `obs_control_panel.html` (same folder) as your control panel.
-3. Fill in slot 1's Name/Title fields, click its **Show** button.
-4. This one auto-hides on its own timer too — same caveat as Plan 1.
-
 ---
 
 ## If something looks wrong
 
 - **Nothing shows up at all**: open the same `result.html` /
-  `browser-source.html` / `obs_lower_thirds_source.html` file directly in a
+  `browser-source.html` file directly in a
   normal browser tab (not through OBS) and check if it works there first —
   if it doesn't, the panel and result windows probably aren't talking to
   each other (both need to stay open, and for Plan 1 specifically, remember
@@ -174,7 +160,7 @@ this one if your connection isn't reliable.
   slightly from a regular browser in fonts/spacing — this is normal, not a
   bug. Judge it by the actual OBS preview, not by how it looks in a browser
   tab.
-- **Want to see all three plans side by side first**: open
+- **Want to see both plans side by side first**: open
   `/Users/ohnedan/Developer/OBS/index.html` in a browser — it links to every
   plan with the same setup steps and screenshots of what each one looks
   like.

@@ -45,11 +45,10 @@ Each line is `TEMPLATE_ID|LINE1|LINE2`, where `TEMPLATE_ID` is a number 1–5:
 2|John Doe|Motion Designer
 ```
 
-## Option C — panel.html + result.html (recommended, matches Plans 1/2)
+## Option C — panel.html + result.html (recommended, matches Plan 1)
 
 This is the same two-window pattern used by Plan 1 (`control-panel.html` +
-`browser-source.html`) and Plan 2 (`obs_control_panel.html` +
-`obs_lower_thirds_source.html`): one window to configure, one window/Browser Source that
+`browser-source.html`): one window to configure, one window/Browser Source that
 shows the result, kept in sync over a `BroadcastChannel`. It replaces manually editing the
 URL from Option A.
 
@@ -100,8 +99,9 @@ is nothing left to freeze or reach into — `result.html` only ever *writes* the
 entirely rather than working around it.
 
 - `native/overlay.css` — the three style classes (`.style-slash-slide`,
-  `.style-slide-up-down`, `.style-framed-reveal`), each a faithful re-timing of the
-  matching original `#animation-N` block's "in" half.
+  `.style-slide-up-down`, `.style-quiet-rule`). The first two are a faithful re-timing of
+  the matching original `#animation-N` block's "in" half; `.style-quiet-rule` has no
+  original behind it and is this project's own design.
 - `native/overlay.html` — reads `id`/`line1`/`line2`/`color1`/`color2` from
   `URLSearchParams` (the same parameters `panel.html`/`result.html` already send) and
   builds the corresponding markup via plain DOM APIs through a single `render(id, line1,
@@ -139,11 +139,15 @@ at all.
 |---|---|---|
 | **Slash & Slide** | 1 | A diagonal accent slash fades in, then both lines slide in from the left |
 | **Slide Up / Down** | 2 | Line 1 rises from below, line 2 drops from above |
-| **Framed Reveal** | 5 | An animated frame draws itself in, then both lines slide in from below/above |
+| **Quiet Rule** | 3 | A vertical rule draws down at the right, both lines settling in beside it |
 
-These are just friendlier names/descriptions for the same three `id` values `lower.js`
-already understood — nothing about the underlying animations changed, only how `panel.html`
-presents the choice.
+Ids 1 and 2 are friendlier names for the same `id` values `lower.js` already understood,
+reimplemented in `native/overlay.css` — the motion is unchanged, only the name and the
+code behind it. Id 3 is not: it is this project's own style, and it took over the number
+from an original id-3 template that was unusable here (its two lines sat in 50%-width
+halves of one row and overlapped whenever line2 ran long). The old id-5 "Framed Reveal"
+was dropped for a related reason — its drawn SVG frame boxed in a wrapping question
+sentence it was never sized for.
 
 ### How it works
 
@@ -178,7 +182,7 @@ complex: it only ever sets the iframe's `src` and never reads anything back out 
 setup — the iframe's own height isn't load-bearing for positioning anymore. `result.html`
 still pins `#overlayFrame` to a **220px-tall strip at the bottom of the page**
 (`position:fixed;left:0;bottom:0;width:100%;height:220px`), simply because that's the
-intended lower-third height on the 1920x1080 canvas, matching Plans 1/2's visual weight.
+intended lower-third height on the 1920x1080 canvas, matching Plan 1's visual weight.
 220px was sized by checking the tallest element across the three kept templates in
 `css/lower.css` (animation 1's first line at `font-size:5em` = 80px, inside a
 `.animation{height:4em}` = 64px box; animation 5's frame at `height:3.8em` ≈ 61px) — every
@@ -193,7 +197,7 @@ Usage:
    canvas size, pointing at its local file path). No Chroma Key filter needed: both
    `result.html`'s own page (`background: transparent` on `html, body`) and the
    `native/overlay.html` it embeds are real CSS transparency — this is the one plan in
-   the repo where Chroma Key genuinely isn't required, unlike Plans 1/2 and Options A/B
+   the repo where Chroma Key genuinely isn't required, unlike Plan 1 and Options A/B
    of this same plan.
 3. In `panel.html`, fill in `line1`/`line2`, pick a style and colors, and press **Show**.
 4. `result.html` reloads its iframe into `native/overlay.html?...` with the new parameters,
@@ -431,7 +435,7 @@ data-driven parts of the picker (Lesson/Question, Quarter, Language) need the se
 
 ## Design limitation: short "Name — Title" format
 
-Like Plans 1 and 2, this design (based on the original CodePen
+Like Plan 1, this design (based on the original CodePen
 https://codepen.io/mattchestnut/pen/dMrONe) is built for a short pair of lines like
 "Name — Job Title/Role", not a long multi-line lesson question. When a long `line2` is used
 (e.g. a full lesson question), behavior differs by template:
@@ -454,7 +458,7 @@ this file for the full reasoning:
 - `lower.html`'s page background is solid black (`background-color: black` in
   `css/lower.css`), not CSS `transparent` — there is no real alpha transparency in that
   page itself, and Transparency in OBS for Options A/B is achieved with a **Chroma Key**
-  filter on the Browser source (keying out black), same as Plans 1/2. This is expected
+  filter on the Browser source (keying out black), same as Plan 1. This is expected
   design behavior for `lower.html`, not a bug. `native/overlay.html` (Option C) instead
   uses true CSS `background: transparent`, since it's only ever loaded as a small iframe
   rather than a full-canvas source — see above for why that's safe there.

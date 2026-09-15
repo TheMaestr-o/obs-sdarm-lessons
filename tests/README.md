@@ -18,7 +18,7 @@ npx playwright install chromium
 ## Run
 
 ```bash
-node plan1-plan2-screenshots.js
+node plan1-screenshots.js
 node plan3-screenshots.js
 ```
 

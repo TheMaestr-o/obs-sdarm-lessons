@@ -1,51 +1,132 @@
 # SDARM Lesson Questions — OBS Lower Thirds
 
-A comparison of ready-made "lower thirds" solutions for displaying Sabbath School lesson questions during a live OBS/Wirecast broadcast.
+An overlay system for putting Sabbath School lesson questions on screen during a live
+church broadcast. A control panel picks the lesson and the question; a second page
+renders it as an animated lower third that OBS (or Wirecast) takes as a Browser Source.
 
-## ⚠️ Browser ≠ OBS
+The question **stays on screen until the presenter advances it**. That one requirement is
+why this exists rather than being a configuration of something off the shelf — the
+ready-made lower thirds all animate in, hold for a couple of seconds, and animate back
+out, which is useless for a question the congregation is supposed to read and think about.
 
-What you see here when opening these files directly in a regular browser (Chrome/Safari) is an approximation, not a guarantee of the exact look inside OBS. OBS renders a Browser Source through its own embedded engine (CEF), which may differ in font versions and spacing. Opening files here is fine for a quick check of text and logic, but **always verify the final look by adding the file as a real Browser Source inside OBS itself** — that's the only way to see what viewers will actually see.
+The repository started as a side-by-side comparison of three existing open-source lower
+thirds projects. One of those, Vasco Cruz's `lower-thirds-obs`, became the base to build
+on; what grew out of it is the system described here. The comparison is still in the repo
+and still works — see [index.html](index.html).
 
-Open [index.html](index.html) — it collects links to every plan with step-by-step instructions.
+## What it does
 
-**Ready to actually use this on a live stream?** See [HOW-TO-USE-IN-OBS.md](HOW-TO-USE-IN-OBS.md) — a practical walkthrough for setting up the Browser Source and control panel in real OBS Studio, not just testing in a regular browser tab.
+- **Picks questions from the real lessons.** The panel reads a built lesson bundle and
+  offers Quarter → Language → Lesson → question. Clicking a question letter fills the
+  overlay's two lines: the day heading, and the question itself. **22 languages.**
+- **Steps through a lesson.** Previous / Next move between questions without reopening
+  the list — the thing you actually do repeatedly during a stream.
+- **Three animation styles**, picked by name with a small looping preview: Slash & Slide,
+  Slide Up / Down, and Quiet Rule.
+- **Genuinely transparent.** Real CSS alpha, so no Chroma Key filter in OBS — nothing gets
+  accidentally keyed out of dark lesson text.
+- **Works entirely offline.** No CDN, no Google Fonts, no network call at any point. The
+  fonts are bundled. This is a hard requirement, not a preference — see
+  [`native/fonts/README.md`](OBS_InforR-Lower/native/fonts/README.md).
+- **Remembers your settings** between sessions (quarter, language, lesson).
 
-## Structure
+## Getting started
+
+Everything lives in `OBS_InforR-Lower/`.
+
+**1. Build the lesson data.** The repository does not ship it (see
+[Lesson content](#lesson-content) below), so this step is required — the panel's question
+picker will not work without it:
+
+```bash
+cd OBS_InforR-Lower
+python3 tools/build-lessons-data.py
+```
+
+This reads the per-language lesson files from `~/Developer/sbl/data/` and writes
+`OBS_InforR-Lower/lessons-data.json`. Re-run it whenever a new quarter's files appear.
+
+**2. Serve the folder over HTTP.** The panel `fetch()`es that JSON, which browsers refuse
+under `file://`:
+
+```bash
+cd OBS_InforR-Lower
+python3 -m http.server 8001
+```
+
+**3. Open the two pages.**
+
+| Page | Where |
+|---|---|
+| `http://localhost:8001/panel.html` | The control panel — you type into this |
+| `http://localhost:8001/result.html` | The overlay — add this to OBS as a Browser Source |
+
+Both must be on the same `http://localhost:8001` origin; that is how they reach each
+other. Fill in the two lines (or click a question), pick a style, press **Show**.
+
+Full walkthroughs: [HOW-TO-USE-IN-OBS.md](HOW-TO-USE-IN-OBS.md) for the practical OBS
+setup, [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md) for how it works
+and why it is built this way, [OBS_InforR-Lower/WIRECAST-SETUP.md](OBS_InforR-Lower/WIRECAST-SETUP.md)
+for Wirecast.
+
+## Browser ≠ OBS
+
+Opening these files in Chrome or Safari shows you an approximation. OBS renders a Browser
+Source through its own embedded engine (CEF), which can differ in fonts and spacing. Check
+text and logic in a browser if you like, but **confirm the final look inside OBS itself** —
+that is the only view that matches what goes out.
+
+## What is here
 
 ```
 OBS/
-├── index.html                    — test bench with links to all plans
-├── screenshots/                  — "config → result" screenshots for each plan
-├── sbl-question-card/            — our own work (script that extracts real lesson questions)
-│   ├── extract-questions.py
-│   └── STREAMING_GUIDE.md
-├── OBS_Animated-Lower-Thirds/    — Plan 1
-├── OBS_LowerThirds/              — Plan 2
-└── OBS_InforR-Lower/             — Plan 3
+├── index.html                       — hub page comparing the plans, with screenshots
+├── OBS_InforR-Lower/                — the system in actual use
+│   ├── panel.html                   — control panel (OBS)
+│   ├── result.html                  — overlay page, added to OBS as a Browser Source
+│   ├── panel-wirecast.html          — control panel (Wirecast)
+│   ├── result-wirecast.html         — overlay page (Wirecast)
+│   ├── native/overlay.html/.css     — the overlay renderer and its animations
+│   ├── native/fonts/                — bundled Open Sans + Arimo (OFL)
+│   ├── tools/build-lessons-data.py  — builds lessons-data.json
+│   └── lower.html, css/, js/, img/, scripts/  — Vasco Cruz's original, unchanged
+├── OBS_Animated-Lower-Thirds/       — noeal-dac's project, kept for comparison
+├── sbl-question-card/               — earlier question-extraction script
+├── screenshots/                     — "config → result" screenshots
+└── tests/                           — Playwright scripts that regenerate those screenshots
 ```
 
-## Three plans
+The OBS and Wirecast pairs exist separately because the two applications isolate browser
+contexts differently: OBS's pages talk over `BroadcastChannel`, Wirecast's poll
+`localStorage`. Same overlay underneath.
 
-| # | Name | Panel↔overlay link | Offline | Text format |
-|---|---|---|---|---|
-| 1 | Animated Lower Thirds | BroadcastChannel + localStorage | ✅ fully | short: name + subtitle |
-| 2 | Ultimate OBS Lower Thirds | BroadcastChannel + localStorage | ⚠️ pulls jQuery/fonts from a CDN | short: name + title |
-| 3 | infor-r Lower Thirds | BroadcastChannel panel (`panel.html` → `result.html`), or raw URL params | ✅ fully (after localizing paths) | short: two lines, animated CodePen design rebuilt as our own CSS; 3 named styles (Slash & Slide, Slide Up / Down, Framed Reveal), always bottom-anchored, holds on screen indefinitely instead of auto-hiding |
+## Lesson content
 
-All three are built for short "Name — Title" lower thirds, one line per field, and would need layout changes to fit a long Bible lesson question. In Plan 3, out of the 5 built-in templates (`id=1..5`) only `id=1,2,5` stay readable — `id=3` overlaps its two lines, `id=4` doesn't render the second line at all (see the screenshots in [screenshots/plan3/](screenshots/plan3/) and details in [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md)).
+`lessons-data.json` holds the full text of the SDARM Sabbath School lessons in 22
+languages. **It is deliberately not published here** — that text belongs to whoever
+publishes the lesson, not to this repository, and redistributing it is not ours to do.
+The build script above regenerates it locally from your own copy of the lesson files. The
+tooling is the part that is shared; the content is not.
 
-## Origin and credit
+## Credits and licence
 
-- **Plan 1** — [Animated Lower Thirds](https://github.com/noeal-dac/Animated-Lower-Thirds) by NoeAL, MIT license
-- **Plan 2** — Ultimate OBS Lower Thirds System (source not explicitly credited by its author)
-- **Plan 3** — [lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs) by Vasco Cruz, based on an After Effects template by Amaksi and [CodePen mattchestnut/dMrONe](https://codepen.io/mattchestnut/pen/dMrONe)
+The code written for this project is MIT — see [LICENSE](LICENSE).
 
-Original files for each plan were left unchanged, except where explicitly noted inside that plan's own folder (see `LOCAL-SETUP.md` inside `OBS_InforR-Lower/`).
+**What is borrowed, and from whom:**
 
-## Our own work
+- **[lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs)** by **Vasco Cruz**
+  (MIT) — `OBS_InforR-Lower/lower.html`, `css/`, `js/`, `img/`, `scripts/`, kept unmodified
+  with his LICENSE and README intact. The current overlay no longer loads any of it, but
+  it is where this started and it still works on its own terms.
+- **[CodePen `mattchestnut/dMrONe`](https://codepen.io/mattchestnut/pen/dMrONe)** by
+  **Matt Chestnut** — the motion design behind styles 1 and 2. The implementation in
+  `native/overlay.css` is ours; the easing curve and offsets are his. Style 3, "Quiet
+  Rule", is ours entirely.
+- **Amaksi** — the After Effects template the CodePen itself was based on.
+- **[Animated Lower Thirds](https://github.com/noeal-dac/Animated-Lower-Thirds)** by
+  **noeal-dac** (MIT) — kept whole, for comparison, with its licence.
+- **Open Sans** and **Arimo** — bundled under the SIL Open Font License 1.1, licences
+  included in `OBS_InforR-Lower/native/fonts/`.
 
-`sbl-question-card/extract-questions.py` — a script that pulls the real lesson questions (not made-up samples) straight from `/Users/ohnedan/Developer/sbl/data/<lang>/<lang>-YYYY-Q.json` for any lesson in the quarter, in every available language.
-
-## Future plans
-
-The list isn't closed — more options will be added here as we find them (see the "Plan 4" block on [index.html](index.html)), along with, likely, our own design that supports line-wrapping for a long question.
+[AUTHORSHIP.md](AUTHORSHIP.md) goes through all of this file by file — who wrote what,
+which parts are borrowed and how much, and what was checked to establish it.
