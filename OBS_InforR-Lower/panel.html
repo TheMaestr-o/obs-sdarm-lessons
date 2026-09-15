@@ -383,6 +383,57 @@
 			30%, 100% { transform: translateY(0); }
 		}
 
+		/* Preview 3: the vertical rule on the right draws downward, then two
+		   right-aligned bars settle up into place beside it. The bars are
+		   shortened and right-anchored (rather than the full-width .bar the
+		   other two previews use) because right-alignment against a rule is
+		   the whole point of the style -- a full-width bar would make it look
+		   identical to preview 2 at this size. Same constant-opacity approach
+		   as previews 1 and 2, see comment above .template-preview: the lift
+		   is transform-only, with no opacity fade, even though the real
+		   overlay does fade -- a preview that can freeze mid-fade in CEF is
+		   exactly the invisible-card bug that comment documents. */
+		.preview-3 .rule {
+			top: 4px;
+			left: auto;
+			right: 8%;
+			width: 3px;
+			height: 20px;
+			opacity: 1;
+			transform: scaleY(1);
+			transform-origin: 50% 0;
+			will-change: transform;
+			animation: preview-3-rule 2.4s ease-out infinite;
+		}
+		.preview-3 .bar1 {
+			top: 8px;
+			left: auto;
+			right: 13%;
+			width: 26%;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-3-settle 2.4s ease-out 0.15s infinite;
+		}
+		.preview-3 .bar2 {
+			top: 17px;
+			left: auto;
+			right: 13%;
+			width: 62%;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-3-settle 2.4s ease-out 0.25s infinite;
+		}
+		@keyframes preview-3-rule {
+			0%, 8% { transform: scaleY(0); }
+			28%, 100% { transform: scaleY(1); }
+		}
+		@keyframes preview-3-settle {
+			0%, 12% { transform: translateY(6px); }
+			34%, 100% { transform: translateY(0); }
+		}
+
 		@media (prefers-reduced-motion: reduce) {
 			.template-preview * {
 				animation: none !important;
@@ -825,11 +876,12 @@
 
 				<div class="form-group">
 					<!--
-					Only id=1 and id=2 are offered here. id=3, id=4, and id=5 are
-					unusable for a full lesson question (id=3 overlaps line1/line2,
-					id=4 does not render line2, and id=5 has been removed), so they
-					are intentionally left out of this panel. See LOCAL-SETUP.md for
-					the full comparison table.
+					id=1, id=2 and id=3 are offered here. id=3 is no longer the
+					old lower.css style of that number (which overlapped line1 and
+					line2) -- it is now "Quiet Rule", written from scratch in
+					native/overlay.css for this panel. id=4 and id=5 are still left
+					out: id=4 never rendered line2 at all, and id=5's framed style
+					was removed. See LOCAL-SETUP.md for the full comparison table.
 					-->
 					<div class="template-options">
 						<label>
@@ -848,6 +900,15 @@
 								<span class="bar alt bar2"></span>
 							</span>
 							<span class="template-name">Slide Up / Down</span>
+						</label>
+						<label>
+							<input type="radio" name="template" value="3">
+							<span class="template-preview preview-3" aria-hidden="true">
+								<span class="bar rule"></span>
+								<span class="bar alt bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Quiet Rule</span>
 						</label>
 					</div>
 				</div>

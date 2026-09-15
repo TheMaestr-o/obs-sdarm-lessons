@@ -1,9 +1,12 @@
 /*
  * native/overlay.css
  *
- * Our OWN implementation of the three "lower third" visual styles referenced
- * from ../css/lower.css (ids 1, 2, 5 -- "Slash & Slide", "Slide Up / Down",
- * "Framed Reveal"). This file does not import from, extend, or modify
+ * Our OWN implementation of the "lower third" visual styles. Ids 1 and 2
+ * ("Slash & Slide", "Slide Up / Down") re-implement styles referenced from
+ * ../css/lower.css; id 3 ("Quiet Rule") is ours alone, with no counterpart
+ * there -- the id-5 "Framed Reveal" it replaces was dropped because its drawn
+ * SVG frame boxed in a wrapping question sentence it was never sized for.
+ * This file does not import from, extend, or modify
  * ../css/lower.css in any way -- see LOCAL-SETUP.md for why: lower.css's
  * keyframes are built as `-webkit-animation-iteration-count: 2` + `alternate`,
  * which plays the "in" animation once and then IMMEDIATELY plays it backwards
@@ -16,7 +19,8 @@
  * Every animation below:
  *   - Reproduces the ORIGINAL's "appear" keyframe shape and easing as closely
  *     as possible (same cubic-bezier / easing function, same relative timing
- *     offsets between line1 / line2 / decorative elements).
+ *     offsets between line1 / line2 / decorative elements). Id 3 has no
+ *     original to reproduce, so it only has to honour the rules below it.
  *   - Runs exactly ONCE (`animation-iteration-count: 1`, no `alternate`).
  *   - Ends with `animation-fill-mode: forwards`, landing on and staying on
  *     the fully-revealed end state forever -- no reverse, no auto-hide.
@@ -63,7 +67,9 @@
 .ss-line2,
 .ss-intro,
 .sud-line2,
-.sud-intro {
+.sud-intro,
+.qr-line2,
+.qr-intro {
   text-transform: none;
 }
 
@@ -261,6 +267,142 @@
     transform: translate3d(0, -100%, 0);
   }
   100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ============================================================
+ * Style 3 -- "Quiet Rule"
+ *
+ * Deliberately built to share nothing with styles 1 and 2 beyond the color
+ * variables: right-aligned instead of left/centre, a vertical rule instead of
+ * a slash or a gradient scrim alone, and a settle-into-place fade rather than
+ * a slide across the frame. The composition is the one a printed study guide
+ * uses for a pull quote -- a hairline rule down the margin, a small tracked
+ * label against it, the sentence itself set larger underneath -- which is why
+ * it suits a question the congregation is meant to sit with rather than
+ * glance at. Right-aligning it also leaves the left two-thirds of the 1920px
+ * canvas clear, where the speaker usually stands.
+ *
+ * The rule is the only thing that "moves" in a directional sense: it grows
+ * downward (scaleY from its top edge) while the text settles up into place
+ * behind it. That reads as the frame being laid down and the words being set
+ * into it, and it costs one transform per element -- no layout-affecting
+ * properties are animated, which keeps CEF compositing cheap.
+ * ============================================================ */
+.style-quiet-rule {
+  text-align: right;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* Bottom-anchored with breathing room under it rather than vertically
+   centred: line2 wraps to a second line in some languages, and growing
+   upward from a fixed baseline keeps that extra line away from the frame
+   edge instead of pushing the block half off the bottom. */
+.style-quiet-rule .overlay-block {
+  /* 2.2em bottom keeps the last line off the frame edge. The root's own
+     `padding: 0 2em` only gives ~36px of right gutter and nothing at all at
+     the bottom, which puts text inside the title-safe margin a broadcast
+     needs -- measured at 15px from the bottom edge before this. Padding (not
+     margin) on the right because the rule is positioned against this box's
+     padding edge, so the padding is what holds the text off the rule. */
+  /* The right margin pushes the rule itself off the canvas edge: the root's
+     own `padding: 0 2em` left it only ~36px out, which is inside the
+     title-safe margin a broadcast wants. */
+  margin: 0 1.5em 1.5em 0;
+  padding-right: 1.9em;
+  position: relative;
+  /* The block is capped rather than full-width so a long question breaks into
+     two comfortable lines instead of one very wide one that the eye has to
+     track all the way across a 1920px frame. Right margin comes from the
+     padding above; `margin-left:auto` pushes the capped box to the right.
+
+     72% is the measured ceiling, not a guess: the root is 220px tall and
+     clips (overflow:hidden), and since this block grows upward from a fixed
+     bottom margin, every extra wrapped line eats headroom. Measured with a
+     deliberately long German question -- at 62% it wrapped to 4 lines and
+     overran the root by 6px; at 72% the same text is 3 lines with 37px to
+     spare, and a normal two-line question has 81px. Going wider than this
+     buys no further reduction in line count (78% measured identical) while
+     eating into the left third of the frame, where the speaker stands. */
+  max-width: 72%;
+  margin-left: auto;
+}
+
+/* The rule sits on the block's right edge, spanning the whole block however
+   tall it ends up -- because it's an absolutely-positioned child with
+   top:0/bottom:0 it re-measures itself for free when line2 wraps, with no
+   height that has to be kept in sync with the text. */
+.style-quiet-rule .qr-rule {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--line2-color, #c6a15b);
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  animation: qr-rule-draw 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s 1 forwards;
+}
+
+/* Wide tracking is what makes a short label read as a label next to a much
+   larger sentence, rather than as a first line of the same paragraph. The
+   trailing letter-space is trimmed so the label's last glyph still aligns
+   flush with the rule. */
+.style-quiet-rule .qr-line1 {
+  font-size: 1.5em;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  margin: 0 0 0.55em;
+  margin-right: -0.22em;
+  opacity: 0;
+  transform: translate3d(0, 0.5em, 0);
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.45s 1 forwards;
+}
+
+.style-quiet-rule .qr-intro {
+  font-size: 1.4em;
+  font-weight: 300;
+  line-height: 1.35;
+  margin: 0 0 0.35em;
+  opacity: 0;
+  transform: translate3d(0, 0.5em, 0);
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.6s 1 forwards;
+}
+
+/* line-height above 1 (the root sets 1) because this is the line that wraps:
+   at 1 the two wrapped lines would touch. No fixed height and no overflow
+   clipping here for the same reason -- the block grows to whatever the text
+   needs and the rule follows it. */
+.style-quiet-rule .qr-line2 {
+  font-size: 2.1em;
+  font-weight: 300;
+  line-height: 1.3;
+  margin: 0;
+  opacity: 0;
+  transform: translate3d(0, 0.5em, 0);
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.72s 1 forwards;
+}
+
+@keyframes qr-rule-draw {
+  0% {
+    transform: scaleY(0);
+  }
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes qr-settle {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0.5em, 0);
+  }
+  100% {
+    opacity: 1;
     transform: translate3d(0, 0, 0);
   }
 }

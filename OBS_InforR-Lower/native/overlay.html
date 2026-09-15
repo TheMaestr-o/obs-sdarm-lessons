@@ -120,6 +120,34 @@
 		}
 
 
+		/*
+		"Quiet Rule" (id 3). Unlike the two above, this one does NOT wrap each
+		line in a `.mask` with an inner <div> that gets transformed: those two
+		slide their text in from outside its own box, so they need a clipping
+		parent to hide it beforehand. This one only fades and lifts each line a
+		fraction of its own height in place, so there is nothing to clip -- and
+		a fixed-height clipping box would actively break it, since qr-line2 is
+		the line that's allowed to wrap to two lines. The rule element is
+		decorative and empty; it sizes itself off the block via top/bottom.
+		*/
+		function renderQuietRule(root, line1, introduction, line2) {
+			root.className = 'overlay-root style-quiet-rule';
+			const block = el('div', 'overlay-block', [
+				el('div', 'qr-rule', []),
+				el('div', 'qr-line1 color2 arimo', [textDiv(line1)])
+			]);
+			// The other two templates always emit their intro row because their
+			// layout gives it a fixed height either way. Here the rows are
+			// content-sized, so an empty intro would contribute nothing but its
+			// own bottom margin -- a gap between label and question that the
+			// design didn't ask for. Emit it only when there's something in it.
+			if (introduction) {
+				block.appendChild(el('div', 'qr-intro color1', [textDiv(introduction)]));
+			}
+			block.appendChild(el('div', 'qr-line2 color1', [textDiv(line2)]));
+			root.appendChild(block);
+		}
+
 		function render(id, line1, line2, color1, color2, mode) {
 			const root = document.getElementById('overlay-root');
 			// Clear any previous render entirely (removes old elements + any inline
@@ -144,8 +172,12 @@
 				case '2':
 					renderSlideUpDown(root, safeLine1, safeIntroduction, safeLine2);
 					break;
-				case '5':
 				case '3':
+					renderQuietRule(root, safeLine1, safeIntroduction, safeLine2);
+					break;
+				// 4 and 5 are still unimplemented ids kept falling back to
+				// style 1 rather than erroring, same as before 3 became real.
+				case '5':
 				case '4':
 				case '1':
 				default:
