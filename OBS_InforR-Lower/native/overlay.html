@@ -57,7 +57,7 @@
 	<script>
 		/*
 		Reads the SAME URL parameters panel.html already sends (via result.html's
-		iframe `src`): id, line1, line2, color1, color2. Builds the markup for
+		iframe `src`): id, line1, introduction, line2, color1, color2. Builds the markup for
 		whichever of the 3 styles was requested using plain DOM APIs (no
 		document.writeln -- that only works when a script runs during the initial
 		parse, and we want this page to be able to re-render without a reload).
@@ -97,28 +97,30 @@
 			return inner;
 		}
 
-		function renderSlashSlide(root, line1, line2) {
+		function renderSlashSlide(root, line1, introduction, line2) {
 			root.className = 'overlay-root style-slash-slide';
 			const block = el('div', 'overlay-block', [
 				el('div', 'ss-slash color2', []),
 				el('div', 'ss-line ss-line1 color1 mask', [textDiv(line1)]),
+				el('div', 'ss-line ss-intro color2 mask', [textDiv(introduction)]),
 				el('div', 'ss-line ss-line2 color1 mask', [textDiv(line2)])
 			]);
 			block.querySelector('.ss-slash').textContent = '/';
 			root.appendChild(block);
 		}
 
-		function renderSlideUpDown(root, line1, line2) {
+		function renderSlideUpDown(root, line1, introduction, line2) {
 			root.className = 'overlay-root style-slide-up-down';
 			const block = el('div', 'overlay-block', [
 				el('div', 'sud-block sud-line1 color2 arimo mask', [textDiv(line1)]),
+				el('div', 'sud-block sud-intro color2 mask', [textDiv(introduction)]),
 				el('div', 'sud-block sud-line2 color1 mask', [textDiv(line2)])
 			]);
 			root.appendChild(block);
 		}
 
 
-		function render(id, line1, line2, color1, color2) {
+		function render(id, line1, line2, color1, color2, mode) {
 			const root = document.getElementById('overlay-root');
 			// Clear any previous render entirely (removes old elements + any inline
 			// styles/animation state) so a second "Show" with new text starts every
@@ -132,19 +134,22 @@
 			root.style.setProperty('--line1-color', '#' + safeColor1);
 			root.style.setProperty('--line2-color', '#' + safeColor2);
 
-			const safeLine1 = line1 || 'John Doe';
-			const safeLine2 = line2 || 'Motion Designer';
+			const safeLine1 = line1 || (mode === 'lesson' ? 'Lesson Title' : 'Section Title');
+			const safeLine2 = line2 || (mode === 'lesson' ? 'MEMORY VERSE' : 'Question Text');
+			// Introduction is handled as an empty string for both modes, but we pass
+			// line2 content to maintain the same 3-line display regardless of mode.
+			const safeIntroduction = '';
 
 			switch (id) {
 				case '2':
-					renderSlideUpDown(root, safeLine1, safeLine2);
+					renderSlideUpDown(root, safeLine1, safeIntroduction, safeLine2);
 					break;
 				case '5':
 				case '3':
 				case '4':
 				case '1':
 				default:
-					renderSlashSlide(root, safeLine1, safeLine2);
+					renderSlashSlide(root, safeLine1, safeIntroduction, safeLine2);
 					break;
 			}
 		}
@@ -155,7 +160,8 @@
 			getParam(params, 'line1', ''),
 			getParam(params, 'line2', ''),
 			getParam(params, 'color1', 'fff'),
-			getParam(params, 'color2', 'c6a15b')
+			getParam(params, 'color2', 'c6a15b'),
+			getParam(params, 'mode', 'question')
 		);
 	</script>
 </body>

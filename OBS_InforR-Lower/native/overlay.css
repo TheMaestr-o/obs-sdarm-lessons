@@ -57,17 +57,27 @@
    still fits, but a full question sentence read in caps live on stream reads
    as shouting and doesn't match how the lesson itself presents it. One rule
    per template's own line2 class (see overlay.html's renderSlashSlide /
-   renderSlideUpDown) since each template names it differently. */
+   renderSlideUpDown) since each template names it differently.
+
+   Same for intro (the introduction/memory verse) -- not forced uppercase. */
 .ss-line2,
-.sud-line2 {
+.ss-intro,
+.sud-line2,
+.sud-intro {
   text-transform: none;
 }
 
 .overlay-block {
   width: 100%;
-  height: 4em;
+  height: auto;
   margin: 1em auto;
   position: relative;
+}
+
+/* For 3-line layouts, ensure sufficient height */
+.style-slash-slide .overlay-block,
+.style-slide-up-down .overlay-block {
+  height: auto;
 }
 
 .mask {
@@ -101,21 +111,33 @@
 }
 
 .style-slash-slide .ss-line {
-  position: absolute;
-  font-size: 2em;
-  height: 1em;
+  position: relative;
+  font-size: 1.5em;
+  height: auto;
   width: 100%;
   font-weight: 300;
+  margin-bottom: 0.3em;
+  padding-left: .55em;
 }
 
 .style-slash-slide .ss-line1 {
-  top: 0;
-  left: .93em;
+  font-size: 2em;
+  font-weight: 400;
+  padding-left: .93em;
+  margin-bottom: 0.2em;
+}
+
+.style-slash-slide .ss-intro {
+  font-size: 1.4em;
+  font-weight: 300;
+  opacity: 0.85;
+  margin-bottom: 0.2em;
 }
 
 .style-slash-slide .ss-line2 {
-  top: .9em;
-  left: .55em;
+  font-size: 1.5em;
+  font-weight: 300;
+  margin-bottom: 0;
 }
 
 .style-slash-slide .ss-line > div {
@@ -125,6 +147,10 @@
 
 .style-slash-slide .ss-line1 > div {
   animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 1.8s 1 forwards;
+}
+
+.style-slash-slide .ss-intro > div {
+  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 2.0s 1 forwards;
 }
 
 .style-slash-slide .ss-line2 > div {
@@ -161,24 +187,31 @@
 .style-slide-up-down {
   text-align: center;
   background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .style-slide-up-down .overlay-block {
-  margin: 3.5em auto 0 auto; 
+  margin: 0 auto;
 }
 
 .style-slide-up-down .sud-block {
   width: 100%;
-  height: 1.2em; 
-  padding-top: 0.04em;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
   position: relative;
   z-index: 1;
+  padding: 0;
 }
 
 .style-slide-up-down .sud-line1 {
-  font-size: 2.8em;
+  font-size: 2.4em;
   font-weight: 700;
+  margin-bottom: 0.3em;
+  overflow: hidden;
+  height: 1.2em;
+  padding-top: 0.04em;
 }
 
 .style-slide-up-down .sud-line1 > div {
@@ -186,16 +219,32 @@
   animation: sud-up 0.9s ease-out 0.9s 1 forwards;
 }
 
-.style-slide-up-down .sud-line2 {
-  font-size: 2.2em; /* <-- Увеличили размер шрифта нижней строки (было 1.75em) */
+.style-slide-up-down .sud-intro {
+  font-size: 1.6em;
   font-weight: 300;
-  margin-top: 1.2em;
-  padding: 0 0.8em;
+  margin-bottom: 0.2em;
+  overflow: hidden;
+  height: 1em;
+  opacity: 0.85;
+}
+
+.style-slide-up-down .sud-intro > div {
+  transform: translate3d(0, -100%, 0);
+  animation: sud-down 0.9s ease-out 1.0s 1 forwards;
+}
+
+.style-slide-up-down .sud-line2 {
+  font-size: 1.8em;
+  font-weight: 300;
+  margin-top: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 1.1em;
 }
 
 .style-slide-up-down .sud-line2 > div {
   transform: translate3d(0, -100%, 0);
-  animation: sud-down 0.9s ease-out 0.9s 1 forwards;
+  animation: sud-down 0.9s ease-out 1.1s 1 forwards;
 }
 
 @keyframes sud-up {

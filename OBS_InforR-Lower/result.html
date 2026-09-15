@@ -97,7 +97,9 @@
 			const params = new URLSearchParams();
 			params.set('id', data.id || '1');
 			params.set('line1', data.line1 || '');
+			params.set('introduction', data.introduction || '');
 			params.set('line2', data.line2 || '');
+			params.set('mode', data.mode || 'question');
 			if (data.color1) params.set('color1', data.color1);
 			if (data.color2) params.set('color2', data.color2);
 			// Cache-bust so pressing "Show" twice with identical text still forces the

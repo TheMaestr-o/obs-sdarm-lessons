@@ -79,9 +79,18 @@ def build_lesson_entries(data: dict, letters: list[str]):
                     questions.append({"letter": letter, "sectionTitle": day_title, "text": q})
                     day_index += 1
 
+        # Extract introduction from keyText.text (opening verse/summary)
+        introduction = ""
+        key_text = les.get("keyText")
+        if isinstance(key_text, dict):
+            introduction = key_text.get("text", "").strip()
+        elif isinstance(key_text, str):
+            introduction = key_text.strip()
+
         lessons.append({
             "no": les.get("no"),
             "title": les.get("title", "").strip(),
+            "introduction": introduction,
             "questions": questions,
         })
     return lessons

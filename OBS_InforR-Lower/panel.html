@@ -389,10 +389,15 @@
 			}
 		}
 
-		.btn-show {
-			width: 100%;
-			padding: 10px;
+		.show-buttons {
+			display: flex;
+			gap: 8px;
 			margin-top: 4px;
+		}
+
+		.btn-show {
+			flex: 1;
+			padding: 10px;
 			border: none;
 			border-radius: 3px;
 			font-size: 12.5px;
@@ -670,11 +675,65 @@
 			min-height: 14px;
 		}
 
+		/* Keyboard shortcuts help text at bottom of panel */
+		.keyboard-shortcuts {
+			font-size: 9px;
+			color: #666666;
+			margin-top: 12px;
+			padding-top: 8px;
+			border-top: 1px solid #272A33;
+			line-height: 1.3;
+		}
+
+		.keyboard-shortcuts div {
+			margin: 2px 0;
+		}
+
+		/* Auto-show checkbox in settings */
+		.auto-show-group {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			margin-top: 8px;
+		}
+
+		.auto-show-group input[type="checkbox"] {
+			width: auto;
+			padding: 0;
+			background: transparent;
+			border: none;
+			cursor: pointer;
+		}
+
+		.auto-show-group label {
+			display: inline;
+			margin: 0;
+			font-size: 11px;
+			color: #a0a0a0;
+			font-weight: 400;
+			cursor: pointer;
+		}
+
+		/* Fixed lesson title header at the top */
+		#lessonTitleHeader {
+			background: #2c445e;
+			border-bottom: 2px solid #4a9eff;
+			padding: 12px 10px;
+			margin: -12px -12px 16px -12px;
+			font-size: 14px;
+			font-weight: 600;
+			color: #d4d4d4;
+			letter-spacing: 0.3px;
+			min-height: 18px;
+		}
+
 	</style>
 </head>
 <body>
 	<div class="container">
 		<div class="panel">
+			<div id="lessonTitleHeader"></div>
+
 			<div class="form-group">
 				<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
 			</div>
@@ -759,6 +818,11 @@
 					<select id="lessonSelect"></select>
 				</div>
 
+				<div class="auto-show-group">
+					<input type="checkbox" id="autoShowCheckbox">
+					<label for="autoShowCheckbox">Auto-show on Next/Previous</label>
+				</div>
+
 				<div class="form-group">
 					<!--
 					Only id=1 and id=2 are offered here. id=3, id=4, and id=5 are
@@ -806,8 +870,18 @@
 				</div>
 			</details>
 
-			<button class="btn-show" id="showBtn">Show</button>
+			<div class="show-buttons">
+				<button class="btn-show" id="showLessonBtn">Show Lesson</button>
+				<button class="btn-show" id="showQuestionBtn">Show Question</button>
+			</div>
 			<div class="status" id="status"></div>
+
+			<div class="keyboard-shortcuts">
+				<div>Space = Show Question</div>
+				<div>Shift+Space = Show Lesson</div>
+				<div>→ = Next</div>
+				<div>← = Previous</div>
+			</div>
 		</div>
 	</div>
 
@@ -822,6 +896,7 @@
 		const color1PickerEl = document.getElementById('color1picker');
 		const color2PickerEl = document.getElementById('color2picker');
 		const statusEl = document.getElementById('status');
+		const lessonTitleHeaderEl = document.getElementById('lessonTitleHeader');
 
 		// Keep the hex text input and the native color picker in sync in both directions.
 		function syncPickerToText(picker, text) {
@@ -851,18 +926,60 @@
 		// block below the BroadcastChannel line at the top of this script for why
 		// this exists alongside BroadcastChannel rather than replacing it.
 		const STORAGE_KEY = 'infor-r-lower-thirds-state';
+		const AUTO_SHOW_KEY = 'infor-r-lower-thirds-auto-show';
 
-		document.getElementById('showBtn').addEventListener('click', () => {
-			const templateEl = document.querySelector('input[name="template"]:checked');
-			const data = {
-				id: templateEl ? templateEl.value : '1',
-				line1: line1El.value,
-				line2: line2El.value,
-				color1: sanitizeHex(color1El.value, 'fff'),
-				color2: sanitizeHex(color2El.value, 'c6a15b'),
-				_t: Date.now() // lets result.html tell two identical presses apart
-			};
+		// Get auto-show checkbox and load its saved state
+		const autoShowCheckboxEl = document.getElementById('autoShowCheckbox');
+		function loadAutoShowSetting() {
+			try {
+				const saved = localStorage.getItem(AUTO_SHOW_KEY);
+				autoShowCheckboxEl.checked = saved === 'true';
+			} catch (e) {
+				// localStorage unavailable, default to unchecked
+				autoShowCheckboxEl.checked = false;
+			}
+		}
+		function saveAutoShowSetting() {
+			try {
+				localStorage.setItem(AUTO_SHOW_KEY, autoShowCheckboxEl.checked ? 'true' : 'false');
+			} catch (e) {
+				// localStorage unavailable, setting won't persist
+			}
+		}
+		loadAutoShowSetting();
+		autoShowCheckboxEl.addEventListener('change', saveAutoShowSetting);
 
+		// Keyboard shortcuts: Space=Show Question, Shift+Space=Show Lesson, ArrowRight=Next, ArrowLeft=Previous
+		document.addEventListener('keydown', (e) => {
+			// Don't trigger if user is typing in a text field
+			if (e.target.matches('input, textarea, select')) {
+				return;
+			}
+
+			if (e.code === 'Space') {
+				e.preventDefault();
+				if (e.shiftKey) {
+					document.getElementById('showLessonBtn').click();
+				} else {
+					document.getElementById('showQuestionBtn').click();
+				}
+			} else if (e.code === 'ArrowRight') {
+				e.preventDefault();
+				const nextBtn = document.getElementById('nextBtn');
+				if (nextBtn && !nextBtn.disabled) {
+					nextBtn.click();
+				}
+			} else if (e.code === 'ArrowLeft') {
+				e.preventDefault();
+				const prevBtn = document.getElementById('prevBtn');
+				if (prevBtn && !prevBtn.disabled) {
+					prevBtn.click();
+				}
+			}
+		});
+
+		// Helper function to send data to the broadcast channel and localStorage
+		function sendData(data) {
 			// Primary channel: works when panel.html and result.html are both Browser
 			// Sources/Interact windows inside the SAME OBS scene-source CEF context
 			// (the originally-documented "Control scene + Interact" setup).
@@ -890,6 +1007,47 @@
 
 			statusEl.textContent = 'Sent to result.html at ' + new Date().toLocaleTimeString();
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);
+		}
+
+		// Show Lesson button handler
+		document.getElementById('showLessonBtn').addEventListener('click', () => {
+			// Access the current lesson from the picker's scope
+			// We need to get the lesson title and introduction from the loaded lesson
+			const lesson = (function() {
+				// Access the bundle from the picker IIFE scope
+				// Since bundle is inside the IIFE, we need a different approach
+				// Store the lesson data globally when it's loaded
+				return window._currentLesson;
+			})();
+
+			if (lesson) {
+				const templateEl = document.querySelector('input[name="template"]:checked');
+				const data = {
+					id: templateEl ? templateEl.value : '1',
+					line1: lesson.title,
+					line2: lesson.introduction,
+					color1: sanitizeHex(color1El.value, 'fff'),
+					color2: sanitizeHex(color2El.value, 'c6a15b'),
+					mode: 'lesson',
+					_t: Date.now()
+				};
+				sendData(data);
+			}
+		});
+
+		// Show Question button handler
+		document.getElementById('showQuestionBtn').addEventListener('click', () => {
+			const templateEl = document.querySelector('input[name="template"]:checked');
+			const data = {
+				id: templateEl ? templateEl.value : '1',
+				line1: line1El.value,
+				line2: line2El.value,
+				color1: sanitizeHex(color1El.value, 'fff'),
+				color2: sanitizeHex(color2El.value, 'c6a15b'),
+				mode: 'question',
+				_t: Date.now() // lets result.html tell two identical presses apart
+			};
+			sendData(data);
 		});
 
 		// --- Lesson & Question picker -----------------------------------------
@@ -1062,16 +1220,25 @@
 				currentLessonNo = stillExists ? preserveLessonNo : lessons[0].no;
 				lessonSelectEl.value = currentLessonNo;
 				updateActiveLessonLabel();
+				updateCurrentLessonGlobal();
 			}
 
-			// Keeps #activeLessonLabel (in the always-visible area) in sync with
-			// currentLessonNo -- called from populateLessonSelect() and from
-			// lessonSelectEl's own 'change' handler below, the two places that
-			// change currentLessonNo.
+			// Keeps #activeLessonLabel (in the always-visible area) and #lessonTitleHeader
+			// (at the top of the panel) in sync with currentLessonNo -- called from
+			// populateLessonSelect() and from lessonSelectEl's own 'change' handler below,
+			// the two places that change currentLessonNo.
 			function updateActiveLessonLabel() {
 				const lessons = getLangData(currentQuarter, currentLang).lessons;
 				const lesson = lessons.find((l) => String(l.no) === String(currentLessonNo));
-				activeLessonLabelEl.textContent = lesson ? lesson.no + '. ' + lesson.title : '';
+				const lessonText = lesson ? 'Lesson ' + lesson.no + ': ' + lesson.title : '';
+				activeLessonLabelEl.textContent = lessonText;
+				lessonTitleHeaderEl.textContent = lessonText;
+			}
+
+			// Store the current lesson globally so Show Lesson button can access it
+			function updateCurrentLessonGlobal() {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				window._currentLesson = lesson;
 			}
 
 			// Shows one question's full text in #questionPreview -- driven by
@@ -1220,6 +1387,9 @@
 			prevBtn.addEventListener('click', () => {
 				if (currentQuestionIndex != null && currentQuestionIndex > 0) {
 					loadQuestion(currentQuestionIndex - 1);
+					if (autoShowCheckboxEl.checked) {
+						document.getElementById('showQuestionBtn').click();
+					}
 				}
 			});
 
@@ -1227,6 +1397,9 @@
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				if (currentQuestionIndex != null && currentQuestionIndex < lesson.questions.length - 1) {
 					loadQuestion(currentQuestionIndex + 1);
+					if (autoShowCheckboxEl.checked) {
+						document.getElementById('showQuestionBtn').click();
+					}
 				}
 			});
 
@@ -1241,6 +1414,7 @@
 				populateLanguageSelect(currentLang);
 				populateLessonSelect(currentLessonNo);
 				currentQuestionIndex = null;
+				updateCurrentLessonGlobal();
 				renderQuestionList();
 				savePickerSettings();
 			});
@@ -1249,6 +1423,7 @@
 				currentLang = languageSelectEl.value;
 				populateLessonSelect(currentLessonNo);
 				currentQuestionIndex = null;
+				updateCurrentLessonGlobal();
 				renderQuestionList();
 				savePickerSettings();
 			});
@@ -1257,6 +1432,7 @@
 				currentLessonNo = lessonSelectEl.value;
 				currentQuestionIndex = null;
 				updateActiveLessonLabel();
+				updateCurrentLessonGlobal();
 				renderQuestionList();
 				savePickerSettings();
 			});
@@ -1279,6 +1455,7 @@
 					populateQuarterSelect(saved ? saved.quarter : null);
 					populateLanguageSelect(saved ? saved.language : null);
 					populateLessonSelect(saved ? saved.lessonNo : null);
+					updateCurrentLessonGlobal();
 					renderQuestionList();
 				})
 				.catch((err) => {
