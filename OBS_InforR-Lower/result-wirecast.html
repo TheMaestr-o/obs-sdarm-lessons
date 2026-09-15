@@ -54,6 +54,17 @@
 
 		function applyData(data) {
 			if (!data) return;
+
+			// Handle hide mode: immediately clear the overlay without de-duplication check
+			if (data.mode === 'hide') {
+				frameEl.hidden = true;
+				// Clear lastAppliedAt so hide-then-reshow of the same question is not
+				// swallowed by deduplication: the next Show press with the same _t
+				// will reload the content, not be skipped as a duplicate.
+				lastAppliedAt = 0;
+				return;
+			}
+
 			// data._t (panel-wirecast.html's Date.now() at press time) uniquely
 			// identifies one Show press. Skip if we've already applied this exact
 			// timestamp to avoid restarting the animation unnecessarily.

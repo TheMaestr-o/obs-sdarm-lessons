@@ -10,181 +10,677 @@
 		}
 
 		/*
-		Flat, dark, no gradients -- matches OBS's own dock panels (Audio Mixer,
-		Loudness) rather than reading as a separate web app dropped into the
-		window. One background color, one accent color (#4a9eff, close to OBS's
-		own selection blue), plain borders instead of glow/blur, no text-fill
-		gradients on headings. Changed on request after the original brighter
-		blue/purple + green gradient look; the underlying markup/JS is untouched.
+		DESIGN DIRECTION (deliberate change -- do not "fix" this back):
+		this panel used to be painted to match OBS's own bundled Yami dark
+		theme exactly (#1D1F26 page, #4a9eff accent, 3px radii, flat cards),
+		so it would disappear into the dock chrome. The author has since
+		designed a distinct look for it -- near-black navy with a bright lime
+		accent, generous rounding, roomier spacing -- and asked for that
+		instead. It is SUPPOSED to read as its own app inside the dock, not
+		as another OBS panel. The old Yami-matching values are gone on
+		purpose; the comments that described them have been updated rather
+		than left behind to contradict what is on screen.
+
+		Every value below comes from the author's Figma frame "Youthful lesson
+		editor" (node 12667:15) rather than being eyeballed, which is why the
+		hexes look arbitrary -- they are not, they are the design's own.
+
+		Constraints unchanged: one self-contained file, no build step, no CDN,
+		no web fonts (the stream box is offline), and nothing newer than
+		`:has()`, which is already proven safe in OBS's CEF build. Nothing in
+		the design is an image -- circles, swatches, bars, the connector and
+		the pencil badges are all plain CSS.
 		*/
-		body {
-			margin: 0;
-			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-			/* #1D1F26 is OBS's own --bg_window value from its bundled Yami (dark)
-			   theme (/Applications/OBS.app/Contents/Resources/themes/Yami.obt) --
-			   matching it exactly instead of an approximate grey removes the
-			   visible seam between the dock's real background and this page's,
-			   which showed as a slightly-too-light/too-neutral rectangle floating
-			   inside the actual dock. */
-			background: #1D1F26;
-			color: #d4d4d4;
-			padding: 12px;
-			min-height: 100vh;
+		:root {
+			/* Surfaces, darkest to lightest. */
+			--bg: #090b14;          /* panel background */
+			--bg-2: #101427;        /* title bar, questions container */
+			--card: #14192b;        /* "Lesson & Question" card */
+			--card-2: #1a2036;      /* Settings card */
+			--field: #202844;       /* fields, circles at rest, dark pills */
+			--field-hover: #283150;
+			--border: #1c2240;      /* outer border */
+			--border-2: #303a60;    /* card/field borders */
+			--border-3: #5867a7;    /* inactive circle + dark-pill border */
+
+			--text: #b7c0dd;
+			--text-bright: #f5f7ff;
+			--muted: #747e9e;
+			--muted-2: #5b6587;
+
+			--accent: #b8ff3d;
+			--accent-ring: #d9ff94;
+			--on-accent: #10130c;
+
+			/* The selected *animation style* tile uses a violet ring, not
+			   lime -- deliberate in the design, so the "which style" choice
+			   never reads as the same kind of selection as a colour preset. */
+			--violet: #8c6cff;
+			--violet-bg: #282f50;
 		}
 
-		/*
-		No separate card background anymore -- the panel used to sit as its own
-		#262626 rectangle inside the dock's own #1e1e1e background, which on a
-		real OBS dock reads as a frame-within-a-frame (the dock's own edge, plus
-		this panel's edge just inside it). Content now sits directly on the
-		dock's background, full width, so it reads as part of the dock rather
-		than a separate box floating inside it.
-		*/
+		body {
+			margin: 0;
+			/* System stack only -- no web font may be fetched, the stream box
+			   is offline. The mockup was drawn in SF Pro; -apple-system
+			   already resolves to it on macOS, so nothing is loaded. */
+			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: var(--bg);
+			color: var(--text);
+			padding: 0;
+			min-height: 100vh;
+			font-size: 13px;
+			-webkit-font-smoothing: antialiased;
+		}
+
 		.container {
 			width: 100%;
 		}
 
+		.panel {
+			background: var(--bg);
+			border: 1px solid var(--border);
+			border-radius: 24px;
+			box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.4);
+			overflow: hidden;
+		}
+
+		/* ---------- Title bar ---------------------------------------------
+		   ✕ on the left, brand mark + "SDARM Germany" on the right.
+
+		   The mockup's ✕ has nothing to close: an OBS Custom Browser Dock is
+		   closed from OBS's own dock chrome, and window.close() is a no-op
+		   for a page the script did not open. Rather than drop it (the design
+		   wants the shape) or leave it inert (a dead control on a live panel
+		   is worse than none), it is wired to the one real "close" this page
+		   owns: it clears the overlay, sending the same { mode:'hide' }
+		   payload STOP sends. Labelled accordingly for screen readers and on
+		   hover, so it is never mistaken for a window close. */
+		.titlebar {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			height: 44px;
+			padding: 0 14px;
+			background: var(--bg-2);
+			border-bottom: 1px solid #283158;
+		}
+
+		.titlebar-close {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 24px;
+			height: 24px;
+			padding: 0;
+			border: none;
+			border-radius: 50%;
+			background: transparent;
+			color: var(--muted);
+			font-size: 14px;
+			line-height: 1;
+			font-family: inherit;
+			cursor: pointer;
+		}
+
+		.titlebar-close:hover {
+			background: var(--field);
+			color: var(--text);
+		}
+
+		.titlebar-close:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 1px;
+		}
+
+		.titlebar-brand {
+			display: flex;
+			align-items: center;
+			gap: 7px;
+			font-size: 11.5px;
+			font-weight: 600;
+			letter-spacing: 0.2px;
+			color: var(--text);
+		}
+
+		/* Inline SVG, not an image file -- no external resource of any kind
+		   is allowed here (offline stream box), and a data: URI would be
+		   less legible to edit than the markup itself. */
+		.titlebar-brand svg {
+			display: block;
+			width: 15px;
+			height: 15px;
+			flex: none;
+			color: var(--accent);
+		}
+
+		/* ---------- Main content ------------------------------------------
+		   Section spacing 10px, padding 12px, per the design. */
+		.panel-body {
+			padding: 12px;
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		/* ---------- Lesson title ------------------------------------------
+		   24px bold, centred, lime. The "put the lesson on air" control sits
+		   on the same row so it stays with the thing it acts on; it is
+		   absolutely positioned so the centred title keeps the full width. */
+		.lesson-title-row {
+			position: relative;
+			padding: 4px 34px 0;
+		}
+
+		#lessonTitleHeader {
+			font-size: 24px;
+			line-height: 1.2;
+			font-weight: 700;
+			color: var(--accent);
+			text-align: center;
+			letter-spacing: 0.1px;
+			min-height: 28px;
+		}
+
+		/* Small secondary control for "show the lesson title + memory verse".
+		   This used to be a full-width "Show Lesson" button next to "Show
+		   Question"; SHOW/STOP took that row over, so the lesson action moved
+		   here, beside the lesson title it shows. Deliberately compact, but
+		   labelled and tooltipped (aria-label + title) and given a 32px hit
+		   target so it stays easy to find and press live -- it is a secondary
+		   action, not a hidden one. */
+		.btn-lesson-show {
+			position: absolute;
+			top: 50%;
+			right: 0;
+			transform: translateY(-50%);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 32px;
+			height: 32px;
+			padding: 0;
+			border: 1px solid var(--border-3);
+			border-radius: 50%;
+			background: var(--field);
+			color: var(--accent);
+			cursor: pointer;
+			font-family: inherit;
+		}
+
+		.btn-lesson-show:hover {
+			background: var(--field-hover);
+			border-color: var(--accent);
+		}
+
+		.btn-lesson-show:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		.btn-lesson-show svg {
+			display: block;
+			width: 15px;
+			height: 15px;
+		}
+
+		/* ---------- Fields ------------------------------------------------
+		   Soft filled fields on a lighter navy. A focus ring is drawn with
+		   box-shadow rather than a thicker border so the field does not
+		   change size when focused. */
 		.form-group {
-			margin-bottom: 10px;
+			margin: 0;
 		}
 
 		label {
 			display: block;
 			margin-bottom: 5px;
-			font-weight: 400;
-			color: #a0a0a0;
+			font-weight: 500;
+			color: var(--muted);
 			font-size: 11px;
+			letter-spacing: 0.2px;
 		}
 
-		/* No border at rest -- the fields read by their own darker fill against
-		   the panel background, not by an outline. A border only appears on
-		   focus, as the one deliberate accent signal. */
 		input[type="text"],
 		textarea,
 		select {
 			width: 100%;
-			padding: 7px 9px;
-			/* #13141A = OBS's own --grey8, its darkest tone -- for a field that
-			   should read as "recessed" relative to the #1D1F26 page background. */
-			background: #13141A;
-			border: 1px solid transparent;
-			border-radius: 3px;
-			color: #d4d4d4;
-			font-size: 12.5px;
+			padding: 8px 10px;
+			background: var(--field);
+			border: 1px solid var(--border-2);
+			border-radius: 10px;
+			color: var(--text);
+			font-size: 13px;
 			font-family: inherit;
+			line-height: 1.45;
 		}
 
 		textarea {
 			resize: vertical;
-			min-height: 64px;
+			min-height: 62px;
+		}
+
+		select {
+			border-radius: 8px;
+			padding: 8px 8px;
+			font-size: 12px;
+			cursor: pointer;
+			/* Chromium/CEF still paints its own arrow; suppressing the native
+			   appearance without supplying a replacement would leave no
+			   affordance at all, so the native control is kept as-is. */
 		}
 
 		input:focus,
 		select:focus,
 		textarea:focus {
 			outline: none;
-			border-color: #4a9eff;
+			border-color: var(--accent);
+			box-shadow: 0 0 0 3px rgba(184, 255, 61, 0.16);
 		}
 
 		select option {
-			/* #272A33 = OBS's own --grey6 -- one step lighter than the page
-			   background, for a dropdown list that visibly sits on top of it. */
-			background: #272A33;
-			color: #d4d4d4;
+			background: var(--card-2);
+			color: var(--text);
 		}
 
 		.form-row {
 			display: grid;
 			grid-template-columns: 1fr 1fr;
-			gap: 12px;
-		}
-
-		.color-row {
-			display: flex;
-			align-items: center;
 			gap: 8px;
 		}
 
-		/* Small swatch-style icon rather than the browser's default oversized
-		   color input -- this is the ONLY visible color control now (the hex
-		   text input next to it, color1/color2, is `hidden`: its value is
-		   still read/written by JS for the Show payload, it's just not shown
-		   or tabbable as a separate redundant field -- see .color-row below).
-		   Clicking anywhere on this swatch opens the native OS color picker,
-		   same as any <input type="color">, just sized/shaped to read as a
-		   small icon instead of a big rectangular control. */
-		input[type="color"] {
-			width: 26px;
-			height: 26px;
-			padding: 0;
-			background: #13141A;
-			border: 2px solid #272A33;
-			border-radius: 50%;
+		/* Three selects across one row (Quarter / Language / Lesson). At the
+		   real 440px dock width this fits; the auto-fit floor lets it fall to
+		   two-up and then one-up on a narrower dock with no media query. */
+		.form-row-3 {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+			gap: 8px;
+		}
+
+		/* ---------- Cards -------------------------------------------------
+		   Native <details>/<summary> as before -- no JS, identical in CEF.
+		   Drawn as a rounded card whose header row carries the collapsible
+		   title on the left and a muted status on the right. */
+		.card {
+			background: var(--card);
+			border: 1px solid var(--border-2);
+			border-radius: 20px;
+			padding: 0 14px 14px;
+		}
+
+		.card-settings {
+			background: var(--card-2);
+			border-radius: 12px;
+			padding: 0 10px 10px;
+		}
+
+		.card > summary {
+			display: flex;
+			align-items: center;
+			gap: 8px;
 			cursor: pointer;
-			/* Chromium/CEF draw this input's own internal swatch as a
-			   rectangle with default padding baked into its shadow DOM --
-			   these two rules make that inner swatch fill the circular
-			   border completely instead of floating a small rectangle
-			   inside it. Harmless no-ops in engines that ignore them. */
-			-webkit-appearance: none;
-			appearance: none;
+			font-size: 13px;
+			font-weight: 600;
+			letter-spacing: 0.1px;
+			color: var(--text-bright);
+			padding: 13px 0;
+			list-style: none;
 		}
 
-		input[type="color"]::-webkit-color-swatch-wrapper {
-			padding: 0;
-			border-radius: 50%;
-		}
-
-		input[type="color"]::-webkit-color-swatch {
-			border: none;
-			border-radius: 50%;
-		}
-
-		/* The hex value (color1/color2) stays a real, functional <input> in
-		   the DOM -- syncPickerToText/syncTextToPicker below still read and
-		   write it, and sanitizeHex() still reads it for the Show payload --
-		   it's just not rendered or reachable by Tab, since the swatch above
-		   is now the only interactive/visible control for picking a color.
-		   `hidden` (not the visually-hidden clip technique used elsewhere in
-		   this file for the template radio buttons) because there's no
-		   separate accessible identity worth preserving here: the color
-		   swatch already carries the label via `<label for>` pointing at it
-		   directly, so a focusable-but-invisible duplicate text field would
-		   only confuse a keyboard/screen-reader user, not help them. */
-		.color-row input[type="text"] {
+		.card > summary::-webkit-details-marker {
 			display: none;
 		}
 
-		.template-options {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 6px;
+		.card > summary::before {
+			content: '\25B8';
+			display: inline-block;
+			flex: none;
+			font-size: 10px;
+			color: var(--muted);
+			transition: transform 0.15s;
 		}
 
-		/* No resting border on the cards -- only their fill (a shade lighter than
-		   the panel) separates them, and the selected one is marked purely by a
-		   solid accent fill instead of adding a border on top of a border. */
-		.template-options label {
+		.card[open] > summary::before {
+			transform: rotate(90deg);
+		}
+
+		.card > summary:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 3px;
+			border-radius: 6px;
+		}
+
+		/* Right-hand status in the card header ("Section 4 · Question C").
+		   margin-left:auto pushes it to the far right of the summary row. */
+		.card-status {
+			margin-left: auto;
+			font-size: 11px;
+			font-weight: 500;
+			color: #d9ff94;
+			text-align: right;
+			letter-spacing: 0.1px;
+		}
+
+		/* ---------- Round section / question buttons -----------------------
+		   Replaces the old flat list of every question in the lesson at once,
+		   grouped under day headings. The lesson is now entered in two steps:
+		   pick a section (1..N), then a letter within it. Both rows are built
+		   from the data -- see buildSections() in the script -- because
+		   lessons vary (4-5 sections, 2-3 questions each). The mockup draws
+		   five and five; that is a drawing, not a rule.
+
+		   Letters render exactly as the data stores them -- lowercase, and
+		   Cyrillic (а, б, в) for ru. No text-transform anywhere in this
+		   block: the mockup shows capitals, but forcing a case the lesson
+		   content does not use was explicitly rejected before and must not
+		   come back. */
+		.questions-box {
+			background: var(--bg-2);
+			border: 1px solid var(--border-2);
+			border-radius: 18px;
+			padding: 10px;
+		}
+
+		.circle-row {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			justify-content: center;
+			gap: 10px;
+		}
+
+		/* Inactive: a thin muted ring on the card background, no fill.
+		   Active: a filled lime disc with the design's soft glow. */
+		.circle-btn {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex: none;
+			padding: 0;
+			border: 1.5px solid var(--border-3);
+			border-radius: 50%;
+			background: var(--field);
+			color: var(--text);
+			font-family: inherit;
+			font-weight: 500;
+			line-height: 1;
+			cursor: pointer;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+			transition: background 0.12s, color 0.12s, border-color 0.12s;
+		}
+
+		.circle-section {
+			width: 52px;
+			height: 52px;
+			font-size: 17px;
+		}
+
+		.circle-question {
+			width: 44px;
+			height: 44px;
+			font-size: 15px;
+		}
+
+		.circle-btn:hover:not(.current) {
+			border-color: var(--accent-ring);
+			background: var(--field-hover);
+			color: var(--text-bright);
+		}
+
+		.circle-btn:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		.circle-btn.current {
+			background: var(--accent);
+			border-color: var(--accent-ring);
+			color: var(--on-accent);
+			font-weight: 700;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.19),
+			            0 8px 18px -4px rgba(184, 255, 61, 0.33);
+		}
+
+		/* Short connector between the section row and the question row, as
+		   drawn -- a vertical line with a small dot, reading as "these
+		   questions belong to the section selected above". Purely decorative:
+		   aria-hidden in the markup, plain CSS, no image.
+
+		   It is 52px wide (one section circle) and slides horizontally to sit
+		   under whichever section is active, rather than staying pinned to the
+		   middle of the row. Centred on the row -- which is what the mockup
+		   draws, since the mockup's active section happens to be near the
+		   middle -- it lands between two circles as soon as the active one is
+		   1, 2 or 5 and reads as pointing at the wrong section. --connector-x
+		   is written by positionConnector() in the script from the active
+		   circle's measured offset; the 50% fallback is what shows before the
+		   first measurement and if the row is ever empty. */
+		.circle-connector {
+			position: relative;
+			width: 52px;
+			height: 16px;
+			margin: 0;
+			margin-left: var(--connector-x, 50%);
+			transform: translateX(-50%);
+			transition: margin-left 0.14s;
+		}
+
+		.circle-connector::before {
+			content: '';
+			position: absolute;
+			left: 50%;
+			top: 0;
+			width: 1.5px;
+			height: 10px;
+			margin-left: -0.75px;
+			background: var(--border-3);
+		}
+
+		.circle-connector::after {
+			content: '';
+			position: absolute;
+			left: 50%;
+			bottom: 0;
+			width: 5px;
+			height: 5px;
+			margin-left: -2.5px;
+			border-radius: 50%;
+			background: var(--border-3);
+		}
+
+		/* ---------- Previous / Next ---------------------------------------
+		   Two 44px pills side by side. Previous is dark, Next is solid lime
+		   and is clearly the primary of the pair. */
+		.question-nav {
+			display: flex;
+			gap: 12px;
+			margin-top: 12px;
+		}
+
+		.btn-pill {
+			flex: 1 1 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 7px;
+			min-width: 0;
+			height: 44px;
+			padding: 0 10px;
+			border: 1px solid transparent;
+			border-radius: 999px;
+			font-family: inherit;
+			font-size: 15px;
+			font-weight: 600;
+			letter-spacing: 0.1px;
+			cursor: pointer;
+			transition: background 0.14s, opacity 0.14s;
+		}
+
+		.btn-pill:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
+		}
+
+		.btn-pill:disabled {
+			opacity: 0.35;
+			cursor: not-allowed;
+		}
+
+		.btn-pill-dark {
+			background: var(--field);
+			border-color: var(--border-3);
+			color: var(--text);
+		}
+
+		.btn-pill-dark:hover:not(:disabled) {
+			background: var(--field-hover);
+		}
+
+		.btn-pill-accent {
+			background: var(--accent);
+			color: var(--on-accent);
+		}
+
+		.btn-pill-accent:hover:not(:disabled) {
+			background: #c6ff63;
+		}
+
+		/* ---------- Preview ------------------------------------------------
+		   Shows the full text of whichever question was most recently
+		   hovered, keyboard-focused, or clicked. A tooltip alone is too slow
+		   to appear and does nothing for keyboard use, so this live area is
+		   the primary path and the native `title` is the extra. */
+		.question-preview-label {
+			font-size: 10px;
+			font-weight: 600;
+			letter-spacing: 0.6px;
+			text-transform: uppercase;
+			color: var(--muted);
+			margin-top: 12px;
+			margin-bottom: 5px;
+		}
+
+		.question-preview {
+			font-size: 12px;
+			color: var(--muted);
+			background: var(--field);
+			border: 1px solid var(--border-2);
+			border-radius: 10px;
+			padding: 8px 10px;
+			line-height: 1.5;
+			min-height: 36px;
+		}
+
+		.question-preview .q-letter {
+			font-weight: 700;
+			color: var(--accent);
+		}
+
+		/* Position-within-lesson count ("11 of 13") -- the one piece of
+		   information not already visible elsewhere on screen. */
+		.current-question-label {
+			font-size: 11px;
+			color: var(--muted);
+			text-align: center;
+			margin-top: 9px;
+			min-height: 14px;
+		}
+
+		.active-lesson-label {
+			font-size: 11px;
+			font-weight: 600;
+			color: var(--muted);
+			margin-bottom: 10px;
+		}
+
+		/* Note shown instead of the picker UI under file:// -- fetch() of a
+		   relative local path throws there (no server to answer it), so the
+		   picker cannot work at all. Unchanged in behaviour, restyled. */
+		.lesson-picker-unavailable {
+			font-size: 11.5px;
+			color: var(--muted);
+			background: var(--field);
+			border: 1px solid var(--border-2);
+			border-radius: 10px;
+			padding: 10px 11px;
+			line-height: 1.55;
+		}
+
+		.lesson-picker-unavailable strong {
+			color: var(--text-bright);
+		}
+
+		/* ---------- Section headings inside Settings ----------------------- */
+		.section-head {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 8px;
+			margin: 14px 0 8px;
+		}
+
+		.section-head-title {
+			font-size: 11.5px;
+			font-weight: 600;
+			color: var(--text);
+			letter-spacing: 0.1px;
+		}
+
+		.section-head-note {
+			font-size: 10.5px;
+			color: var(--muted-2);
+		}
+
+		/* ---------- Theme presets ------------------------------------------
+		   Four two-colour pairs (line 1 / line 2) drawn as overlapping
+		   circles. These sit ALONGSIDE the two free colour pickers, which
+		   still work exactly as before -- a preset is a shortcut for setting
+		   both at once, not a replacement. Picking a custom colour clears the
+		   selected ring, since the preset no longer describes what is set
+		   (see markPresetCustom() in the script). */
+		.preset-area {
+			display: flex;
+			align-items: flex-start;
+			gap: 8px;
+			flex-wrap: wrap;
+		}
+
+		.preset-options {
+			display: flex;
+			gap: 8px;
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+
+		/* Same clickable-<label>-wrapping-a-radio pattern the animation
+		   styles already use, so keyboard operation and grouping come for
+		   free from the native radio. */
+		.preset-options label {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			gap: 6px;
-			/* #272A33 = OBS's own --grey6, matching select option's fill above so
-			   both read as "a step up" from the same #1D1F26 base consistently. */
-			background: #272A33;
-			border: none;
-			border-radius: 4px;
-			padding: 9px 7px 11px;
-			cursor: pointer;
+			justify-content: center;
+			gap: 5px;
+			width: 56px;
+			height: 56px;
+			flex: none;
+			background: var(--field);
+			border: 1.5px solid var(--border-2);
+			border-radius: 12px;
+			padding: 0;
 			margin: 0;
+			cursor: pointer;
 			text-align: center;
 		}
 
-		/* The whole card is a clickable <label>, and the selected state is already
-		   shown by the card's own background fill below -- the native radio dot
-		   is redundant on top of that and, unstyled, reads as a stray dot on the
-		   card's edge. Visually hidden but still focusable/keyboard-operable
-		   (not display:none, which would remove it from the tab order). */
+		.preset-options label:hover {
+			background: var(--field-hover);
+		}
+
+		/* Visually hidden but still focusable/keyboard-operable -- NOT
+		   display:none, which would drop it out of the tab order. */
+		.preset-options input[type="radio"],
 		.template-options input[type="radio"] {
 			position: absolute;
 			width: 1px;
@@ -197,153 +693,327 @@
 			border: 0;
 		}
 
-		.template-options label:has(input:checked) {
-			background: #2c445e;
+		.preset-options label:has(input:checked) {
+			border-color: var(--accent);
+			-webkit-filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
+			filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
 		}
 
-		.template-options label:has(input:focus-visible) {
-			outline: 2px solid #4a9eff;
-			outline-offset: 1px;
+		.preset-options label:has(input:focus-visible) {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
-		.template-name {
-			font-size: 11px;
+		/* Two overlapping circles previewing the pair, 30x24 overall as the
+		   design specifies. The circles are 21px rather than a full 24 so
+		   that at the design's 30px total width a useful crescent of the
+		   FIRST colour still shows past the second -- at 24px each the front
+		   dot covered all but a 6px sliver of the back one, which made the
+		   four chips read as one colour apiece instead of a pair. Same
+		   footprint, same overlap, both colours legible.
+
+		   Colours are written onto the two spans as inline styles by the
+		   script from PRESETS, so the palette lives in exactly one place
+		   (the script) instead of being duplicated here and there. */
+		.preset-dots {
+			position: relative;
+			width: 30px;
+			height: 24px;
+			flex: none;
+		}
+
+		.preset-dot {
+			position: absolute;
+			top: 1.5px;
+			width: 21px;
+			height: 21px;
+			border-radius: 50%;
+			border: 1.5px solid var(--field);
+		}
+
+		.preset-dot-1 { left: 0; }
+		.preset-dot-2 { left: 9px; }
+
+		.preset-name {
+			font-size: 10px;
 			font-weight: 600;
-			color: #d4d4d4;
+			color: var(--muted);
+			letter-spacing: 0.1px;
+			line-height: 1;
 		}
 
-		/* Native <details>/<summary> for the collapsible style/colors section --
-		   no JS needed, works identically in any browser/CEF. Styled to look like
-		   part of the panel rather than a default browser widget. */
-		.settings {
-			margin-bottom: 10px;
+		.preset-options label:has(input:checked) .preset-name {
+			color: var(--accent);
 		}
 
-		.settings summary {
+		/* The two free colour pickers, to the right of the presets: one
+		   108x56 tile holding two 44px cells, each with a lime border, a
+		   colour dot and a small pencil badge. Same native
+		   <input type="color"> as before -- clicking opens the OS picker --
+		   just re-shaped to match the design. */
+		/* The design puts the two free-colour cells in one 108x56 tile. The
+		   pencil badges sit proud of their cells' top-right corners, so the
+		   tile is padded a touch on those sides (and the cells nudged down
+		   and in by the same amount) to keep the badges from being clipped by
+		   the tile's own rounded edge -- the tile's outer footprint is
+		   unchanged. */
+		.color-tiles {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			flex: none;
+			width: 108px;
+			height: 56px;
+			padding: 6px 7px 2px 3px;
+			background: var(--field);
+			border-radius: 12px;
+		}
+
+		.color-tiles .form-group {
+			margin: 0;
+		}
+
+		.color-cell {
+			position: relative;
+			width: 42px;
+			height: 42px;
+			flex: none;
+			border: 1.5px solid var(--accent);
+			border-radius: 10px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		/* The visible label text is carried by the input's own aria-label and
+		   the wrapping <label for> -- the tile itself is too small for a word
+		   without crowding the dot, and the pencil badge already says
+		   "editable". Keep the <label> element itself (it is what makes
+		   clicking anywhere in the cell open the picker). */
+		.color-cell label {
+			position: absolute;
+			inset: 0;
+			margin: 0;
 			cursor: pointer;
-			font-size: 11px;
-			color: #a0a0a0;
-			padding: 4px 0;
-			list-style: none;
+			font-size: 0;
+			line-height: 0;
 		}
 
-		.settings summary::-webkit-details-marker {
+		.color-row {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		input[type="color"] {
+			width: 18px;
+			height: 18px;
+			padding: 0;
+			background: var(--field);
+			border: none;
+			border-radius: 50%;
+			cursor: pointer;
+			/* Chromium/CEF draw this input's own internal swatch as a
+			   rectangle with default padding baked into its shadow DOM --
+			   these rules make that inner swatch fill the circular border
+			   completely instead of floating a small rectangle inside it.
+			   Harmless no-ops in engines that ignore them. */
+			-webkit-appearance: none;
+			appearance: none;
+		}
+
+		input[type="color"]:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 3px;
+		}
+
+		input[type="color"]::-webkit-color-swatch-wrapper {
+			padding: 0;
+			border-radius: 50%;
+		}
+
+		input[type="color"]::-webkit-color-swatch {
+			border: none;
+			border-radius: 50%;
+		}
+
+		/* Small pencil badge top-right of each colour cell -- a decorative
+		   affordance only, never clickable in its own right
+		   (pointer-events:none, so the click falls through to the cell's
+		   <label>, which is what opens the picker).
+
+		   The pencil is an inline SVG, not the U+270E text glyph the design
+		   implies. At 8px the glyph fell through to a system COLOUR EMOJI on
+		   macOS -- a brown-and-yellow pencil picture inside a lime ring,
+		   nothing like the flat lime mark drawn -- and which font answers for
+		   that codepoint is not something this file can rely on inside OBS's
+		   CEF either. The SVG renders identically everywhere and inherits
+		   currentColor, so it stays lime with the rest of the badge. */
+		.color-pencil {
+			position: absolute;
+			top: -5px;
+			right: -5px;
+			width: 12px;
+			height: 12px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border-radius: 50%;
+			background: var(--bg);
+			border: 1px solid var(--accent);
+			color: var(--accent);
+			pointer-events: none;
+		}
+
+		.color-pencil svg {
+			display: block;
+			width: 7px;
+			height: 7px;
+		}
+
+		/* The hex value (color1/color2) stays a real, functional <input> in
+		   the DOM -- syncPickerToText/syncTextToPicker still read and write
+		   it, and sanitizeHex() still reads it for the Show payload -- it is
+		   just not rendered or reachable by Tab, since the swatch above is
+		   the only visible control for picking a colour. */
+		.color-row input[type="text"] {
 			display: none;
 		}
 
-		.settings summary::before {
-			content: '\25B8';
-			display: inline-block;
-			margin-right: 5px;
-			font-size: 9px;
-			transition: transform 0.15s;
+		/* ---------- Animation styles ---------------------------------------
+		   Three 48px tiles, each previewing its style as two stacked 6px
+		   bars. The SELECTED tile rings in violet, not lime -- deliberate in
+		   the design: choosing an animation is a different kind of choice
+		   from choosing a colour, and the two selections sit close together.
+
+		   The third style is "Quiet Rule" (the mockup's "Quiz Rule" is a
+		   typo); Quiet Rule is the name the real style carries in
+		   native/overlay.css. */
+		.template-options {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 8px;
 		}
 
-		.settings[open] summary::before {
-			transform: rotate(90deg);
+		.template-options label {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 6px;
+			border: none;
+			padding: 0;
+			cursor: pointer;
+			margin: 0;
+			min-width: 0;
 		}
 
-		/* Was `.settings .form-group:first-of-type`, which matches the first
-		   .form-group under EVERY parent, not just the first one in .settings as
-		   a whole -- so it also matched the Color 1 group (first child of
-		   .form-row) but not Color 2 (second child), giving them different
-		   top margins and knocking Color 1/Color 2 out of vertical alignment.
-		   Target the actual first child of .settings directly instead.
-		   `:first-child` alone (not `.form-group:first-child`) because the
-		   structural first child is now #quarterLanguageUnavailable (the
-		   file://-only note, `hidden` in the normal http:// case -- CSS
-		   `:first-child` still counts a `[hidden]` element for its position,
-		   it just isn't painted) and the visible first child in the normal
-		   case is #quarterLanguageRow, a `.form-row` not a `.form-group` --
-		   listed explicitly by id alongside the structural `:first-child` so
-		   both the file:// note (were it ever unhidden by adding a visible
-		   style) and the normal Quarter/Language row get the same top
-		   margin, rather than assuming either is always a .form-group. */
-		.settings > *:first-child,
-		.settings > #quarterLanguageRow {
-			margin-top: 8px;
+		.template-options label:has(input:focus-visible) .template-preview {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
-		/* Tiny looping preview swatches: a simplified, isolated re-creation of each
-		   animation's transform direction (not the real overlay.css keyframes), just
-		   enough to show "which way does it move" at a glance next to the text
-		   description. Fully self-contained so it cannot collide with overlay.css.
+		.template-name {
+			font-size: 10px;
+			font-weight: 600;
+			color: var(--muted);
+			text-align: center;
+			line-height: 1.25;
+		}
 
-		   Defensive note: `opacity` on every animated element here is a plain,
-		   constant `1` that is never touched by any @keyframes rule -- only
-		   `transform` (and, for preview 5's frame, `clip-path`) moves during the
-		   "entrance" phase. This means there is no point anywhere in the loop,
-		   however/whenever a paint happens to sample it, where the element is
-		   invisible: worst case if frozen mid-entrance it just sits slightly
-		   offset from its settled position, which still reads as "a visible
-		   swatch", not a blank box. This was a real bug, not a theoretical one:
-		   these elements used to rely entirely on their @keyframes' 0% state
-		   (opacity:0 / off-screen transform) as their ONLY source of visibility,
-		   and when panel.html was opened inside OBS Studio's embedded Browser
-		   Source (CEF) via right-click -> Interact, two of the three swatches
-		   rendered nothing at all and the third showed only a static frame --
-		   consistent with CEF applying an early animation frame once and then
-		   never painting a later one, even though the exact same markup/CSS
-		   animates correctly in a regular Chromium test. Two approaches were
-		   tried and measured directly (via Playwright + getComputedStyle, freezing
-		   the animation at many different elapsed times) before landing here:
-		   simply adding a base `opacity:1` alongside the animation does NOT work
-		   -- an attached CSS animation's keyframe values override the base value
-		   for any property it touches, from the instant it's attached, so 0%
-		   still wins. Making the @keyframes' 0% itself the settled state also
-		   does NOT fully work -- if CEF's freeze lands even slightly *after* 0%
-		   (measured: as little as ~50ms into a 2.4s loop), it can still land
-		   inside the dip and go blank. Keeping opacity constant at 1 throughout
-		   the whole animation (confirmed visible at every freeze point tested,
-		   0ms-2000ms across the loop) is the only approach that has no invisible
-		   window at all. will-change hints below are a secondary, defensive
-		   addition for CEF's compositing, not the fix itself. Keep any future
-		   edits here opacity-constant first, animated-transform second. */
+		.template-options label:has(input:checked) .template-name {
+			color: var(--text-bright);
+		}
+
+		/* Tiny looping preview swatches: a simplified, isolated re-creation of
+		   each animation's transform direction (not the real overlay.css
+		   keyframes), just enough to show "which way does it move".
+
+		   Defensive note, carried over because the bug it documents is still
+		   live: `opacity` on every animated element here is a plain, constant
+		   `1` that is never touched by any @keyframes rule -- only
+		   `transform` (and, for preview 3's rule, scaleY) moves during the
+		   entrance phase. So there is no point anywhere in the loop, however
+		   or whenever a paint happens to sample it, where the element is
+		   invisible. This was a real bug, not a theoretical one: these
+		   elements used to rely on their @keyframes' 0% state (opacity:0 /
+		   off-screen transform) as their ONLY source of visibility, and
+		   inside OBS Studio's embedded CEF two of the three swatches rendered
+		   nothing at all -- consistent with CEF applying an early animation
+		   frame once and never painting a later one. Adding a base
+		   `opacity:1` alongside the animation does NOT work (keyframe values
+		   override the base for any property they touch); making 0% the
+		   settled state does NOT fully work either (a freeze landing just
+		   after 0% still lands in the dip). Constant opacity 1 throughout is
+		   the only approach with no invisible window. Keep any future edits
+		   here opacity-constant first, animated-transform second. */
 		.template-preview {
 			width: 100%;
-			height: 28px;
+			height: 48px;
 			position: relative;
 			overflow: hidden;
-			background: #13141A;
-			border-radius: 3px;
+			background: var(--field);
+			border: 1.5px solid var(--border-2);
+			border-radius: 8px;
+		}
+
+		.template-options label:has(input:checked) .template-preview {
+			background: var(--violet-bg);
+			border-color: var(--violet);
+			box-shadow: 0 0 5px rgba(140, 108, 255, 0.2);
 		}
 
 		.template-preview .bar {
 			position: absolute;
-			left: 8%;
-			width: 84%;
-			height: 5px;
-			border-radius: 2px;
-			background: #c6a15b;
+			left: 10px;
+			height: 6px;
+			border-radius: 3px;
+			background: var(--accent);
 		}
 
 		.template-preview .bar.alt {
 			background: #ffffff;
 		}
 
-		/* Preview 1: diagonal slash fades in, two bars slide in from the left.
-		   opacity stays a constant 1 (never animated); only transform moves
-		   during the entrance -- see the defensive note above .template-preview. */
+		/* Bar widths per the design: Slash & Slide lime 44 over white 34;
+		   Slide Up/Down both 48; Quiet Rule lime 32 over white 44. Expressed
+		   as percentages of the tile so they keep their relative lengths when
+		   the three tiles share whatever width the dock actually has -- the
+		   design's pixel widths assume one fixed tile width, and the dock is
+		   resizable. Previews 1 and 3 are inset from one side (by the slash
+		   and the rule respectively), so their percentages are scaled to the
+		   space actually left rather than to the full tile, which is what
+		   pushed the longest bar past the tile edge at dock width. */
+		.preview-1 .bar1 { width: 60%; }
+		.preview-1 .bar2 { width: 46%; }
+		.preview-2 .bar1 { width: 72%; }
+		.preview-2 .bar2 { width: 72%; }
+		.preview-3 .bar1 { width: 40%; }
+		.preview-3 .bar2 { width: 56%; }
+
+		/* Preview 1: diagonal slash, two bars slide in from the left. */
 		.preview-1 .slash {
-			top: 3px;
-			height: 22px;
-			width: 6px;
-			left: 6%;
-			background: linear-gradient(135deg, #c6a15b, #ffffff);
+			top: 12px;
+			height: 24px;
+			width: 5px;
+			left: 6px;
+			background: linear-gradient(135deg, var(--accent), #ffffff);
 			opacity: 1;
 			transform: skewX(-20deg) translateX(0);
 			will-change: transform;
 			animation: preview-1-slash 2.4s ease-in-out infinite;
 		}
 		.preview-1 .bar1 {
-			top: 7px;
+			top: 17px;
+			left: 16px;
 			opacity: 1;
 			transform: translateX(0);
 			will-change: transform;
 			animation: preview-1-line 2.4s ease-in-out infinite;
 		}
 		.preview-1 .bar2 {
-			top: 16px;
+			top: 28px;
+			left: 16px;
 			opacity: 1;
 			transform: translateX(0);
 			will-change: transform;
@@ -354,21 +1024,20 @@
 			30%, 100% { transform: skewX(-20deg) translateX(0); }
 		}
 		@keyframes preview-1-line {
-			0%, 14% { transform: translateX(-100%); }
+			0%, 14% { transform: translateX(-140%); }
 			34%, 100% { transform: translateX(0); }
 		}
 
-		/* Preview 2: line 1 rises from below, line 2 drops from above. Same
-		   constant-opacity approach as preview 1, see comment above. */
+		/* Preview 2: line 1 rises from below, line 2 drops from above. */
 		.preview-2 .bar1 {
-			top: 16px;
+			top: 28px;
 			opacity: 1;
 			transform: translateY(0);
 			will-change: transform;
 			animation: preview-2-up 2.4s ease-out infinite;
 		}
 		.preview-2 .bar2 {
-			top: 6px;
+			top: 15px;
 			opacity: 1;
 			transform: translateY(0);
 			will-change: transform;
@@ -385,20 +1054,15 @@
 
 		/* Preview 3: the vertical rule on the right draws downward, then two
 		   right-aligned bars settle up into place beside it. The bars are
-		   shortened and right-anchored (rather than the full-width .bar the
-		   other two previews use) because right-alignment against a rule is
-		   the whole point of the style -- a full-width bar would make it look
-		   identical to preview 2 at this size. Same constant-opacity approach
-		   as previews 1 and 2, see comment above .template-preview: the lift
-		   is transform-only, with no opacity fade, even though the real
-		   overlay does fade -- a preview that can freeze mid-fade in CEF is
-		   exactly the invisible-card bug that comment documents. */
+		   right-anchored because right-alignment against a rule is the whole
+		   point of the style -- left-anchored bars would look identical to
+		   preview 2 at this size. */
 		.preview-3 .rule {
-			top: 4px;
+			top: 12px;
 			left: auto;
-			right: 8%;
+			right: 8px;
 			width: 3px;
-			height: 20px;
+			height: 24px;
 			opacity: 1;
 			transform: scaleY(1);
 			transform-origin: 50% 0;
@@ -406,20 +1070,18 @@
 			animation: preview-3-rule 2.4s ease-out infinite;
 		}
 		.preview-3 .bar1 {
-			top: 8px;
+			top: 17px;
 			left: auto;
-			right: 13%;
-			width: 26%;
+			right: 16px;
 			opacity: 1;
 			transform: translateY(0);
 			will-change: transform;
 			animation: preview-3-settle 2.4s ease-out 0.15s infinite;
 		}
 		.preview-3 .bar2 {
-			top: 17px;
+			top: 28px;
 			left: auto;
-			right: 13%;
-			width: 62%;
+			right: 16px;
 			opacity: 1;
 			transform: translateY(0);
 			will-change: transform;
@@ -440,449 +1102,312 @@
 			}
 		}
 
-		.show-buttons {
-			display: flex;
-			gap: 8px;
-			margin-top: 4px;
-		}
-
-		.btn-show {
-			flex: 1;
-			padding: 10px;
-			border: none;
-			border-radius: 3px;
-			font-size: 12.5px;
-			font-weight: 600;
-			letter-spacing: 0.4px;
-			text-transform: uppercase;
-			cursor: pointer;
-			color: #ffffff;
-			background: #4a9eff;
-			transition: background 0.15s;
-		}
-
-		.btn-show:hover {
-			background: #62aeff;
-		}
-
-		.status {
-			margin-top: 8px;
-			text-align: center;
-			font-size: 11px;
-			color: #7fc97f;
-			min-height: 14px;
-		}
-
-		/*
-		Lesson & Question picker -- unlike .settings (now just "Settings":
-		style/colors PLUS Quarter/Language, all set once per stream/session
-		and left alone), this section is used every single question during a
-		live stream, so it stays open by default (<details open>) instead of
-		collapsed, and sits above .settings in document order so it reads as
-		the primary workflow, not a secondary option tucked below it. Quarter
-		and Language moved into .settings (see below) because picking those
-		is a one-time-per-session action, unlike the Lesson dropdown and
-		question list here, which change every question.
-		*/
-		.lesson-picker {
-			margin-bottom: 10px;
-		}
-
-		.lesson-picker summary {
-			cursor: pointer;
-			font-size: 11px;
-			color: #a0a0a0;
-			padding: 4px 0;
-			list-style: none;
-		}
-
-		.lesson-picker summary::-webkit-details-marker {
-			display: none;
-		}
-
-		.lesson-picker summary::before {
-			content: '\25B8';
-			display: inline-block;
-			margin-right: 5px;
-			font-size: 9px;
-			transition: transform 0.15s;
-		}
-
-		.lesson-picker[open] summary::before {
-			transform: rotate(90deg);
-		}
-
-		.lesson-picker > .form-group:first-child {
-			margin-top: 8px;
-		}
-
-		/* Note shown instead of the picker UI when opened via file:// -- fetch()
-		   of a relative local JSON path throws under file:// in Chromium (no
-		   server to answer it), confirmed with Playwright against this exact
-		   file before writing this fallback (see LOCAL-SETUP.md). Rather than
-		   silently failing or leaving a console error the user never sees, the
-		   picker UI is hidden and this note takes its place. */
-		.lesson-picker-unavailable {
-			font-size: 11.5px;
-			color: #a0a0a0;
-			background: #13141A;
-			border-radius: 3px;
-			padding: 9px 10px;
-			line-height: 1.5;
-		}
-
-		/* Question list -- a scannable grid of small per-letter buttons
-		   grouped under each day's heading, not a wall of full-sentence
-		   rows. The live-stream workflow this panel serves is "click through
-		   questions fast while presenting", so the default view shows just
-		   "а", "б", "в"... per day; the full question text is available via
-		   the button's native `title` tooltip AND via #questionPreview below
-		   the list (updates on hover/focus/click -- a tooltip alone is too
-		   slow to appear and doesn't work on touch, so a live preview area
-		   is the actually-usable path during a stream, with the tooltip as a
-		   secondary/mouse-only convenience on top of it). */
-		.question-list {
-			display: flex;
-			flex-direction: column;
-			gap: 4px;
-			max-height: 220px;
-			overflow-y: auto;
-		}
-
-		/* Each lesson's questions are grouped by the day/section they belong
-		   to -- letters restart at "a"/"а" for every day (see
-		   tools/build-lessons-data.py), so without a visible heading the
-		   restart would read as a bug ("why did it go back to a/b?") instead
-		   of the correct per-day behavior it actually is. Plain text, not a
-		   button/row -- it's not clickable, just a label above its group of
-		   letter buttons. Text renders exactly as sectionTitle appears in
-		   the data -- no text-transform here, some languages' sectionTitle
-		   is already stored uppercase (e.g. ru) and some aren't (e.g. de,
-		   en), forcing a transform would show a case that doesn't match the
-		   actual lesson content for the languages that aren't. */
-		.question-day-heading {
-			font-size: 10.5px;
-			font-weight: 600;
-			letter-spacing: 0.3px;
-			color: #7d8291;
-			padding: 6px 2px 2px;
-		}
-
-		.question-day-heading:first-child {
-			padding-top: 0;
-		}
-
-		/* One flex-wrap row of letter buttons per day heading. Not
-		   `.question-row` itself (that class no longer exists) -- the
-		   buttons inside carry that class instead, see below. */
-		.question-letter-row {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 5px;
-			padding: 2px 0 4px;
-		}
-
-		/* Compact per-letter button -- similar spirit to .template-options'
-		   clickable cards (one accent fill for the "currently loaded" one)
-		   but sized as a small square rather than a full-width row, since
-		   the letter alone (not the question sentence) is what the default
-		   view needs to show. The full question text is the button's
-		   `title` tooltip and drives #questionPreview on hover/focus/click
-		   (see loadQuestion()/the row's own mouseenter/focus listeners in
-		   the script below) rather than being rendered inline here. */
-		.question-row {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			min-width: 30px;
-			height: 30px;
-			padding: 0 8px;
-			text-align: center;
-			background: #272A33;
-			border: none;
-			border-radius: 4px;
-			cursor: pointer;
-			color: #c6a15b;
-			font-weight: 600;
-			font-family: inherit;
-			font-size: 13px;
-		}
-
-		.question-row:hover {
-			background: #2e323d;
-		}
-
-		.question-row:focus-visible {
-			outline: 2px solid #4a9eff;
-			outline-offset: 1px;
-		}
-
-		/* The "currently loaded" question -- same accent fill used by the
-		   selected template card in .settings, for a consistent "this is the
-		   active one" signal across the panel. Text color switches to the
-		   panel's normal light text (instead of the gold letter color used
-		   at rest) since gold-on-accent-blue reads poorly next to
-		   gold-on-dark everywhere else this accent fill is used. */
-		.question-row.current {
-			background: #2c445e;
-			color: #d4d4d4;
-		}
-
-		/* Names which lesson the Settings > Lesson pick currently resolves
-		   to -- plain text, not a button/select, since the actual picker
-		   lives in .settings now and this is only here so the presenter
-		   doesn't have to open that section just to check. Set by
-		   populateLessonSelect() in the script below, same place that
-		   drives lessonSelectEl itself. */
-		.active-lesson-label {
-			font-size: 11px;
-			font-weight: 600;
-			color: #a0a0a0;
-			margin-bottom: 6px;
-		}
-
-		/* Labels #questionPreview below as a PREVIEW, not the question
-		   currently on air -- hovering/focusing a letter button updates this
-		   box before Show is ever pressed, so without this label it could
-		   read as "this is what's live right now". Hidden until the preview
-		   box actually has something in it (see loadQuestion() in the
-		   script), same reasoning as the box itself starting empty. */
-		.question-preview-label {
-			font-size: 10px;
-			font-weight: 600;
-			letter-spacing: 0.3px;
-			color: #7d8291;
-			margin-top: 6px;
-		}
-
-		/* Shows the full text of whichever question was most recently
-		   hovered, keyboard-focused, or clicked -- see questionListEl's
-		   'focusin'/mouseover delegated listeners and loadQuestion() in the
-		   script below. Empty/hidden-by-emptiness until the first such
-		   interaction (min-height reserves its space either way, so the nav
-		   buttons below don't jump position when it first populates). */
-		.question-preview {
-			font-size: 11.5px;
-			color: #a0a0a0;
-			background: #13141A;
-			border-radius: 3px;
-			padding: 7px 9px;
-			margin-top: 3px;
-			line-height: 1.4;
-			min-height: 32px;
-		}
-
-		.question-preview .q-letter {
-			font-weight: 600;
-			color: #c6a15b;
-		}
-
-		.question-nav {
-			display: flex;
-			gap: 8px;
-			margin-top: 8px;
-		}
-
-		/* Secondary buttons (Prev/Next) -- same flat shape as .btn-show but a
-		   muted fill instead of the accent blue, so Show still reads as the
-		   one primary action on the panel. */
-		.btn-secondary {
-			flex: 1 1 0;
-			padding: 8px;
-			border: none;
-			border-radius: 3px;
-			font-size: 12px;
-			font-weight: 600;
-			letter-spacing: 0.3px;
-			cursor: pointer;
-			color: #d4d4d4;
-			background: #272A33;
-			transition: background 0.15s;
-		}
-
-		.btn-secondary:hover:not(:disabled) {
-			background: #323644;
-		}
-
-		.btn-secondary:disabled {
-			opacity: 0.4;
-			cursor: not-allowed;
-		}
-
-		/* Trimmed for compactness: used to read "Question б (11 of 13)" plus an
-		   instructional "Click a question below to load it" default state --
-		   both duplicated info already shown elsewhere in this same section
-		   (which letter is current: the accent-filled .question-row.current
-		   button, AND the letter in #questionPreview above) or were pure
-		   instruction text of the kind already trimmed elsewhere in this panel.
-		   Now shows ONLY the position-within-lesson count ("11 of 13"), the one
-		   piece of info not duplicated anywhere else on screen, and stays empty
-		   until a question is actually loaded -- see updateNav() in the script. */
-		.current-question-label {
-			font-size: 11px;
-			color: #a0a0a0;
-			text-align: center;
-			margin-top: 6px;
-			min-height: 14px;
-		}
-
-		/* Keyboard shortcuts help text at bottom of panel */
-		.keyboard-shortcuts {
-			font-size: 9px;
-			color: #666666;
-			margin-top: 12px;
-			padding-top: 8px;
-			border-top: 1px solid #272A33;
-			line-height: 1.3;
-		}
-
-		.keyboard-shortcuts div {
-			margin: 2px 0;
-		}
-
-		/* Auto-show checkbox in settings */
+		/* ---------- Auto-show toggle --------------------------------------- */
 		.auto-show-group {
 			display: flex;
 			align-items: center;
-			gap: 8px;
-			margin-top: 8px;
+			gap: 9px;
+			margin-top: 14px;
 		}
 
 		.auto-show-group input[type="checkbox"] {
-			width: auto;
+			width: 15px;
+			height: 15px;
+			flex: none;
 			padding: 0;
+			margin: 0;
 			background: transparent;
 			border: none;
 			cursor: pointer;
+			accent-color: var(--accent);
+		}
+
+		.auto-show-group input[type="checkbox"]:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
 		.auto-show-group label {
 			display: inline;
 			margin: 0;
-			font-size: 11px;
-			color: #a0a0a0;
+			font-size: 11.5px;
+			color: var(--muted);
 			font-weight: 400;
 			cursor: pointer;
 		}
 
-		/* Fixed lesson title header at the top */
-		#lessonTitleHeader {
-			background: #2c445e;
-			border-bottom: 2px solid #4a9eff;
-			padding: 12px 10px;
-			margin: -12px -12px 16px -12px;
-			font-size: 14px;
-			font-weight: 600;
-			color: #d4d4d4;
-			letter-spacing: 0.3px;
-			min-height: 18px;
+		/* ---------- SHOW / STOP -------------------------------------------
+		   Two 44px pills across the bottom. SHOW is solid lime with dark text
+		   and is the primary; STOP is dark navy with light text.
+
+		   These replaced "Show Lesson" / "Show Question": SHOW sends the
+		   current question exactly as Show Question did, STOP sends
+		   { mode: 'hide' } over the same channel, and showing the lesson
+		   moved to the small control beside the lesson title above. */
+		.show-buttons {
+			display: flex;
+			gap: 12px;
+			margin-top: 4px;
 		}
 
+		.btn-show {
+			flex: 1;
+			height: 44px;
+			padding: 0 10px;
+			border: 1px solid transparent;
+			border-radius: 999px;
+			font-size: 15px;
+			font-weight: 700;
+			letter-spacing: 1px;
+			text-transform: uppercase;
+			cursor: pointer;
+			font-family: inherit;
+			transition: background 0.14s;
+		}
+
+		.btn-show:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 3px;
+		}
+
+		.btn-show-primary {
+			background: var(--accent);
+			color: var(--on-accent);
+		}
+
+		.btn-show-primary:hover {
+			background: #c6ff63;
+		}
+
+		.btn-show-stop {
+			background: var(--field);
+			border-color: var(--border-3);
+			color: var(--text);
+		}
+
+		.btn-show-stop:hover {
+			background: var(--field-hover);
+		}
+
+		.status {
+			text-align: center;
+			font-size: 11px;
+			color: var(--accent);
+			min-height: 14px;
+		}
+
+		/* ---------- Keyboard legend ---------------------------------------- */
+		.keyboard-shortcuts {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px 14px;
+			font-size: 10px;
+			color: var(--muted-2);
+			padding-top: 10px;
+			border-top: 1px solid var(--border);
+			line-height: 1.4;
+		}
+
+		.keyboard-shortcuts div {
+			margin: 0;
+		}
+
+		.keyboard-shortcuts b {
+			color: var(--muted);
+			font-weight: 600;
+		}
 	</style>
 </head>
 <body>
 	<div class="container">
 		<div class="panel">
-			<div id="lessonTitleHeader"></div>
-
-			<div class="form-group">
-				<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
-			</div>
-
-			<div class="form-group">
-				<textarea id="line2" aria-label="Line 2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
-			</div>
-
 			<!--
-			Lesson & Question picker -- pulls lesson/question data from
-			lessons-data.json (see tools/build-lessons-data.py) so the presenter
-			can click through a lesson's questions instead of typing Line 1/Line 2
-			by hand every time. Open by default (unlike .settings below): this is
-			the thing actually used every question during a stream, while
-			Quarter/Language/Lesson itself (all moved into .settings, see below)
-			and style/colors are chosen once per session and forgotten --
-			#activeLessonLabel below just names which lesson that settings pick
-			currently resolves to, so the presenter doesn't have to open Settings
-			to check. Picking a question or pressing Next/Prev only fills Line
-			1/Line 2 as a starting point -- both fields stay plain,
-			manually-editable text inputs from showBtn's point of view, same as
-			if a human had typed into them.
+			Title bar. The ✕ cannot close an OBS Custom Browser Dock (that is
+			done from OBS's own dock chrome, and window.close() is a no-op for
+			a page the script did not open), so rather than leave a dead
+			control on a live panel it is wired to the one "close" this page
+			actually owns: clearing the overlay, i.e. the same hide payload
+			STOP sends. Labelled that way so it is never mistaken for a window
+			close. See the click handler in the script.
 			-->
-			<details class="lesson-picker" id="lessonPicker" open>
-				<summary>Lesson &amp; Question</summary>
+			<div class="titlebar">
+				<button type="button" class="titlebar-close" id="closeBtn" title="Clear the overlay (same as STOP)" aria-label="Clear the overlay">&#10005;</button>
+				<div class="titlebar-brand">
+					<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+						<rect x="1.2" y="1.2" width="9.6" height="9.6" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+						<rect x="5.2" y="5.2" width="9.6" height="9.6" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+					</svg>
+					<span>SDARM Germany</span>
+				</div>
+			</div>
 
-				<div id="lessonPickerUnavailable" class="lesson-picker-unavailable" hidden>
-					This panel needs the local server. Open it as
-					<strong>http://localhost:8001/panel.html</strong> instead of
-					double-clicking panel.html -- see LOCAL-SETUP.md for details.
+			<div class="panel-body">
+				<!--
+				Lesson title, plus the small secondary "show the lesson"
+				control beside it. That control sends mode:'lesson' exactly as
+				the old full-width "Show Lesson" button did -- it moved here
+				because SHOW/STOP took over the bottom button row.
+				-->
+				<div class="lesson-title-row">
+					<div id="lessonTitleHeader"></div>
+					<button type="button" class="btn-lesson-show" id="showLessonBtn" title="Show lesson title &amp; memory verse (Shift+Space)" aria-label="Show lesson title and memory verse">
+						<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+							<path d="M2 4.2h12M2 8h12M2 11.8h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
+						</svg>
+					</button>
 				</div>
 
-				<div id="lessonPickerUi">
-					<div class="active-lesson-label" id="activeLessonLabel"></div>
+				<!--
+				Line 1 / Line 2. Filled by the picker below, but they stay
+				plain, manually-editable fields from SHOW's point of view --
+				same as if a human had typed into them.
+				-->
+				<div class="form-group">
+					<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
+				</div>
 
-					<div class="form-group">
-						<div class="question-list" id="questionList"></div>
+				<div class="form-group">
+					<textarea id="line2" aria-label="Line 2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
+				</div>
+
+				<!--
+				Lesson & Question picker -- pulls lesson/question data from
+				lessons-data.json (see tools/build-lessons-data.py) so the
+				presenter can click through a lesson's questions instead of
+				typing Line 1/Line 2 by hand. Open by default (unlike Settings
+				below): this is what is used every question during a stream,
+				while Quarter/Language/Lesson and style/colours are chosen once
+				per session and forgotten.
+
+				The question list is now two rows of round buttons -- sections
+				(1..N) then letters within the chosen section -- instead of one
+				flat list of every question in the lesson grouped under day
+				headings. Both rows are built from the data; see buildSections()
+				in the script. The day heading text still matters: it is what
+				fills Line 1, and it names the section in #lessonSectionStatus
+				in this card's header.
+				-->
+				<details class="card lesson-picker" id="lessonPicker" open>
+					<summary>Lesson &amp; Question<span class="card-status" id="lessonSectionStatus"></span></summary>
+
+					<div id="lessonPickerUnavailable" class="lesson-picker-unavailable" hidden>
+						This panel needs the local server. Open it as
+						<strong>http://localhost:8001/panel.html</strong> instead of
+						double-clicking panel.html -- see LOCAL-SETUP.md for details.
+					</div>
+
+					<div id="lessonPickerUi">
+						<div class="questions-box">
+							<div class="circle-row" id="sectionRow"></div>
+							<div class="circle-connector" id="circleConnector" aria-hidden="true"></div>
+							<div class="circle-row" id="questionRow"></div>
+						</div>
+
+						<!--
+						#questionList is kept as the accessible grouping wrapper
+						for the two circle rows above (it is what the delegated
+						hover/focus preview listeners are attached to); it holds
+						no rows of its own any more.
+						-->
+						<div id="questionList" hidden></div>
+
 						<div class="question-preview-label" id="questionPreviewLabel" hidden>Preview</div>
 						<div class="question-preview" id="questionPreview"></div>
+
+						<div class="question-nav">
+							<button type="button" class="btn-pill btn-pill-dark" id="prevBtn">&#8249;&nbsp; Previous</button>
+							<button type="button" class="btn-pill btn-pill-accent" id="nextBtn">Next &nbsp;&#8594;</button>
+						</div>
+						<div class="current-question-label" id="currentQuestionLabel"></div>
+					</div>
+				</details>
+
+				<!--
+				Settings -- chosen once per session and rarely touched again,
+				so collapsed by default via a plain <details> (no JS needed,
+				identical in any browser/CEF). Holds Quarter/Language/Lesson,
+				the auto-show toggle, the colour presets + free pickers, and
+				the animation style.
+				-->
+				<details class="card card-settings settings">
+					<summary>Settings</summary>
+
+					<div id="quarterLanguageUnavailable" class="lesson-picker-unavailable" hidden>
+						This panel needs the local server. Open it as
+						<strong>http://localhost:8001/panel.html</strong> instead of
+						double-clicking panel.html -- see LOCAL-SETUP.md for details.
 					</div>
 
-					<div class="question-nav">
-						<button type="button" class="btn-secondary" id="prevBtn">&larr; Previous</button>
-						<button type="button" class="btn-secondary" id="nextBtn">Next &rarr;</button>
+					<div class="form-row-3" id="quarterLanguageRow">
+						<div class="form-group">
+							<label for="quarterSelect">Quarter</label>
+							<select id="quarterSelect"></select>
+						</div>
+						<div class="form-group">
+							<label for="languageSelect">Language</label>
+							<select id="languageSelect"></select>
+						</div>
+						<div class="form-group">
+							<label for="lessonSelect">Lesson</label>
+							<select id="lessonSelect"></select>
+						</div>
 					</div>
-					<div class="current-question-label" id="currentQuestionLabel"></div>
-				</div>
-			</details>
 
-			<!--
-			Style/colors are set once and rarely touched again, unlike line1/line2
-			which change every question -- collapsed by default via a plain <details>
-			(no JS needed, works the same in any browser/CEF) so the panel stays
-			short for the thing actually used during a stream. Also now holds
-			Quarter/Language (moved here from the always-visible Lesson & Question
-			section above): picking those is a "choose once per session" action
-			too, per the same reasoning as style/colors, unlike Lesson/questions
-			which change every question and so stay in the always-visible section.
-			-->
-			<details class="settings">
-				<summary>Settings</summary>
-
-				<div id="quarterLanguageUnavailable" class="lesson-picker-unavailable" hidden>
-					This panel needs the local server. Open it as
-					<strong>http://localhost:8001/panel.html</strong> instead of
-					double-clicking panel.html -- see LOCAL-SETUP.md for details.
-				</div>
-
-				<div class="form-row" id="quarterLanguageRow">
-					<div class="form-group">
-						<label for="quarterSelect">Quarter</label>
-						<select id="quarterSelect"></select>
+					<!--
+					Theme presets: four two-colour pairs, each setting Line 1's
+					and Line 2's colour at once. They sit ALONGSIDE the two free
+					colour pickers to their right, which still work exactly as
+					before -- a preset is a shortcut, not a replacement. The
+					swatch colours are written in by the script from PRESETS so
+					the palette lives in one place. Picking a custom colour
+					clears the preset ring (markPresetCustom()), since the
+					preset no longer describes what is set.
+					-->
+					<div class="section-head">
+						<span class="section-head-title">Theme presets</span>
+						<span class="section-head-note">2-color pairs</span>
 					</div>
-					<div class="form-group">
-						<label for="languageSelect">Language</label>
-						<select id="languageSelect"></select>
+
+					<div class="preset-area">
+						<div class="preset-options" id="presetOptions"></div>
+
+						<div class="color-tiles">
+							<div class="form-group">
+								<div class="color-cell">
+									<label for="color1picker">Color 1</label>
+									<div class="color-row">
+										<input type="color" id="color1picker" value="#ffffff" aria-label="Color 1">
+										<input type="text" id="color1" value="fff">
+									</div>
+									<span class="color-pencil" aria-hidden="true"><svg viewBox="0 0 10 10" focusable="false"><path d="M1.6 8.4 L2 6.6 L6.9 1.7 L8.3 3.1 L3.4 8 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path></svg></span>
+								</div>
+							</div>
+							<div class="form-group">
+								<div class="color-cell">
+									<label for="color2picker">Color 2</label>
+									<div class="color-row">
+										<input type="color" id="color2picker" value="#c6a15b" aria-label="Color 2">
+										<input type="text" id="color2" value="c6a15b">
+									</div>
+									<span class="color-pencil" aria-hidden="true"><svg viewBox="0 0 10 10" focusable="false"><path d="M1.6 8.4 L2 6.6 L6.9 1.7 L8.3 3.1 L3.4 8 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path></svg></span>
+								</div>
+							</div>
+						</div>
 					</div>
-				</div>
 
-				<div class="form-group">
-					<label for="lessonSelect">Lesson</label>
-					<select id="lessonSelect"></select>
-				</div>
-
-				<div class="auto-show-group">
-					<input type="checkbox" id="autoShowCheckbox">
-					<label for="autoShowCheckbox">Auto-show on Next/Previous</label>
-				</div>
-
-				<div class="form-group">
 					<!--
 					id=1, id=2 and id=3 are offered here. id=3 is no longer the
 					original style of that number (which overlapped line1 and
 					line2) -- it is now "Quiet Rule", written from scratch in
-					native/overlay.css for this panel. id=4 and id=5 are still left
-					out: id=4 never rendered line2 at all, and id=5's framed style
-					was removed. See LOCAL-SETUP.md for the full comparison table.
+					native/overlay.css for this panel. id=4 and id=5 are still
+					left out: id=4 never rendered line2 at all, and id=5's
+					framed style was removed. See LOCAL-SETUP.md for the full
+					comparison table.
 					-->
+					<div class="section-head">
+						<span class="section-head-title">Animation style</span>
+					</div>
+
 					<div class="template-options">
 						<label>
 							<input type="radio" name="template" value="1" checked>
@@ -905,43 +1430,38 @@
 							<input type="radio" name="template" value="3">
 							<span class="template-preview preview-3" aria-hidden="true">
 								<span class="bar rule"></span>
-								<span class="bar alt bar1"></span>
+								<span class="bar bar1"></span>
 								<span class="bar alt bar2"></span>
 							</span>
 							<span class="template-name">Quiet Rule</span>
 						</label>
 					</div>
-				</div>
 
-				<div class="form-row">
-					<div class="form-group">
-						<label for="color1picker">Color 1</label>
-						<div class="color-row">
-							<input type="color" id="color1picker" value="#ffffff">
-							<input type="text" id="color1" value="fff">
-						</div>
+					<div class="auto-show-group">
+						<input type="checkbox" id="autoShowCheckbox">
+						<label for="autoShowCheckbox">Auto-show on Next/Previous</label>
 					</div>
-					<div class="form-group">
-						<label for="color2picker">Color 2</label>
-						<div class="color-row">
-							<input type="color" id="color2picker" value="#c6a15b">
-							<input type="text" id="color2" value="c6a15b">
-						</div>
-					</div>
+				</details>
+
+				<!--
+				SHOW / STOP. SHOW sends the current question exactly as the old
+				"Show Question" button did; STOP sends { mode:'hide' } over the
+				same channel and mirrors it to localStorage the same way.
+				Showing the LESSON moved to the small control beside the lesson
+				title at the top of the panel.
+				-->
+				<div class="show-buttons">
+					<button class="btn-show btn-show-primary" id="showQuestionBtn">Show</button>
+					<button class="btn-show btn-show-stop" id="stopBtn">Stop</button>
 				</div>
-			</details>
+				<div class="status" id="status"></div>
 
-			<div class="show-buttons">
-				<button class="btn-show" id="showLessonBtn">Show Lesson</button>
-				<button class="btn-show" id="showQuestionBtn">Show Question</button>
-			</div>
-			<div class="status" id="status"></div>
-
-			<div class="keyboard-shortcuts">
-				<div>Space = Show Question</div>
-				<div>Shift+Space = Show Lesson</div>
-				<div>→ = Next</div>
-				<div>← = Previous</div>
+				<div class="keyboard-shortcuts">
+					<div><b>Space</b> Show</div>
+					<div><b>Shift+Space</b> Show lesson</div>
+					<div><b>&#8594;</b> Next</div>
+					<div><b>&#8592;</b> Previous</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -959,10 +1479,130 @@
 		const statusEl = document.getElementById('status');
 		const lessonTitleHeaderEl = document.getElementById('lessonTitleHeader');
 
+		// --- Theme presets ------------------------------------------------
+		// Four two-colour pairs, line 1 then line 2. These live here rather
+		// than in CSS so the swatches, the pickers and the Show payload all
+		// read the same single source -- the swatch dots below are painted
+		// from this array, not from a duplicated set of CSS values.
+		//
+		// Chosen to stay legible over live video: line 1 is always a bright,
+		// high-luminance tint and line 2 a saturated mid-tone, and nothing
+		// here is pale enough to wash out against a bright background (the
+		// overlay's own drop shadow does the rest). The names come from the
+		// design: Lime, Berry, Aqua, Volt.
+		const PRESETS = [
+			{ id: 'lime',  name: 'Lime',  color1: 'ffffff', color2: 'b8ff3d' },
+			{ id: 'berry', name: 'Berry', color1: 'ffe9f4', color2: 'ff4d94' },
+			{ id: 'aqua',  name: 'Aqua',  color1: 'eafcff', color2: '2fd8e0' },
+			{ id: 'volt',  name: 'Volt',  color1: 'fff6d6', color2: 'ffb020' }
+		];
+
+		const PRESET_KEY = 'infor-r-lower-thirds-preset';
+		const presetOptionsEl = document.getElementById('presetOptions');
+
+		// Built in JS rather than written out as markup so PRESETS above stays
+		// the only place the palette is defined -- adding or renaming a pair
+		// means editing one array, not an array plus four <label> blocks.
+		function renderPresets() {
+			PRESETS.forEach((preset) => {
+				const label = document.createElement('label');
+				label.title = preset.name + ' (#' + preset.color1 + ' / #' + preset.color2 + ')';
+
+				const radio = document.createElement('input');
+				radio.type = 'radio';
+				radio.name = 'themePreset';
+				radio.value = preset.id;
+
+				const dots = document.createElement('span');
+				dots.className = 'preset-dots';
+				const dot1 = document.createElement('span');
+				dot1.className = 'preset-dot preset-dot-1';
+				dot1.style.background = '#' + preset.color1;
+				const dot2 = document.createElement('span');
+				dot2.className = 'preset-dot preset-dot-2';
+				dot2.style.background = '#' + preset.color2;
+				dots.appendChild(dot1);
+				dots.appendChild(dot2);
+
+				const name = document.createElement('span');
+				name.className = 'preset-name';
+				name.textContent = preset.name;
+
+				label.appendChild(radio);
+				label.appendChild(dots);
+				label.appendChild(name);
+				presetOptionsEl.appendChild(label);
+
+				radio.addEventListener('change', () => {
+					if (!radio.checked) return;
+					applyPreset(preset);
+					savePreset(preset.id);
+				});
+			});
+		}
+
+		// Writes the pair into BOTH the hidden hex inputs and the visible
+		// colour pickers -- sanitizeHex() reads the hex inputs for the Show
+		// payload, so setting only the pickers would look right and send the
+		// old colours.
+		function applyPreset(preset) {
+			color1El.value = preset.color1;
+			color2El.value = preset.color2;
+			color1PickerEl.value = '#' + preset.color1;
+			color2PickerEl.value = '#' + preset.color2;
+		}
+
+		// A free colour pick means no preset describes what is set any more,
+		// so clear the selection rather than leave a ring on a pair that is no
+		// longer in effect. Persisted as an empty string so a reload restores
+		// "custom" rather than snapping back to the last preset.
+		function markPresetCustom() {
+			const checked = presetOptionsEl.querySelector('input[name="themePreset"]:checked');
+			if (checked) checked.checked = false;
+			savePreset('');
+		}
+
+		function savePreset(id) {
+			try {
+				localStorage.setItem(PRESET_KEY, id);
+			} catch (e) {
+				// file:// origin or storage disabled -- persistence is a
+				// convenience, not a requirement, same as everywhere else here.
+			}
+		}
+
+		// Restores the saved preset AND re-applies its colours, so a reload
+		// puts the pickers back where the operator left them. A saved empty
+		// string (a custom colour was picked) deliberately restores nothing:
+		// the colour inputs keep their markup defaults, which is the same
+		// behaviour this panel had before presets existed.
+		function loadPreset() {
+			let saved = null;
+			try {
+				saved = localStorage.getItem(PRESET_KEY);
+			} catch (e) {
+				saved = null;
+			}
+			if (!saved) return;
+			const preset = PRESETS.find((p) => p.id === saved);
+			if (!preset) return;
+			const radio = presetOptionsEl.querySelector('input[value="' + preset.id + '"]');
+			if (radio) radio.checked = true;
+			applyPreset(preset);
+		}
+
+		renderPresets();
+		loadPreset();
+
 		// Keep the hex text input and the native color picker in sync in both directions.
 		function syncPickerToText(picker, text) {
 			picker.addEventListener('input', () => {
 				text.value = picker.value.replace('#', '');
+				// A human moved a picker -- drop the preset ring. Preset clicks
+				// go through applyPreset(), which sets .value directly and
+				// therefore fires no 'input' event, so this cannot clear the
+				// ring the preset just set.
+				markPresetCustom();
 			});
 		}
 		function syncTextToPicker(text, picker) {
@@ -984,8 +1624,8 @@
 		}
 
 		// localStorage key used as a fallback handoff channel -- see the big comment
-		// block below the BroadcastChannel line at the top of this script for why
-		// this exists alongside BroadcastChannel rather than replacing it.
+		// block inside sendData() below for why this exists alongside
+		// BroadcastChannel rather than replacing it.
 		const STORAGE_KEY = 'infor-r-lower-thirds-state';
 		const AUTO_SHOW_KEY = 'infor-r-lower-thirds-auto-show';
 
@@ -1010,7 +1650,12 @@
 		loadAutoShowSetting();
 		autoShowCheckboxEl.addEventListener('change', saveAutoShowSetting);
 
-		// Keyboard shortcuts: Space=Show Question, Shift+Space=Show Lesson, ArrowRight=Next, ArrowLeft=Previous
+		// Keyboard shortcuts: Space=Show (the question), Shift+Space=show the
+		// lesson, ArrowRight=Next, ArrowLeft=Previous. Rebound when the bottom
+		// row became SHOW/STOP -- Space used to be "Show Question" and
+		// Shift+Space "Show Lesson", which are the same two actions under their
+		// new names and new homes, so the muscle memory is unchanged. The
+		// legend at the bottom of the panel lists exactly these.
 		document.addEventListener('keydown', (e) => {
 			// Don't trigger if user is typing in a text field
 			if (e.target.matches('input, textarea, select')) {
@@ -1070,16 +1715,15 @@
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);
 		}
 
-		// Show Lesson button handler
+		// Show Lesson handler -- now the small icon button beside the lesson
+		// title (see .btn-lesson-show), not a full-width button in the bottom
+		// row, which SHOW/STOP took over. The payload it sends is unchanged:
+		// mode:'lesson' with the lesson's title and introduction.
 		document.getElementById('showLessonBtn').addEventListener('click', () => {
-			// Access the current lesson from the picker's scope
-			// We need to get the lesson title and introduction from the loaded lesson
-			const lesson = (function() {
-				// Access the bundle from the picker IIFE scope
-				// Since bundle is inside the IIFE, we need a different approach
-				// Store the lesson data globally when it's loaded
-				return window._currentLesson;
-			})();
+			// Access the current lesson from the picker's scope. The picker is an
+			// IIFE, so it publishes the loaded lesson on window._currentLesson
+			// rather than exposing its whole scope.
+			const lesson = window._currentLesson;
 
 			if (lesson) {
 				const templateEl = document.querySelector('input[name="template"]:checked');
@@ -1096,7 +1740,9 @@
 			}
 		});
 
-		// Show Question button handler
+		// SHOW -- sends the current question. Identical payload to the old
+		// "Show Question" button, which this replaced in name and position
+		// only; result.html sees exactly what it always saw.
 		document.getElementById('showQuestionBtn').addEventListener('click', () => {
 			const templateEl = document.querySelector('input[name="template"]:checked');
 			const data = {
@@ -1111,18 +1757,38 @@
 			sendData(data);
 		});
 
+		// STOP -- clears whatever is on air. Deliberately the whole payload and
+		// nothing more: { mode:'hide', _t } carries no line/colour/template
+		// fields, because there is nothing to render and sending stale ones
+		// would invite result.html to paint them. Goes over the same
+		// BroadcastChannel and is mirrored into the same localStorage key by
+		// sendData(), so it reaches result.html by both paths exactly as a
+		// show does -- _t is what makes two consecutive STOP presses
+		// distinguishable there.
+		function sendHide() {
+			sendData({ mode: 'hide', _t: Date.now() });
+		}
+
+		document.getElementById('stopBtn').addEventListener('click', sendHide);
+
+		// The title bar ✕. An OBS Custom Browser Dock is closed from OBS's own
+		// dock chrome, and window.close() is a no-op for a page the script did
+		// not open -- so rather than leave the control dead, it does the one
+		// "close" this page owns: clear the overlay, same as STOP.
+		document.getElementById('closeBtn').addEventListener('click', sendHide);
+
 		// --- Lesson & Question picker -----------------------------------------
 		// Reads lessons-data.json (built by tools/build-lessons-data.py) and lets
-		// the presenter pick a quarter + language + lesson, click a question to
-		// fill Line 1/Line 2, and step through that lesson's questions with
-		// Next/Previous. This never touches showBtn's click handler above or
-		// adds any BroadcastChannel traffic of its own -- it only ever writes
+		// the presenter pick a quarter + language + lesson, pick a section then a
+		// question within it to fill Line 1/Line 2, and step through the whole
+		// lesson with Next/Previous. This never touches the Show handlers above
+		// or adds any BroadcastChannel traffic of its own -- it only ever writes
 		// into line1El.value / line2El.value, exactly as if a human had typed
-		// into those fields by hand (plus its own separate localStorage key
-		// for remembering Quarter/Language/Lesson, see PICKER_STORAGE_KEY
-		// below -- unrelated to STORAGE_KEY above, which is showBtn's
-		// panel-to-result.html handoff channel). Line 1/Line 2 stay fully
-		// editable afterwards; nothing here locks them to mirror the picker.
+		// into those fields by hand (plus its own separate localStorage key for
+		// remembering Quarter/Language/Lesson, see PICKER_STORAGE_KEY below --
+		// unrelated to STORAGE_KEY above, which is the panel-to-result.html
+		// handoff channel). Line 1/Line 2 stay fully editable afterwards;
+		// nothing here locks them to mirror the picker.
 		(function () {
 			const unavailableEl = document.getElementById('lessonPickerUnavailable');
 			const uiEl = document.getElementById('lessonPickerUi');
@@ -1131,10 +1797,12 @@
 			const quarterSelectEl = document.getElementById('quarterSelect');
 			const languageSelectEl = document.getElementById('languageSelect');
 			const lessonSelectEl = document.getElementById('lessonSelect');
-			const activeLessonLabelEl = document.getElementById('activeLessonLabel');
-			const questionListEl = document.getElementById('questionList');
 			const questionPreviewEl = document.getElementById('questionPreview');
 			const questionPreviewLabelEl = document.getElementById('questionPreviewLabel');
+			const sectionRowEl = document.getElementById('sectionRow');
+			const connectorEl = document.getElementById('circleConnector');
+			const questionRowEl = document.getElementById('questionRow');
+			const sectionStatusEl = document.getElementById('lessonSectionStatus');
 			const prevBtn = document.getElementById('prevBtn');
 			const nextBtn = document.getElementById('nextBtn');
 			const currentQuestionLabelEl = document.getElementById('currentQuestionLabel');
@@ -1145,12 +1813,11 @@
 			// server means there's nothing to answer the request, so the picker
 			// can't work there at all. Detect this up front from location.protocol
 			// rather than waiting for fetch() to fail, so the UI never flashes
-			// before hiding itself. Covers BOTH halves of the picker now that
-			// Quarter/Language live in the separate .settings section rather
-			// than inside #lessonPickerUi -- without this, moving them out
-			// would have left two empty, non-functional <select>s sitting
-			// visibly inside Settings under file:// instead of being cleanly
-			// hidden behind the same explanatory note used elsewhere.
+			// before hiding itself. Covers BOTH halves of the picker: the section/
+			// question circles here AND the Quarter/Language/Lesson selects that
+			// live in the separate Settings card -- without this, those would sit
+			// visibly in Settings as three empty, non-functional <select>s instead
+			// of being cleanly hidden behind the same explanatory note.
 			if (location.protocol === 'file:') {
 				document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (needs http://localhost:8001)';
 				uiEl.hidden = true;
@@ -1160,15 +1827,14 @@
 				return;
 			}
 
-			// Separate localStorage key from showBtn's STORAGE_KEY above --
-			// that one is a live handoff channel to result.html (written on
-			// every Show press, holds the currently-displayed overlay's data).
-			// This one only remembers the presenter's Quarter/Language/Lesson
-			// picks so a page reload restores them instead of resetting to
+			// Separate localStorage key from the Show handlers' STORAGE_KEY above
+			// -- that one is a live handoff channel to result.html (written on
+			// every Show/Stop press, holds the currently-displayed overlay's
+			// data). This one only remembers the presenter's Quarter/Language/
+			// Lesson picks so a page reload restores them instead of resetting to
 			// defaults. Works under http://localhost:8001 (which the picker
-			// already requires -- see the file:// early-return above), no
-			// network involved at any point, same "already offline, this just
-			// keeps working" reasoning as everything else in this file.
+			// already requires -- see the file:// early-return above), no network
+			// involved at any point.
 			const PICKER_STORAGE_KEY = 'infor-r-lower-thirds-panel-settings';
 
 			function loadSavedPickerSettings() {
@@ -1192,8 +1858,7 @@
 				} catch (e) {
 					// file:// origin (unreachable here, see early-return above) or
 					// storage disabled/full -- persistence is a convenience, not a
-					// requirement, so this fails silently same as showBtn's own
-					// localStorage write above.
+					// requirement, so this fails silently.
 				}
 			}
 
@@ -1202,6 +1867,8 @@
 			let currentLang = null;     // e.g. "ru"
 			let currentLessonNo = null; // e.g. "1" (string, matches the JSON's "no")
 			let currentQuestionIndex = null; // index into the current lesson's questions[], or null if nothing loaded yet
+			let sections = [];          // derived from the lesson, see buildSections()
+			let activeSectionIndex = 0; // which section's letters the question row is showing
 
 			function getQuarterData(quarter) {
 				return bundle.quarters[quarter];
@@ -1220,8 +1887,7 @@
 			// default -- string comparison is correct here (not just
 			// coincidentally) because every key is "YYYY-Q" with a fixed-width
 			// 4-digit year and single-digit quarter, so lexicographic order
-			// matches numeric order. Works identically whether there's 1 quarter
-			// key or 5 -- no special-casing "only one exists today".
+			// matches numeric order.
 			function sortedQuarterKeys() {
 				return Object.keys(bundle.quarters).sort().reverse();
 			}
@@ -1233,9 +1899,8 @@
 					const q = getQuarterData(key);
 					const opt = document.createElement('option');
 					opt.value = key;
-					// e.g. "2026 Q3" -- the raw "2026-3" key doubles as a fine
-					// label too, but year/quarter are already tracked as separate
-					// numbers per-quarter in the data, so use those directly
+					// e.g. "2026 Q3" -- year/quarter are already tracked as
+					// separate numbers per-quarter in the data, so use those
 					// rather than re-parsing the key string.
 					opt.textContent = q.year + ' Q' + q.quarter;
 					quarterSelectEl.appendChild(opt);
@@ -1284,34 +1949,29 @@
 				updateCurrentLessonGlobal();
 			}
 
-			// Keeps #activeLessonLabel (in the always-visible area) and #lessonTitleHeader
-			// (at the top of the panel) in sync with currentLessonNo -- called from
-			// populateLessonSelect() and from lessonSelectEl's own 'change' handler below,
-			// the two places that change currentLessonNo.
+			// Keeps #lessonTitleHeader (the big lime title at the top of the
+			// panel) in sync with currentLessonNo -- called from
+			// populateLessonSelect() and from lessonSelectEl's own 'change'
+			// handler, the two places that change currentLessonNo.
 			function updateActiveLessonLabel() {
 				const lessons = getLangData(currentQuarter, currentLang).lessons;
 				const lesson = lessons.find((l) => String(l.no) === String(currentLessonNo));
 				const lessonText = lesson ? 'Lesson ' + lesson.no + ': ' + lesson.title : '';
-				activeLessonLabelEl.textContent = lessonText;
 				lessonTitleHeaderEl.textContent = lessonText;
 			}
 
-			// Store the current lesson globally so Show Lesson button can access it
+			// Store the current lesson globally so the Show Lesson button can
+			// reach it from outside this IIFE.
 			function updateCurrentLessonGlobal() {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				window._currentLesson = lesson;
 			}
 
 			// Shows one question's full text in #questionPreview -- driven by
-			// hover/focus (so scanning the compact letter buttons live still
-			// lets the presenter read the question before committing to a
-			// click) and by loadQuestion() (so the preview also reflects
-			// whichever question is actually currently loaded). Letter
-			// buttons additionally carry a native `title` tooltip with the
-			// same text as a mouse-only, no-JS-needed fallback -- this
-			// function is the actually-usable path during a live stream,
-			// since a tooltip alone is slow to appear and does nothing for
-			// keyboard/touch use.
+			// hover/focus (so scanning the letter circles live still lets the
+			// presenter read the question before committing to a click) and by
+			// loadQuestion() (so the preview also reflects whichever question is
+			// actually loaded).
 			function showPreview(q) {
 				questionPreviewLabelEl.hidden = false;
 				questionPreviewEl.innerHTML = '';
@@ -1322,77 +1982,193 @@
 				questionPreviewEl.appendChild(document.createTextNode(q.text));
 			}
 
-			// Renders the question list grouped by each question's OWN
-			// sectionTitle (the day/subsection heading it belongs to) as a
-			// heading followed by a compact row of small per-letter buttons
-			// ("а", "б"...) rather than one flat list of full-sentence rows
-			// -- letters restart at "a"/"а" for every day (see
-			// tools/build-lessons-data.py), so a heading is inserted before
-			// every run of consecutive questions that share a sectionTitle,
-			// making the restart make sense visually instead of looking like
-			// a bug, and the compact buttons make it fast to scan/click
-			// through questions live instead of reading a wall of sentences
-			// each time. Heading divs and the `.question-letter-row` wrapper
-			// are NOT `.question-row` elements themselves, so they don't
-			// affect the querySelectorAll('.question-row') indexing
-			// loadQuestion() relies on below -- that indexing still lines up
-			// 1:1 with `lesson.questions[idx]` in document order regardless
-			// of how many headings/wrapper rows are interspersed, since
-			// querySelectorAll walks the whole subtree, not just direct
-			// children.
+			// Groups the lesson's flat questions[] array into sections by each
+			// question's OWN sectionTitle -- the day/subsection heading it
+			// belongs to. Letters restart at "a"/"а" for every section (see
+			// tools/build-lessons-data.py), which is exactly why the split into
+			// two rows works: a section's letters are always a complete run
+			// starting from the first letter.
+			//
+			// Built from the data every time, never assumed: most lessons have
+			// 4 or 5 sections of 2 or 3 questions, but nothing here depends on
+			// that -- the design's five circles and five letters are a drawing,
+			// not a contract. Each section records the absolute indices of its
+			// questions in lesson.questions[], so currentQuestionIndex stays a
+			// single index into the flat array (what Next/Previous walk, what
+			// updateNav's "11 of 13" counts, and what loadQuestion() takes)
+			// rather than a (section, letter) pair that could drift out of sync.
+			function buildSections(lesson) {
+				const out = [];
+				let last = null;
+				lesson.questions.forEach((q, idx) => {
+					if (q.sectionTitle !== last || out.length === 0) {
+						out.push({ title: q.sectionTitle, indices: [] });
+						last = q.sectionTitle;
+					}
+					out[out.length - 1].indices.push(idx);
+				});
+				return out;
+			}
+
+			function sectionIndexOfQuestion(idx) {
+				for (let s = 0; s < sections.length; s++) {
+					if (sections[s].indices.indexOf(idx) !== -1) return s;
+				}
+				return 0;
+			}
+
+			// The number shown inside a section circle. sectionTitle almost
+			// always starts with its own "N." prefix in the data ("4. Die wahre
+			// Ursache des Zweifels"), and using the data's own number keeps the
+			// circle matching the printed lesson even if a lesson ever skips or
+			// renumbers a section. Falls back to the position in the list when a
+			// title carries no such prefix.
+			function sectionNumber(section, i) {
+				const m = /^\s*(\d+)\s*[.)]/.exec(section.title || '');
+				return m ? m[1] : String(i + 1);
+			}
+
+			// Strips that same leading "N." prefix for the places that show the
+			// section's NAME next to its number, so it doesn't read "Section 4 ·
+			// 4. Die wahre...". Line 1 still gets the untouched sectionTitle --
+			// what goes on air must stay exactly what the data says.
+			function sectionLabel(section) {
+				return String(section.title || '').replace(/^\s*\d+\s*[.)]\s*/, '');
+			}
+
+			// Renders the two rows of round buttons. The section row is one
+			// circle per section; the question row is one circle per letter in
+			// the ACTIVE section only, so a 2-question section shows two
+			// circles, not five padded ones.
+			//
+			// Letters are printed exactly as the data stores them -- lowercase,
+			// and Cyrillic (а, б, в) in ru. No toUpperCase() anywhere: the
+			// design sketch draws capitals, but forcing a case the lesson
+			// content does not use was explicitly rejected before.
+			function renderCircles() {
+				sectionRowEl.innerHTML = '';
+				questionRowEl.innerHTML = '';
+
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				if (!lesson) return;
+
+				sections.forEach((section, i) => {
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					btn.className = 'circle-btn circle-section';
+					btn.textContent = sectionNumber(section, i);
+					btn.title = section.title;
+					btn.setAttribute('aria-label', 'Section ' + sectionNumber(section, i) + ': ' + sectionLabel(section));
+					if (i === activeSectionIndex) {
+						btn.classList.add('current');
+						btn.setAttribute('aria-current', 'true');
+					}
+					// Picking a section only switches which letters are shown --
+					// it does NOT load a question or change what is on air. The
+					// presenter then picks the letter. (Line 1/Line 2 are only
+					// ever written by loadQuestion().)
+					btn.addEventListener('click', () => {
+						activeSectionIndex = i;
+						renderCircles();
+						updateSectionStatus();
+					});
+					sectionRowEl.appendChild(btn);
+				});
+
+				const active = sections[activeSectionIndex];
+				if (!active) return;
+
+				active.indices.forEach((qIdx) => {
+					const q = lesson.questions[qIdx];
+					const btn = document.createElement('button');
+					btn.type = 'button';
+					// .question-row is kept as a class on these buttons: it is the
+					// hook loadQuestion() uses to clear/set the "current" mark.
+					btn.className = 'circle-btn circle-question question-row';
+					btn.textContent = q.letter;
+					// Native tooltip -- a mouse-only, no-JS-needed extra on top of
+					// showPreview(), which is the primary path (a tooltip is slow
+					// to appear and does nothing for keyboard use).
+					btn.title = q.letter + '. ' + q.text;
+					btn.setAttribute('aria-label', q.letter + '. ' + q.text);
+					if (qIdx === currentQuestionIndex) {
+						btn.classList.add('current');
+						btn.setAttribute('aria-current', 'true');
+					}
+					btn.addEventListener('mouseenter', () => showPreview(q));
+					btn.addEventListener('focus', () => showPreview(q));
+					btn.addEventListener('click', () => loadQuestion(qIdx));
+					questionRowEl.appendChild(btn);
+				});
+
+				positionConnector();
+			}
+
+			// Slides the connector under whichever section circle is active, by
+			// measuring where that circle actually sits rather than computing it
+			// from an assumed circle width and gap -- the row wraps to a second
+			// line on a narrow dock, and a measured offset follows it there while
+			// arithmetic would not.
+			function positionConnector() {
+				if (!connectorEl) return;
+				const active = sectionRowEl.querySelector('.circle-section.current');
+				if (!active) {
+					connectorEl.style.removeProperty('--connector-x');
+					return;
+				}
+				const rowBox = sectionRowEl.getBoundingClientRect();
+				const box = active.getBoundingClientRect();
+				const centre = box.left - rowBox.left + box.width / 2;
+				connectorEl.style.setProperty('--connector-x', centre + 'px');
+			}
+
+			// The muted "Section 4 · Question C" in the card header. Shows the
+			// section the row is currently displaying, plus the loaded letter
+			// when there is one -- exactly as the data spells it, lowercase and
+			// Cyrillic included.
+			function updateSectionStatus() {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				const section = sections[activeSectionIndex];
+				if (!lesson || !section) {
+					sectionStatusEl.textContent = '';
+					return;
+				}
+				let text = 'Section ' + sectionNumber(section, activeSectionIndex);
+				if (currentQuestionIndex != null) {
+					const q = lesson.questions[currentQuestionIndex];
+					if (q) text += ' · Question ' + q.letter;
+				}
+				sectionStatusEl.textContent = text;
+			}
+
+			// Rebuilds everything that depends on the chosen lesson.
 			function renderQuestionList() {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
-				questionListEl.innerHTML = '';
 				questionPreviewEl.innerHTML = '';
 				questionPreviewLabelEl.hidden = true;
-				let lastSectionTitle = null;
-				let letterRow = null;
-				lesson.questions.forEach((q, idx) => {
-					if (q.sectionTitle !== lastSectionTitle) {
-						const heading = document.createElement('div');
-						heading.className = 'question-day-heading';
-						heading.textContent = q.sectionTitle;
-						questionListEl.appendChild(heading);
-						lastSectionTitle = q.sectionTitle;
-
-						letterRow = document.createElement('div');
-						letterRow.className = 'question-letter-row';
-						questionListEl.appendChild(letterRow);
-					}
-
-					const row = document.createElement('button');
-					row.type = 'button';
-					row.className = 'question-row';
-					row.textContent = q.letter;
-					// Native tooltip -- a mouse-only, no-JS-needed fallback on
-					// top of showPreview() below, see the comment above
-					// showPreview() for why the preview area is the primary
-					// path, not this.
-					row.title = q.letter + '. ' + q.text;
-					if (idx === currentQuestionIndex) row.classList.add('current');
-
-					row.addEventListener('mouseenter', () => showPreview(q));
-					row.addEventListener('focus', () => showPreview(q));
-					row.addEventListener('click', () => loadQuestion(idx));
-					letterRow.appendChild(row);
-				});
+				sections = lesson ? buildSections(lesson) : [];
+				// A fresh lesson starts on its first section with nothing loaded,
+				// rather than keeping an index that may not exist in this lesson.
+				activeSectionIndex = 0;
+				renderCircles();
+				updateSectionStatus();
 				updateNav();
 			}
 
-			// Fills Line 1/Line 2 the same way for a list click or a Next/Prev
-			// press, marks the given index as the "currently loaded" one, and
-			// updates #questionPreview to match. Line 1 gets the question's
-			// OWN sectionTitle (the day heading it belongs to), not the
-			// lesson's overall title -- this matches how the rest of this
-			// project treats "Line 1 = the subheading actually being
-			// discussed" vs. the lesson's umbrella title, and is why
-			// sectionTitle is tracked per-question in the first place. Reads
-			// q.sectionTitle fresh from the newly-indexed question every call,
-			// so stepping across a day boundary via Next/Prev (e.g. the last
-			// question of day 1 into the first question of day 2) updates Line 1
-			// to the NEW day's heading correctly rather than staying stale --
-			// there is no separate "current day" variable anywhere that could
-			// fall out of sync with idx.
+			// Fills Line 1/Line 2 the same way for a letter click or a
+			// Next/Previous press, marks the given index as the "currently
+			// loaded" one, and updates the preview to match.
+			//
+			// Line 1 gets the question's OWN sectionTitle (the day heading it
+			// belongs to), not the lesson's overall title -- this matches how the
+			// rest of this project treats "Line 1 = the subheading actually being
+			// discussed" vs. the lesson's umbrella title, and is why sectionTitle
+			// is tracked per-question in the first place. It is read fresh from
+			// the newly-indexed question every call, so stepping across a section
+			// boundary via Next/Previous updates Line 1 to the NEW section's
+			// heading rather than staying stale. The untouched sectionTitle goes
+			// on air, prefix and all -- sectionLabel()'s prefix-stripping is only
+			// for the on-screen status text.
 			function loadQuestion(idx) {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				const q = lesson.questions[idx];
@@ -1403,44 +2179,39 @@
 				line2El.value = q.letter + '. ' + q.text;
 				showPreview(q);
 
-				let currentRow = null;
-				questionListEl.querySelectorAll('.question-row').forEach((row, rowIdx) => {
-					const isCurrent = rowIdx === idx;
-					row.classList.toggle('current', isCurrent);
-					if (isCurrent) currentRow = row;
-				});
-				// Next/Previous can walk the "current" row outside the question
-				// list's scrollable viewport (max-height: 220px) -- keep it in
-				// view so the presenter can always see which question is loaded.
-				if (currentRow) currentRow.scrollIntoView({ block: 'nearest' });
+				// Crossing a section boundary (the last letter of one section into
+				// the first of the next, or back) has to move the section row too,
+				// not just the letter row -- so the active section is derived from
+				// the loaded index every time rather than tracked separately.
+				activeSectionIndex = sectionIndexOfQuestion(idx);
+				renderCircles();
+				updateSectionStatus();
 				updateNav();
 			}
 
 			function updateNav() {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
-				const total = lesson.questions.length;
+				const total = lesson ? lesson.questions.length : 0;
 				const hasCurrent = currentQuestionIndex != null;
 
+				// Previous/Next walk the whole lesson in order, across section
+				// boundaries -- they step currentQuestionIndex through the flat
+				// questions[] array, so they are only disabled at the very first
+				// and very last question of the lesson, never at a section edge.
 				prevBtn.disabled = !hasCurrent || currentQuestionIndex <= 0;
 				nextBtn.disabled = !hasCurrent || currentQuestionIndex >= total - 1;
 
 				if (hasCurrent) {
-					// Just the position-within-lesson count, not "Question X" --
-					// which letter is loaded is already shown by the accent-filled
-					// .question-row.current button AND by the letter in
-					// #questionPreview above, so repeating it a third time here
-					// would be pure duplication. The count (e.g. "11 of 13") is
-					// the only piece of information not already visible elsewhere
-					// on screen, so that's all this element keeps.
+					// Just the position-within-lesson count -- which letter is
+					// loaded is already shown by the lime circle, by the header
+					// status and by the letter in the preview, so repeating it
+					// here would be pure duplication. The count ("11 of 13") is
+					// the one piece of information not visible anywhere else.
 					currentQuestionLabelEl.textContent = (currentQuestionIndex + 1) + ' of ' + total;
 				} else {
-					// No more "Click a question below to load it" -- that's
-					// instructional filler of the same kind already trimmed
-					// elsewhere in this panel (e.g. the old Line 1/Line 2 field
-					// labels, replaced by placeholder text alone). Stay empty
-					// until a question is actually loaded; "No questions found"
-					// is kept since that's a genuine data/error condition, not
-					// an instruction.
+					// No instructional filler -- stay empty until a question is
+					// actually loaded. "No questions found" is kept since that's a
+					// genuine data/error condition, not an instruction.
 					currentQuestionLabelEl.textContent = total > 0 ? '' : 'No questions found for this lesson';
 				}
 			}
@@ -1464,12 +2235,11 @@
 				}
 			});
 
-			// Changing Quarter or Language lives inside the collapsed Settings
-			// section now, but both still have to repopulate the always-visible
-			// Lesson dropdown and question list above/outside it -- intentional
-			// per the presenter only needing to open Settings for this
-			// occasional change, not a bug where a hidden control silently
-			// fails to affect the visible UI.
+			// Changing Quarter/Language/Lesson lives inside the collapsed
+			// Settings card, but all three still repopulate the always-visible
+			// circles above it -- intentional per the presenter only needing to
+			// open Settings for this occasional change, not a bug where a hidden
+			// control silently fails to affect the visible UI.
 			quarterSelectEl.addEventListener('change', () => {
 				currentQuarter = quarterSelectEl.value;
 				populateLanguageSelect(currentLang);
@@ -1509,10 +2279,7 @@
 					// Each restore step passes its saved value as a "preferred"
 					// candidate that the populate function itself validates against
 					// the freshly-fetched bundle (falls back to sensible defaults
-					// if the saved quarter/language/lesson no longer exists) --
-					// same validate-or-fall-back shape already used for preserving
-					// the lesson number across a language switch below, just fed
-					// from localStorage instead of the in-memory previous value.
+					// if the saved quarter/language/lesson no longer exists).
 					populateQuarterSelect(saved ? saved.quarter : null);
 					populateLanguageSelect(saved ? saved.language : null);
 					populateLessonSelect(saved ? saved.lessonNo : null);
@@ -1525,8 +2292,8 @@
 					// still fail to fetch this file for other reasons (server not
 					// running, file missing/moved, malformed JSON). Same graceful
 					// degradation as the file:// case rather than a silent failure.
-					// Distinct wording from the file:// case above (which is the
-					// far more common trigger -- opening panel.html by double-click
+					// Distinct wording from the file:// case above (which is the far
+					// more common trigger -- opening panel.html by double-click
 					// instead of via the localhost URL): this one keeps err.message
 					// visible since it points at an actual server/file problem an
 					// http://localhost:8001 open alone won't fix.
@@ -1537,6 +2304,11 @@
 					quarterLanguageRowEl.hidden = true;
 					quarterLanguageUnavailableEl.hidden = false;
 				});
+
+			// The connector's position is measured, so it has to be measured
+			// again when the dock is dragged wider or narrower -- the section
+			// row can wrap to a second line, which moves the active circle.
+			window.addEventListener('resize', positionConnector);
 		})();
 	</script>
 </body>

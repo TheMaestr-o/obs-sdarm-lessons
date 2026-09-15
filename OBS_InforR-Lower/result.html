@@ -86,6 +86,17 @@
 
 		function applyData(data) {
 			if (!data) return;
+
+			// Handle hide mode: immediately clear the overlay without de-duplication check
+			if (data.mode === 'hide') {
+				frameEl.hidden = true;
+				// Clear lastAppliedAt so hide-then-reshow of the same question is not
+				// swallowed by deduplication: the next Show press with the same _t
+				// will reload the content, not be skipped as a duplicate.
+				lastAppliedAt = 0;
+				return;
+			}
+
 			// data._t (panel.html's Date.now() at press time) uniquely identifies one
 			// Show press. Both BroadcastChannel and the storage event can fire for the
 			// SAME press (e.g. if this page and the dock somehow end up sharing an
