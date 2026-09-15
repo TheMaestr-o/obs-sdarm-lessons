@@ -54,11 +54,14 @@
   .shots img{width:100%;display:block;border-radius:8px;border:1px solid var(--hair);background:#000}
   .shots figcaption{font-size:.72rem;color:var(--muted);margin-top:4px;text-align:center}
 
-  .idgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin:12px 0}
-  .idgrid figure{margin:0}
-  .idgrid img{width:100%;display:block;border-radius:6px;border:1px solid var(--hair);background:#000}
-  .idgrid figcaption{font-size:.68rem;color:var(--muted);margin-top:3px;text-align:center}
-  .idgrid figcaption.bad{color:#c0392b;font-weight:600}
+  /* The style previews are wide, short GIFs (a 1920x300 crop of the lower
+     third). Stacked full-width they stay legible; in a multi-column grid the
+     question text becomes too small to read. */
+  .anim{margin:12px 0}
+  .anim figure{margin:0 0 14px}
+  .anim img{width:100%;display:block;border-radius:8px;border:1px solid var(--hair);background:#14161a}
+  .anim figcaption{font-size:.76rem;color:var(--muted);margin-top:5px}
+  .anim figcaption b{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -106,14 +109,14 @@
     </ol>
     <div class="note"><b>Look:</b> styles 1 and 2 reimplement the motion design of <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> — the reference we were pointed at in the first place — as our own CSS (<code>OBS_InforR-Lower/native/</code>), so the entrance animation holds forever instead of auto-reversing after a couple of seconds. Style 3, "Quiet Rule", is our own design with no counterpart in the original. Background is true CSS transparency — no Chroma Key filter needed in OBS, unlike Plan 1. The panel offers these three named styles; the remaining built-in templates break with a long question (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for the full comparison, and the original <code>lower.html?id=...</code> still works directly by URL if you want to see all 5, auto-hide included). See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for exactly what is ours and what is borrowed.</div>
     <div class="shots">
-      <figure><img src="screenshots/plan3-panel-config.png" alt="Plan 3 panel setup with the named style picker"><figcaption>Panel setup — pick a style by name, not a number</figcaption></figure>
-      <figure><img src="screenshots/plan3-result.png" alt="Plan 3 result"><figcaption>Result, bottom-anchored</figcaption></figure>
+      <figure><img src="screenshots/panel.png" alt="The control panel with a lesson loaded and a question selected"><figcaption>The panel at its real dock width, lesson loaded, question <b>а</b> selected</figcaption></figure>
     </div>
-    <div class="idgrid">
-      <figure><img src="screenshots/plan3-styles/slash-and-slide.png" alt="Slash and Slide style"><figcaption>Slash &amp; Slide</figcaption></figure>
-      <figure><img src="screenshots/plan3-styles/slide-up-down.png" alt="Slide Up / Down style"><figcaption>Slide Up / Down</figcaption></figure>
-      <figure><img src="screenshots/plan3-styles/quiet-rule.png" alt="Quiet Rule style"><figcaption>Quiet Rule <span style="opacity:.7">— our own</span></figcaption></figure>
+    <div class="anim">
+      <figure><img src="screenshots/plan3-styles/slash-and-slide.gif" alt="Slash and Slide: a gold slash draws in, then both lines slide in from the left and stay"><figcaption><b>Slash &amp; Slide</b> — gold slash, text slides in from the left</figcaption></figure>
+      <figure><img src="screenshots/plan3-styles/slide-up-down.gif" alt="Slide Up / Down: the heading rises from below while the question descends from above, both then holding"><figcaption><b>Slide Up / Down</b> — heading rises, question descends, centred</figcaption></figure>
+      <figure><img src="screenshots/plan3-styles/quiet-rule.gif" alt="Quiet Rule: a vertical gold rule draws downward and the right-aligned text settles beside it"><figcaption><b>Quiet Rule</b> <span style="opacity:.7">— our own</span> — gold rule draws down, text settles right-aligned</figcaption></figure>
     </div>
+    <div class="note">Each preview runs the entrance once and then keeps going for another second and a half — that flat, unchanging tail is the point. On stream it stays there until the presenter presses <b>Show</b> again. The dark background stands in for the video underneath; the overlay itself is transparent.</div>
   </div>
 
   <div class="group future">

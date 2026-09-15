@@ -14,6 +14,37 @@ thirds projects. One of those, Vasco Cruz's `lower-thirds-obs`, became the base 
 on; what grew out of it is the system described here. The comparison is still in the repo
 and still works — see [index.html](index.html).
 
+## The three styles
+
+Each one plays its entrance once and then holds. The previews below keep running for a
+second and a half after the motion stops — that unchanging tail is the whole point, and on
+stream it lasts as long as the presenter needs. The dark background stands in for the
+video underneath; the overlay itself is genuinely transparent.
+
+**Slash & Slide** — gold slash, text slides in from the left, left-aligned.
+
+![Slash and Slide: a gold slash draws in, then both lines slide in from the left and stay](screenshots/plan3-styles/slash-and-slide.gif)
+
+**Slide Up / Down** — centred, the heading rises from below while the question descends
+from above.
+
+![Slide Up / Down: the heading rises and the question descends, both then holding](screenshots/plan3-styles/slide-up-down.gif)
+
+**Quiet Rule** — right-aligned against a vertical gold rule that draws downward. Ours,
+with no counterpart in the original.
+
+![Quiet Rule: a vertical gold rule draws downward and the right-aligned text settles beside it](screenshots/plan3-styles/quiet-rule.gif)
+
+The last two are shown with a long question so the wrapping is visible.
+
+## The panel
+
+The panel runs as a narrow dock inside OBS — this is roughly the width it actually gets.
+Pick quarter, language and lesson once; after that a question is one click, and Previous /
+Next walk the lesson without reopening anything.
+
+<img src="screenshots/panel.png" alt="The control panel with a lesson loaded and a question selected" width="420">
+
 ## What it does
 
 - **Picks questions from the real lessons.** The panel reads a built lesson bundle and
@@ -92,7 +123,7 @@ OBS/
 │   └── lower.html, css/, js/, img/, scripts/  — Vasco Cruz's original, unchanged
 ├── OBS_Animated-Lower-Thirds/       — noeal-dac's project, kept for comparison
 ├── sbl-question-card/               — earlier question-extraction script
-├── screenshots/                     — "config → result" screenshots
+├── screenshots/                     — the previews above, plus the plan comparison shots
 └── tests/                           — Playwright scripts that regenerate those screenshots
 ```
 
