@@ -245,12 +245,33 @@
 /* ============================================================
  * Style 2 -- "Slide Up / Down"
  * ============================================================ */
+/* The scrim: black at the bottom edge, fading to nothing as it rises, so
+   white text stays readable over a bright shot without a visible band
+   anywhere. Three stops rather than two on purpose -- a plain two-stop
+   fade spends half its height still noticeably dark, which reads as a grey
+   rectangle sitting on the picture. Holding full strength only at the very
+   bottom and thinning quickly puts the density under the text, where it is
+   needed, and leaves the top genuinely clear. It also has to rise well
+   past the text: the overlay box is only as tall as the lower third, so a
+   gradient that stops at the text stops in plain sight. */
 .style-slide-up-down {
   text-align: center;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0) 100%);
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 0, 0, 0.66) 22%,
+    rgba(0, 0, 0, 0.3) 58%,
+    rgba(0, 0, 0, 0) 100%
+  );
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  /* Sat centred, which floated the text into the thin upper half of the
+     scrim -- over a bright shot the white question nearly vanished. Pushed
+     to the bottom it sits in the dense part, which is the whole reason the
+     scrim is there. The padding keeps it off the very edge, clear of the
+     title-safe margin. */
+  justify-content: flex-end;
+  padding-bottom: 26px;
 }
 
 .style-slide-up-down .overlay-block {
