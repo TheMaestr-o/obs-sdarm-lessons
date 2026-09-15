@@ -77,7 +77,7 @@
 			   layout itself, so the page still reports its true reduced height
 			   and nothing is left scrolling behind a scaled-down box. To change
 			   the size, change this one number. */
-			zoom: 0.9;
+			zoom: 0.81;
 		}
 
 		.container {
@@ -87,79 +87,22 @@
 		.panel {
 			background: var(--bg);
 			border: 1px solid var(--border);
-			border-radius: 24px;
+			border-radius: 12px;
 			box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.4);
 			overflow: hidden;
 		}
 
-		/* ---------- Title bar ---------------------------------------------
-		   ✕ on the left, brand mark + "SDARM Germany" on the right.
+		
 
-		   The mockup's ✕ has nothing to close: an OBS Custom Browser Dock is
-		   closed from OBS's own dock chrome, and window.close() is a no-op
-		   for a page the script did not open. Rather than drop it (the design
-		   wants the shape) or leave it inert (a dead control on a live panel
-		   is worse than none), it is wired to the one real "close" this page
-		   owns: it clears the overlay, sending the same { mode:'hide' }
-		   payload STOP sends. Labelled accordingly for screen readers and on
-		   hover, so it is never mistaken for a window close. */
-		.titlebar {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			height: 44px;
-			padding: 0 14px;
-			background: var(--bg-2);
-			border-bottom: 1px solid #283158;
-		}
+		
 
-		.titlebar-close {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 24px;
-			height: 24px;
-			padding: 0;
-			border: none;
-			border-radius: 50%;
-			background: transparent;
-			color: var(--muted);
-			font-size: 14px;
-			line-height: 1;
-			font-family: inherit;
-			cursor: pointer;
-		}
+		
 
-		.titlebar-close:hover {
-			background: var(--field);
-			color: var(--text);
-		}
+		
 
-		.titlebar-close:focus-visible {
-			outline: 2px solid var(--accent);
-			outline-offset: 1px;
-		}
+		
 
-		.titlebar-brand {
-			display: flex;
-			align-items: center;
-			gap: 7px;
-			font-size: 11.5px;
-			font-weight: 600;
-			letter-spacing: 0.2px;
-			color: var(--text);
-		}
-
-		/* Inline SVG, not an image file -- no external resource of any kind
-		   is allowed here (offline stream box), and a data: URI would be
-		   less legible to edit than the markup itself. */
-		.titlebar-brand svg {
-			display: block;
-			width: 15px;
-			height: 15px;
-			flex: none;
-			color: var(--accent);
-		}
+		
 
 		/* ---------- Main content ------------------------------------------
 		   Section spacing 10px, padding 12px, per the design. */
@@ -171,15 +114,39 @@
 		}
 
 		/* ---------- Lesson title ------------------------------------------
-		   24px bold, centred, lime. The "put the lesson on air" control sits
-		   on the same row so it stays with the thing it acts on; it is
-		   absolutely positioned so the centred title keeps the full width. */
+		   24px bold, centred, lime -- and the whole title is the button that
+		   puts that lesson on air, so it is styled as text rather than as a
+		   control: no fill, no border at rest. The hover tint and the focus
+		   ring are what say it can be pressed, and the pointer cursor confirms
+		   it. Full width so a long German title still centres properly. */
 		.lesson-title-row {
-			position: relative;
-			padding: 4px 34px 0;
+			padding: 4px 0 0;
+		}
+
+		.lesson-title-btn {
+			display: block;
+			width: 100%;
+			padding: 2px 6px;
+			border: 0;
+			border-radius: 8px;
+			background: transparent;
+			color: inherit;
+			font-family: inherit;
+			cursor: pointer;
+			transition: background 0.12s;
+		}
+
+		.lesson-title-btn:hover {
+			background: var(--field);
+		}
+
+		.lesson-title-btn:focus-visible {
+			outline: 2px solid var(--accent);
+			outline-offset: 2px;
 		}
 
 		#lessonTitleHeader {
+			display: block;
 			font-size: 24px;
 			line-height: 1.2;
 			font-weight: 700;
@@ -187,48 +154,6 @@
 			text-align: center;
 			letter-spacing: 0.1px;
 			min-height: 28px;
-		}
-
-		/* Small secondary control for "show the lesson title + memory verse".
-		   This used to be a full-width "Show Lesson" button next to "Show
-		   Question"; SHOW/STOP took that row over, so the lesson action moved
-		   here, beside the lesson title it shows. Deliberately compact, but
-		   labelled and tooltipped (aria-label + title) and given a 32px hit
-		   target so it stays easy to find and press live -- it is a secondary
-		   action, not a hidden one. */
-		.btn-lesson-show {
-			position: absolute;
-			top: 50%;
-			right: 0;
-			transform: translateY(-50%);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 32px;
-			height: 32px;
-			padding: 0;
-			border: 1px solid var(--border-3);
-			border-radius: 50%;
-			background: var(--field);
-			color: var(--accent);
-			cursor: pointer;
-			font-family: inherit;
-		}
-
-		.btn-lesson-show:hover {
-			background: var(--field-hover);
-			border-color: var(--accent);
-		}
-
-		.btn-lesson-show:focus-visible {
-			outline: 2px solid var(--accent);
-			outline-offset: 2px;
-		}
-
-		.btn-lesson-show svg {
-			display: block;
-			width: 15px;
-			height: 15px;
 		}
 
 		/* ---------- Fields ------------------------------------------------
@@ -312,13 +237,13 @@
 		.card {
 			background: var(--card);
 			border: 1px solid var(--border-2);
-			border-radius: 20px;
+			border-radius: 10px;
 			padding: 0 14px 14px;
 		}
 
 		.card-settings {
 			background: var(--card-2);
-			border-radius: 12px;
+			border-radius: 8px;
 			padding: 0 10px 10px;
 		}
 
@@ -385,7 +310,7 @@
 		.questions-box {
 			background: var(--bg-2);
 			border: 1px solid var(--border-2);
-			border-radius: 18px;
+			border-radius: 10px;
 			padding: 10px;
 		}
 
@@ -1203,64 +1128,35 @@
 			min-height: 14px;
 		}
 
-		/* ---------- Keyboard legend ---------------------------------------- */
-		.keyboard-shortcuts {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 5px 14px;
-			font-size: 10px;
-			color: var(--muted-2);
-			padding-top: 10px;
-			border-top: 1px solid var(--border);
-			line-height: 1.4;
-		}
+		
 
-		.keyboard-shortcuts div {
-			margin: 0;
-		}
+		
 
-		.keyboard-shortcuts b {
-			color: var(--muted);
-			font-weight: 600;
-		}
+		
 	</style>
 </head>
 <body>
 	<div class="container">
 		<div class="panel">
 			<!--
-			Title bar. The ✕ cannot close an OBS Custom Browser Dock (that is
-			done from OBS's own dock chrome, and window.close() is a no-op for
-			a page the script did not open), so rather than leave a dead
-			control on a live panel it is wired to the one "close" this page
-			actually owns: clearing the overlay, i.e. the same hide payload
-			STOP sends. Labelled that way so it is never mistaken for a window
-			close. See the click handler in the script.
+			No title bar. The mockup drew one, with a ✕ and a brand line, but
+			OBS already frames a Custom Browser Dock with its own title and
+			close control -- a second set inside the page is a duplicate that
+			only costs height, and the ✕ could not close the dock anyway.
 			-->
-			<div class="titlebar">
-				<button type="button" class="titlebar-close" id="closeBtn" title="Clear the overlay (same as STOP)" aria-label="Clear the overlay">&#10005;</button>
-				<div class="titlebar-brand">
-					<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-						<rect x="1.2" y="1.2" width="9.6" height="9.6" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-						<rect x="5.2" y="5.2" width="9.6" height="9.6" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
-					</svg>
-					<span>SDARM Germany</span>
-				</div>
-			</div>
 
 			<div class="panel-body">
 				<!--
-				Lesson title, plus the small secondary "show the lesson"
-				control beside it. That control sends mode:'lesson' exactly as
-				the old full-width "Show Lesson" button did -- it moved here
-				because SHOW/STOP took over the bottom button row.
+				The lesson title IS the "show the lesson" control -- pressing the
+				name puts that name and its memory verse on air (mode:'lesson',
+				the same payload the old full-width button sent). It replaced a
+				small icon button that sat beside the title: the icon had to be
+				learned, whereas pressing the thing you want shown does not.
+				Still a real <button>, so it keeps keyboard focus and Shift+Space.
 				-->
 				<div class="lesson-title-row">
-					<div id="lessonTitleHeader"></div>
-					<button type="button" class="btn-lesson-show" id="showLessonBtn" title="Show lesson title &amp; memory verse (Shift+Space)" aria-label="Show lesson title and memory verse">
-						<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
-							<path d="M2 4.2h12M2 8h12M2 11.8h7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path>
-						</svg>
+					<button type="button" id="showLessonBtn" class="lesson-title-btn" title="Show this lesson title and its memory verse (Shift+Space)">
+						<span id="lessonTitleHeader"></span>
 					</button>
 				</div>
 
@@ -1462,13 +1358,6 @@
 					<button class="btn-show btn-show-stop" id="stopBtn">Stop</button>
 				</div>
 				<div class="status" id="status"></div>
-
-				<div class="keyboard-shortcuts">
-					<div><b>Space</b> Show</div>
-					<div><b>Shift+Space</b> Show lesson</div>
-					<div><b>&#8594;</b> Next</div>
-					<div><b>&#8592;</b> Previous</div>
-				</div>
 			</div>
 		</div>
 	</div>
@@ -1722,9 +1611,9 @@
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);
 		}
 
-		// Show Lesson handler -- now the small icon button beside the lesson
-		// title (see .btn-lesson-show), not a full-width button in the bottom
-		// row, which SHOW/STOP took over. The payload it sends is unchanged:
+		// Show Lesson handler -- the lesson title itself is the button (see
+		// .lesson-title-btn), not a full-width button in the bottom row, which
+		// SHOW/STOP took over. The payload it sends is unchanged:
 		// mode:'lesson' with the lesson's title and introduction.
 		document.getElementById('showLessonBtn').addEventListener('click', () => {
 			// Access the current lesson from the picker's scope. The picker is an
@@ -1777,12 +1666,6 @@
 		}
 
 		document.getElementById('stopBtn').addEventListener('click', sendHide);
-
-		// The title bar ✕. An OBS Custom Browser Dock is closed from OBS's own
-		// dock chrome, and window.close() is a no-op for a page the script did
-		// not open -- so rather than leave the control dead, it does the one
-		// "close" this page owns: clear the overlay, same as STOP.
-		document.getElementById('closeBtn').addEventListener('click', sendHide);
 
 		// --- Lesson & Question picker -----------------------------------------
 		// Reads lessons-data.json (built by tools/build-lessons-data.py) and lets
@@ -1942,7 +1825,14 @@
 				for (const lesson of lessons) {
 					const opt = document.createElement('option');
 					opt.value = lesson.no;
+					// Full title in the open list, where there is room for it;
+					// just "Lesson 12" in the closed select, which is only about
+					// 120px wide in the dock and otherwise truncates mid-word.
+					// `label` is what the closed control renders, textContent is
+					// what the dropdown shows -- one of the few places the two
+					// genuinely differ.
 					opt.textContent = lesson.no + '. ' + lesson.title;
+					opt.label = 'Lesson ' + lesson.no;
 					lessonSelectEl.appendChild(opt);
 				}
 				// Preserve the same lesson NUMBER across a language/quarter switch
