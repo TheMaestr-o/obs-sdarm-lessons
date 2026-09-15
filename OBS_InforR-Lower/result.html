@@ -47,11 +47,12 @@
 <body>
 	<!--
 	This page is a thin wrapper around native/overlay.html (OUR OWN code -- see
-	LOCAL-SETUP.md, "Option C"). It does not render the lower third itself: it
+	LOCAL-SETUP.md). It does not render the lower third itself: it
 	listens on a BroadcastChannel for new data sent from panel.html and points an
 	<iframe> at native/overlay.html with the new parameters.
 
-	Earlier versions of this file pointed at the third-party lower.html and, after
+	Earlier versions of this file pointed at a third-party lower-thirds page (since
+	deleted from the repository) and, after
 	loading it, reached INTO the iframe's contentDocument to pause its
 	animation mid-hold (freezing it before its built-in reverse phase could play).
 	That approach could not work: Chromium enforces same-origin restrictions

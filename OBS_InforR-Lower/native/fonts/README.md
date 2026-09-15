@@ -2,8 +2,9 @@
 
 Two font files, carried here on purpose rather than pulled from a CDN.
 
-`overlay.css` asks for Open Sans and Arimo. The original `css/lower.css` gets them with
-two `@import url(https://fonts.googleapis.com/...)` lines at the top of the file. This
+`overlay.css` asks for Open Sans and Arimo. The original lower-thirds CSS this project
+started from (since deleted) got them with two
+`@import url(https://fonts.googleapis.com/...)` lines at the top of the file. This
 project has to work with no internet during a live broadcast, so that route is closed —
 and simply naming the fonts without loading them (which is what `overlay.css` did until
 now) means the overlay silently falls back to a generic sans-serif on any machine where

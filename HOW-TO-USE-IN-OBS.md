@@ -1,18 +1,16 @@
-# How to use these overlays in real OBS Studio
+# How to use this overlay in real OBS Studio
 
-This is the practical, step-by-step version — not the technical writeups in
-each plan's own folder. Pick one plan, follow its steps below.
+This is the practical, step-by-step version — not the technical writeup in
+[`OBS_InforR-Lower/LOCAL-SETUP.md`](OBS_InforR-Lower/LOCAL-SETUP.md), which
+covers how the thing works and why.
 
-**Recommended: Plan 3 (`OBS_InforR-Lower/`)** — it's the only one that (a)
-holds the question on screen until you manually advance it, (b) needs no
-Chroma Key filter at all, and (c) works fully offline. Plan 1 is kept for
-comparison but auto-hides after a few seconds.
+Everything lives in `OBS_InforR-Lower/`. The overlay holds the question on
+screen until you manually advance it, needs no Chroma Key filter at all, and
+works fully offline.
 
 ---
 
-## Plan 3 — recommended
-
-### One-time setup
+## One-time setup
 
 1. In OBS, add a new source: **Sources → (+) → Browser**.
 2. Name it something like "Lesson Question".
@@ -29,10 +27,10 @@ comparison but auto-hides after a few seconds.
    its own 1920×1080 box, so if your Browser Source is full-canvas, the
    overlay will sit at the bottom of the stream. Resize/reposition the
    *source* in OBS if you want it somewhere else.
-8. **No Chroma Key filter needed** — skip this step entirely for Plan 3, the
-   background is genuinely transparent.
+8. **No Chroma Key filter needed** — skip that step entirely, the background
+   is genuinely transparent.
 
-### Controlling it during the stream
+## Controlling it during the stream
 
 **Important — do not open `panel.html` in a regular browser (Chrome, Safari,
 Brave...).** The panel and the overlay talk to each other over a mechanism
@@ -79,7 +77,7 @@ To actually type into it during the stream:
    to the source) and unhide it later — there's currently no "hide" button
    in the panel itself, only "show the next thing."
 
-### Alternative: a permanent dock instead of a Control scene
+## Alternative: a permanent dock instead of a Control scene
 
 The Control-scene setup above works, but you have to switch to that scene
 every time you want to type a new question. OBS has a way to keep the panel
@@ -111,7 +109,7 @@ Once both are on `http://localhost:8001`, the dock behaves exactly like the
 Control-scene panel — fill in Line 1/Line 2, pick a style, press Show — except
 it's always on screen in OBS's own window, regardless of which scene is live.
 
-### Quick pre-stream checklist
+## Quick pre-stream checklist
 
 - [ ] `result.html` added as a Browser Source, sized to your canvas
 - [ ] `panel.html` open in a separate window, ready to type into
@@ -123,44 +121,18 @@ it's always on screen in OBS's own window, regardless of which scene is live.
 
 ---
 
-## Plan 1 — Animated Lower Thirds (alternative)
-
-Use this if you specifically want the dark-strip-with-logo look. Note: it
-**auto-hides after a few seconds** — you'd need to press Show again for
-every viewer glance, which is less practical for a lesson question people
-should have time to read and discuss.
-
-1. **Sources → (+) → Browser**, Local file, browse to:
-   ```
-   /Users/ohnedan/Developer/OBS/OBS_Animated-Lower-Thirds/lower thirds/browser-source.html
-   ```
-   1920×1080, same as above.
-2. Open `control-panel.html` (same folder) in a browser window as your
-   control panel.
-3. **Switch on the top "Main settings" toggle first** — this is easy to
-   miss, and without it every slot stays forced off no matter what else you
-   do.
-4. Type your question into slot 1's Name/Info fields, switch that slot's
-   toggle on — it appears on stream.
-5. No Chroma Key needed here either — this plan already renders on a
-   transparent page.
-
----
-
 ## If something looks wrong
 
-- **Nothing shows up at all**: open the same `result.html` /
-  `browser-source.html` file directly in a
-  normal browser tab (not through OBS) and check if it works there first —
-  if it doesn't, the panel and result windows probably aren't talking to
-  each other (both need to stay open, and for Plan 1 specifically, remember
-  the Main settings toggle from step 3 above).
+- **Nothing shows up at all**: open `result.html` directly in a normal
+  browser tab (not through OBS) and check if it works there first — if it
+  doesn't, the panel and result windows probably aren't talking to each
+  other (both need to stay open, and both need to be on the same origin —
+  see the dock section above).
 - **Text is there but looks different from these instructions' screenshots**:
   OBS renders Browser Sources through its own engine, which can differ
   slightly from a regular browser in fonts/spacing — this is normal, not a
   bug. Judge it by the actual OBS preview, not by how it looks in a browser
   tab.
-- **Want to see both plans side by side first**: open
-  `/Users/ohnedan/Developer/OBS/index.html` in a browser — it links to every
-  plan with the same setup steps and screenshots of what each one looks
-  like.
+- **Want to see what it looks like first**: open
+  `/Users/ohnedan/Developer/OBS/index.html` in a browser — it links to both
+  pages and shows an animated preview of each of the three styles.

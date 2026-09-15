@@ -265,9 +265,9 @@
 		}
 
 		/* Tiny looping preview swatches: a simplified, isolated re-creation of each
-		   animation's transform direction (not the real lower.css keyframes), just
+		   animation's transform direction (not the real overlay.css keyframes), just
 		   enough to show "which way does it move" at a glance next to the text
-		   description. Fully self-contained so it cannot collide with lower.css.
+		   description. Fully self-contained so it cannot collide with overlay.css.
 
 		   Defensive note: `opacity` on every animated element here is a plain,
 		   constant `1` that is never touched by any @keyframes rule -- only
@@ -877,7 +877,7 @@
 				<div class="form-group">
 					<!--
 					id=1, id=2 and id=3 are offered here. id=3 is no longer the
-					old lower.css style of that number (which overlapped line1 and
+					original style of that number (which overlapped line1 and
 					line2) -- it is now "Quiet Rule", written from scratch in
 					native/overlay.css for this panel. id=4 and id=5 are still left
 					out: id=4 never rendered line2 at all, and id=5's framed style

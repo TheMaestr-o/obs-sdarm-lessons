@@ -10,9 +10,9 @@ ready-made lower thirds all animate in, hold for a couple of seconds, and animat
 out, which is useless for a question the congregation is supposed to read and think about.
 
 The repository started as a side-by-side comparison of three existing open-source lower
-thirds projects. One of those, Vasco Cruz's `lower-thirds-obs`, became the base to build
-on; what grew out of it is the system described here. The comparison is still in the repo
-and still works — see [index.html](index.html).
+thirds projects. One of those, Vasco Cruz's `lower-thirds-obs`, was the starting point.
+What grew out of it no longer shares any code with it, so the comparison and the borrowed
+files have been removed — what is left is the system described here.
 
 ## The three styles
 
@@ -111,7 +111,7 @@ that is the only view that matches what goes out.
 
 ```
 OBS/
-├── index.html                       — hub page comparing the plans, with screenshots
+├── index.html                       — hub page, with the style previews
 ├── OBS_InforR-Lower/                — the system in actual use
 │   ├── panel.html                   — control panel (OBS)
 │   ├── result.html                  — overlay page, added to OBS as a Browser Source
@@ -119,12 +119,10 @@ OBS/
 │   ├── result-wirecast.html         — overlay page (Wirecast)
 │   ├── native/overlay.html/.css     — the overlay renderer and its animations
 │   ├── native/fonts/                — bundled Open Sans + Arimo (OFL)
-│   ├── tools/build-lessons-data.py  — builds lessons-data.json
-│   └── lower.html, css/, js/, img/, scripts/  — Vasco Cruz's original, unchanged
-├── OBS_Animated-Lower-Thirds/       — noeal-dac's project, kept for comparison
+│   └── tools/build-lessons-data.py  — builds lessons-data.json
 ├── sbl-question-card/               — earlier question-extraction script
-├── screenshots/                     — the previews above, plus the plan comparison shots
-└── tests/                           — Playwright scripts that regenerate those screenshots
+├── screenshots/                     — the previews above, plus the panel shot
+└── tests/                           — Playwright script that regenerates those previews
 ```
 
 The OBS and Wirecast pairs exist separately because the two applications isolate browser
@@ -145,19 +143,20 @@ The code written for this project is MIT — see [LICENSE](LICENSE).
 
 **What is borrowed, and from whom:**
 
-- **[lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs)** by **Vasco Cruz**
-  (MIT) — `OBS_InforR-Lower/lower.html`, `css/`, `js/`, `img/`, `scripts/`, kept unmodified
-  with his LICENSE and README intact. The current overlay no longer loads any of it, but
-  it is where this started and it still works on its own terms.
 - **[CodePen `mattchestnut/dMrONe`](https://codepen.io/mattchestnut/pen/dMrONe)** by
   **Matt Chestnut** — the motion design behind styles 1 and 2. The implementation in
-  `native/overlay.css` is ours; the easing curve and offsets are his. Style 3, "Quiet
+  `native/overlay.css` is ours; the easing curve and the offsets are his. Style 3, "Quiet
   Rule", is ours entirely.
 - **Amaksi** — the After Effects template the CodePen itself was based on.
-- **[Animated Lower Thirds](https://github.com/noeal-dac/Animated-Lower-Thirds)** by
-  **noeal-dac** (MIT) — kept whole, for comparison, with its licence.
 - **Open Sans** and **Arimo** — bundled under the SIL Open Font License 1.1, licences
   included in `OBS_InforR-Lower/native/fonts/`.
+
+This project began as a copy of
+**[lower-thirds-obs](https://github.com/vjccruz/lower-thirds-obs)** by **Vasco Cruz**
+(MIT), which is also how it reached the CodePen above. The overlay was rewritten from
+scratch — it holds a question on screen instead of auto-hiding, which his could not be
+made to do — and once nothing loaded his code, those files were removed. None of it
+remains here, but it is where this started.
 
 [AUTHORSHIP.md](AUTHORSHIP.md) goes through all of this file by file — who wrote what,
 which parts are borrowed and how much, and what was checked to establish it.

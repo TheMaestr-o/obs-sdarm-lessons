@@ -7,8 +7,10 @@
 	<!--
 	Copyright (c) 2026 Maestro. MIT licence -- see /LICENSE at the repository root.
 
-	This page builds the overlay markup itself, with ordinary DOM calls, and shares
-	no code with lower.js -- which does the same job with document.writeln(). What
+	This page builds the overlay markup itself, with ordinary DOM calls. It shared
+	no code with the original lower-thirds script this project started from --
+	which did the same job with document.writeln() -- and that script has since
+	been deleted from the repository. What
 	it draws is not equally original in every part, and overlay.css says exactly
 	where the line falls: styles 1 and 2 reproduce the motion of Matt Chestnut's
 	CodePen (https://codepen.io/mattchestnut/pen/dMrONe, reached via
@@ -17,10 +19,10 @@
 	-->
 	<style>
 		/*
-		Background is true CSS transparent, not lower.css's solid black. This is a
-		deliberate improvement over the original (see LOCAL-SETUP.md "Option C" for
-		the reasoning): lower.html/css/lower.css is meant to fill the FULL OBS canvas
-		and relies on a Chroma Key filter (keying out black) for transparency, which
+		Background is true CSS transparent, not the original's solid black. This is a
+		deliberate improvement over it (see LOCAL-SETUP.md for the reasoning): that
+		page was meant to fill the FULL OBS canvas
+		and relied on a Chroma Key filter (keying out black) for transparency, which
 		was fine there. This page is OUR code and is only ever loaded as a small
 		iframe inside result.html's bottom strip (see result.html), never as a
 		full-canvas Browser Source by itself -- so real alpha transparency via
@@ -29,7 +31,7 @@
 		appear in the lesson text or a dark theme, and it composites correctly over
 		any OBS scene regardless of what's behind it. If a future use of this page
 		DOES want the old solid-black-plus-Chroma-Key behavior (e.g. loading it
-		full-canvas directly, matching Option A), that's a one-line change here.
+		full-canvas directly), that's a one-line change here.
 		*/
 		html, body {
 			margin: 0;
@@ -41,9 +43,9 @@
 		}
 
 		/*
-		Bottom-anchor natively: unlike the old lower.html-in-an-iframe trick (which
-		needed a short "screen" purely so lower.css's `height:100%` centering would
-		resolve against a short box), this page IS the short box. No iframe-within
+		Bottom-anchor natively: unlike the old original-page-in-an-iframe trick
+		(which needed a short "screen" purely so that CSS's `height:100%` centering
+		would resolve against a short box), this page IS the short box. No iframe-within
 		this page is needed. #overlay-root is sized to match result.html's previous
 		220px strip -- the height derivation (tallest template content vs a
 		1080px-tall OBS canvas) is unchanged and documented in result.html/
@@ -75,8 +77,8 @@
 
 		render() clears and rebuilds #overlay-root's markup from scratch. Right now
 		it's only called once, at load, from the URL's own query string (this page
-		is still reloaded via the iframe's `src` on every "Show" press, same as the
-		old lower.html approach, since that's simple and already proven reliable --
+		is still reloaded via the iframe's `src` on every "Show" press, the same
+		approach the original used, since that's simple and already proven reliable --
 		see LOCAL-SETUP.md). But render() takes plain arguments rather than reading
 		location.search itself, and does not assume it's called exactly once, so a
 		future postMessage-driven live-update path (no reload at all) can call it

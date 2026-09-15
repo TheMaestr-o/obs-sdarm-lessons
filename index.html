@@ -67,7 +67,7 @@
 <body>
 <div class="wrap">
   <h1>SDARM Lesson Questions — OBS Lower Thirds</h1>
-  <div class="sub">Plan 3 is the one actually used on stream — our own lesson-question overlay system. Plan 1 stays here for comparison. Ready to go live? See <a href="HOW-TO-USE-IN-OBS.md">HOW-TO-USE-IN-OBS.md</a> for the practical setup walkthrough, <a href="README.md">README.md</a> for what this is, and <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for who wrote what.</div>
+  <div class="sub">Our own lesson-question overlay system — a control panel and an overlay page that OBS takes as a Browser Source. Ready to go live? See <a href="HOW-TO-USE-IN-OBS.md">HOW-TO-USE-IN-OBS.md</a> for the practical setup walkthrough, <a href="README.md">README.md</a> for what this is, and <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for who wrote what.</div>
 
   <div class="callout">
     <b>⚠️ Browser ≠ OBS</b>
@@ -79,25 +79,7 @@
   </div>
 
   <div class="group">
-    <h2>Plan 1 — Animated Lower Thirds <span class="tag good">panel works on Mac</span></h2>
-    <div class="pair">
-      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/control-panel.html"><b>control-panel.html</b><small>control panel — text, timing, logo</small></a>
-      <a class="btn" href="OBS_Animated-Lower-Thirds/lower thirds/browser-source.html"><b>browser-source.html</b><small>the overlay itself — this is what you add to OBS as a Browser Source</small></a>
-    </div>
-    <ol class="steps">
-      <li>Open both links in two tabs of the same browser</li>
-      <li>In the panel, switch on the top <b>Main settings</b> toggle — without it, every slot is forced off</li>
-      <li>Type text into slot 1 (the text fields under the logo) and switch it on — the overlay appears in the other tab</li>
-    </ol>
-    <div class="note"><b>Look:</b> a dark strip, logo on the left, a vertical colored divider line. Fully offline — nothing pulled from the internet.</div>
-    <div class="shots">
-      <figure><img src="screenshots/plan1-panel-config.png" alt="Plan 1 panel setup"><figcaption>Panel setup</figcaption></figure>
-      <figure><img src="screenshots/plan1-result.png" alt="Plan 1 result"><figcaption>Result on the overlay</figcaption></figure>
-    </div>
-  </div>
-
-  <div class="group">
-    <h2>Plan 3 — infor-r Lower Thirds <span class="tag good">fully offline</span> <span class="tag good">in use</span></h2>
+    <h2>Lesson question overlay <span class="tag good">fully offline</span> <span class="tag good">in use</span></h2>
     <div class="pair">
       <a class="btn" href="OBS_InforR-Lower/panel.html"><b>panel.html</b><small>control panel — question text, template, colors</small></a>
       <a class="btn" href="OBS_InforR-Lower/result.html"><b>result.html</b><small>the overlay itself — this is what you add to OBS as a Browser Source</small></a>
@@ -107,7 +89,7 @@
       <li>In the panel, fill in line 1 (the lesson topic) and line 2 (a letter + the question, e.g. "a. What evidence..."), pick a style, and press <b>Show</b></li>
       <li>The overlay plays its entrance animation once and then <b>holds indefinitely</b> — it does not auto-hide. Press <b>Show</b> again whenever you're ready to advance to the next question</li>
     </ol>
-    <div class="note"><b>Look:</b> styles 1 and 2 reimplement the motion design of <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> — the reference we were pointed at in the first place — as our own CSS (<code>OBS_InforR-Lower/native/</code>), so the entrance animation holds forever instead of auto-reversing after a couple of seconds. Style 3, "Quiet Rule", is our own design with no counterpart in the original. Background is true CSS transparency — no Chroma Key filter needed in OBS, unlike Plan 1. The panel offers these three named styles; the remaining built-in templates break with a long question (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for the full comparison, and the original <code>lower.html?id=...</code> still works directly by URL if you want to see all 5, auto-hide included). See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for exactly what is ours and what is borrowed.</div>
+    <div class="note"><b>Look:</b> styles 1 and 2 reimplement the motion design of <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> — the reference we were pointed at in the first place — as our own CSS (<code>OBS_InforR-Lower/native/</code>), so the entrance animation holds forever instead of auto-reversing after a couple of seconds. Style 3, "Quiet Rule", is our own design with no counterpart in the original. Background is true CSS transparency — no Chroma Key filter needed in OBS. The panel offers exactly these three: the other templates the original shipped with all broke on a long question and were dropped (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for which and why). See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for exactly what is ours and what is borrowed.</div>
     <div class="shots">
       <figure><img src="screenshots/panel.png" alt="The control panel with a lesson loaded and a question selected"><figcaption>The panel at its real dock width, lesson loaded, question <b>а</b> selected</figcaption></figure>
     </div>
@@ -120,9 +102,10 @@
   </div>
 
   <div class="group future">
-    A third plan (&ldquo;Ultimate OBS Lower Thirds System&rdquo;) used to sit here. It was removed —
-    it shipped with no licence and no named author, so it was not ours to redistribute.
-    See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a>.
+    This page used to compare three ready-made lower thirds projects side by side. All three
+    are gone now: one shipped with no licence and no named author, and the other two had
+    been kept only for reference once the overlay above stopped loading a line of either.
+    See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for the full account.
   </div>
 
 </div>

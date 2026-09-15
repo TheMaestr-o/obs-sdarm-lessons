@@ -17,12 +17,13 @@
  * to anyone; it is ours entirely.
  *
  * Our OWN implementation of the "lower third" visual styles. Ids 1 and 2
- * ("Slash & Slide", "Slide Up / Down") re-implement styles referenced from
- * ../css/lower.css; id 3 ("Quiet Rule") is ours alone, with no counterpart
- * there -- the id-5 "Framed Reveal" it replaces was dropped because its drawn
- * SVG frame boxed in a wrapping question sentence it was never sized for.
- * This file does not import from, extend, or modify
- * ../css/lower.css in any way -- see LOCAL-SETUP.md for why: lower.css's
+ * ("Slash & Slide", "Slide Up / Down") re-implement two styles from the
+ * original lower-thirds CSS this project started from (since deleted from the
+ * repository -- nothing here loaded it); id 3 ("Quiet Rule") is ours alone,
+ * with no counterpart there -- the id-5 "Framed Reveal" it replaces was
+ * dropped because its drawn SVG frame boxed in a wrapping question sentence it
+ * was never sized for. This file never imported from, extended, or modified
+ * that CSS -- see LOCAL-SETUP.md for why: its
  * keyframes are built as `-webkit-animation-iteration-count: 2` + `alternate`,
  * which plays the "in" animation once and then IMMEDIATELY plays it backwards
  * to hide the text again, with no way to ask it to just stop after appearing.
@@ -57,8 +58,8 @@
 /*
  * Both fonts are loaded from files sitting next to this one, never from a CDN.
  *
- * The original ../css/lower.css starts with two `@import
- * url(https://fonts.googleapis.com/...)` lines. That cannot be copied here: this
+ * The original lower-thirds CSS this project started from opened with two
+ * `@import url(https://fonts.googleapis.com/...)` lines. That route is closed: this
  * overlay has to render correctly on a machine with no internet, mid-broadcast,
  * and a failed font import degrades silently -- the text still appears, just in
  * the wrong typeface, which is the kind of thing nobody notices until it is on
