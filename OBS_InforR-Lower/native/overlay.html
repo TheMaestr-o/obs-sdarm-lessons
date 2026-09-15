@@ -117,50 +117,6 @@
 			root.appendChild(block);
 		}
 
-		// Builds the same 5-<line>/3-<clipPath> SVG frame structure lower.js writes
-		// for id=5 (see js/lower.js's document.writeln calls in the "case '5':"
-		// branch), via the SVG DOM API instead of innerHTML/writeln, so attributes
-		// like clip-path (which need the url(#id) to already exist in the document)
-		// resolve correctly.
-		const SVG_NS = 'http://www.w3.org/2000/svg';
-
-		function svgEl(tag, attrs) {
-			const node = document.createElementNS(SVG_NS, tag);
-			Object.keys(attrs || {}).forEach((key) => node.setAttribute(key, attrs[key]));
-			return node;
-		}
-
-		function renderFramedReveal(root, line1, line2) {
-			root.className = 'overlay-root style-framed-reveal';
-			const block = el('div', 'overlay-block', []);
-
-			const svg = svgEl('svg', { xmlns: SVG_NS, width: '100%', height: '100%' });
-			const defs = svgEl('defs', {});
-
-			const maskBR = svgEl('clipPath', { id: 'fr-mask-bottom-right' });
-			maskBR.appendChild(svgEl('rect', { class: 'clip-path', x: '70%', y: '0', width: '30%', height: '100%' }));
-			const maskTop = svgEl('clipPath', { id: 'fr-mask-top' });
-			maskTop.appendChild(svgEl('rect', { class: 'clip-path', x: '0', y: '0', width: '100%', height: '100%' }));
-			const maskBL = svgEl('clipPath', { id: 'fr-mask-bottom-left' });
-			maskBL.appendChild(svgEl('rect', { class: 'clip-path', x: '0', y: '0', width: '30%', height: '100%' }));
-
-			defs.appendChild(maskBR);
-			defs.appendChild(maskTop);
-			defs.appendChild(maskBL);
-			svg.appendChild(defs);
-
-			svg.appendChild(svgEl('line', { class: 'fr-bottom-right', x1: '70%', y1: '100%', x2: '100%', y2: '100%' }));
-			svg.appendChild(svgEl('line', { class: 'fr-right', x1: '100%', y1: '0', x2: '100%', y2: '100%' }));
-			svg.appendChild(svgEl('line', { class: 'fr-top', x1: '0', y1: '0', x2: '100%', y2: '0' }));
-			svg.appendChild(svgEl('line', { class: 'fr-left', x1: '0', y1: '0', x2: '0', y2: '100%' }));
-			svg.appendChild(svgEl('line', { class: 'fr-bottom-left', x1: '0', y1: '100%', x2: '30%', y2: '100%' }));
-
-			block.appendChild(svg);
-			block.appendChild(el('div', 'fr-line1 color1 arimo mask', [textDiv(line1)]));
-			block.appendChild(el('div', 'fr-line2 color1 mask', [textDiv(line2)]));
-
-			root.appendChild(block);
-		}
 
 		function render(id, line1, line2, color1, color2) {
 			const root = document.getElementById('overlay-root');
@@ -184,8 +140,8 @@
 					renderSlideUpDown(root, safeLine1, safeLine2);
 					break;
 				case '5':
-					renderFramedReveal(root, safeLine1, safeLine2);
-					break;
+				case '3':
+				case '4':
 				case '1':
 				default:
 					renderSlashSlide(root, safeLine1, safeLine2);

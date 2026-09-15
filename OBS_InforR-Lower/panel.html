@@ -383,51 +383,6 @@
 			30%, 100% { transform: translateY(0); }
 		}
 
-		/* Preview 5: three frame edges draw in, then the two lines slide from
-		   below/above -- simplified to a growing frame outline plus the two bars.
-		   Same constant-opacity approach as previews 1/2, see comment above.
-		   The frame's clip-path dip is also kept from ever fully closing (12%
-		   inset short of 100%, not a full 100%), so the frame's outline stays at
-		   least partly visible even if frozen mid-entrance, instead of vanishing
-		   to a zero-size box. */
-		.preview-5 .frame {
-			top: 2px;
-			left: 8%;
-			width: 84%;
-			height: 24px;
-			background: none;
-			border: 2px solid #c6a15b;
-			border-radius: 2px;
-			opacity: 1;
-			clip-path: inset(0 0 0 0);
-			will-change: clip-path;
-			animation: preview-5-frame 2.4s ease-out infinite;
-		}
-		.preview-5 .bar1 {
-			top: 8px;
-			height: 4px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-5-text 2.4s ease-out 0.35s infinite;
-		}
-		.preview-5 .bar2 {
-			top: 16px;
-			height: 4px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-5-text 2.4s ease-out 0.5s infinite;
-		}
-		@keyframes preview-5-frame {
-			0%, 8% { clip-path: inset(0 88% 88% 0); }
-			28%, 100% { clip-path: inset(0 0 0 0); }
-		}
-		@keyframes preview-5-text {
-			0%, 16% { transform: translateY(10px); }
-			36%, 100% { transform: translateY(0); }
-		}
-
 		@media (prefers-reduced-motion: reduce) {
 			.template-preview * {
 				animation: none !important;
@@ -806,10 +761,11 @@
 
 				<div class="form-group">
 					<!--
-					Only id=1, id=2 and id=5 are offered here. id=3 overlaps line1/line2 when
-					line2 is long, and id=4 does not render line2 at all -- both are unusable
-					for a full lesson question, so they are intentionally left out of this
-					panel. See LOCAL-SETUP.md for the full comparison table.
+					Only id=1 and id=2 are offered here. id=3, id=4, and id=5 are
+					unusable for a full lesson question (id=3 overlaps line1/line2,
+					id=4 does not render line2, and id=5 has been removed), so they
+					are intentionally left out of this panel. See LOCAL-SETUP.md for
+					the full comparison table.
 					-->
 					<div class="template-options">
 						<label>
@@ -828,15 +784,6 @@
 								<span class="bar alt bar2"></span>
 							</span>
 							<span class="template-name">Slide Up / Down</span>
-						</label>
-						<label>
-							<input type="radio" name="template" value="5">
-							<span class="template-preview preview-5" aria-hidden="true">
-								<span class="frame"></span>
-								<span class="bar bar1"></span>
-								<span class="bar alt bar2"></span>
-							</span>
-							<span class="template-name">Framed Reveal</span>
 						</label>
 					</div>
 				</div>
