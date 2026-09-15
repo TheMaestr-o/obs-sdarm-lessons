@@ -89,6 +89,12 @@ def build_lesson_entries(data: dict, letters: list[str]):
 
         lessons.append({
             "no": les.get("no"),
+            # The lesson's own "Lesson N" line, already in the lesson's language
+            # and already numbered -- "УРОК 1", "1. Lektion", "Lección 1". Worth
+            # carrying rather than composing in the panel: the word differs per
+            # language and so does where the number goes, and the source has it
+            # right for all 22.
+            "header": les.get("header", "").strip(),
             "title": les.get("title", "").strip(),
             "introduction": introduction,
             "questions": questions,

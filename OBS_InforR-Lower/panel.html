@@ -2,6 +2,14 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
+	<!-- OBS's browser keeps a dock's page in its own cache and will happily
+	     re-serve an old copy through several OBS restarts, which makes an
+	     edited panel look like it never changed. These stop it caching this
+	     page at all; the file is local, so there is nothing to gain by
+	     caching it and everything to lose. -->
+	<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+	<meta http-equiv="Pragma" content="no-cache">
+	<meta http-equiv="Expires" content="0">
 	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
 	<title>Lower Third Control Panel</title>
 	<style>
@@ -77,7 +85,7 @@
 			   layout itself, so the page still reports its true reduced height
 			   and nothing is left scrolling behind a scaled-down box. To change
 			   the size, change this one number. */
-			zoom: 0.81;
+			zoom: 0.62;
 		}
 
 		.container {
@@ -147,13 +155,16 @@
 
 		#lessonTitleHeader {
 			display: block;
-			font-size: 24px;
-			line-height: 1.2;
+			/* Smaller than the mockup's 24px: at the size this panel runs in a
+			   dock, 24px pushed a long Ukrainian or German title into two lines
+			   and clipped the first one. */
+			font-size: 19px;
+			line-height: 1.25;
 			font-weight: 700;
 			color: var(--accent);
 			text-align: center;
 			letter-spacing: 0.1px;
-			min-height: 28px;
+			min-height: 24px;
 		}
 
 		/* ---------- Fields ------------------------------------------------
@@ -1832,7 +1843,10 @@
 					// what the dropdown shows -- one of the few places the two
 					// genuinely differ.
 					opt.textContent = lesson.no + '. ' + lesson.title;
-					opt.label = 'Lesson ' + lesson.no;
+					// Closed state shows the source's own localised header
+					// ("УРОК 12", "12. Lektion") rather than an English word
+					// in front of a lesson that is not in English.
+					opt.label = lesson.header || (lesson.no + '.');
 					lessonSelectEl.appendChild(opt);
 				}
 				// Preserve the same lesson NUMBER across a language/quarter switch
@@ -1853,8 +1867,13 @@
 			function updateActiveLessonLabel() {
 				const lessons = getLangData(currentQuarter, currentLang).lessons;
 				const lesson = lessons.find((l) => String(l.no) === String(currentLessonNo));
-				const lessonText = lesson ? 'Lesson ' + lesson.no + ': ' + lesson.title : '';
-				lessonTitleHeaderEl.textContent = lessonText;
+				// lesson.header is the source's own "Lesson N" line in the
+				// lesson's language -- "УРОК 12", "12. Lektion", "Lección 12".
+				// Composing it here instead put an English "Lesson" in front of
+				// a Ukrainian title. Falls back to the bare number for a lesson
+				// whose source has no header.
+				const prefix = lesson ? (lesson.header || String(lesson.no)) : '';
+				lessonTitleHeaderEl.textContent = lesson ? prefix + ': ' + lesson.title : '';
 			}
 
 			// Store the current lesson globally so the Show Lesson button can
