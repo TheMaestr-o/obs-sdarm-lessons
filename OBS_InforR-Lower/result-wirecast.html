@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>Lower Third Result (Wirecast)</title>
+	<style>
+		html, body {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100%;
+			background: transparent;
+			overflow: hidden;
+		}
+
+		#overlayFrame {
+			position: fixed;
+			left: 0;
+			bottom: 0;
+			width: 100%;
+			height: 220px;
+			border: 0;
+			display: block;
+			background: transparent;
+		}
+
+		#overlayFrame[hidden] {
+			display: none;
+		}
+	</style>
+</head>
+<body>
+	<!--
+	Wirecast-compatible version of result.html. Uses localStorage polling instead
+	of BroadcastChannel (which doesn't work reliably across different Wirecast
+	browser contexts).
+
+	This page polls localStorage every 500ms for updates to the key:
+	'infor-r-lower-thirds-state'
+
+	When data appears, it loads the native overlay.html with the parameters as
+	query strings, same as OBS version does.
+
+	Use with panel-wirecast.html in a separate browser window/tab.
+	-->
+	<iframe id="overlayFrame" title="Lower third overlay" hidden></iframe>
+
+	<script>
+		const POLL_INTERVAL = 500; // ms between localStorage checks
+		const STORAGE_KEY = 'infor-r-lower-thirds-state';
+		const frameEl = document.getElementById('overlayFrame');
+		let lastAppliedAt = 0; // dedupes identical Show presses
+
+		function applyData(data) {
+			if (!data) return;
+			// data._t (panel-wirecast.html's Date.now() at press time) uniquely
+			// identifies one Show press. Skip if we've already applied this exact
+			// timestamp to avoid restarting the animation unnecessarily.
+			if (data._t && data._t === lastAppliedAt) return;
+			if (data._t) lastAppliedAt = data._t;
+
+			const params = new URLSearchParams();
+			params.set('id', data.id || '1');
+			params.set('line1', data.line1 || '');
+			params.set('line2', data.line2 || '');
+			if (data.color1) params.set('color1', data.color1);
+			if (data.color2) params.set('color2', data.color2);
+			// Cache-bust so pressing "Show" twice with identical text still forces the
+			// iframe to reload.
+			params.set('_t', Date.now().toString());
+
+			frameEl.src = 'native/overlay.html?' + params.toString();
+			frameEl.hidden = false;
+		}
+
+		// Poll localStorage for changes
+		setInterval(() => {
+			try {
+				const raw = localStorage.getItem(STORAGE_KEY);
+				if (!raw) return; // no data yet
+				const data = JSON.parse(raw);
+				applyData(data);
+			} catch (e) {
+				// Malformed JSON or other error -- ignore
+			}
+		}, POLL_INTERVAL);
+	</script>
+</body>
+</html>

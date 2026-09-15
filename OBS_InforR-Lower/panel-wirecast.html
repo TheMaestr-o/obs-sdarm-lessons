@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=0">
+	<title>Lower Third Control Panel (Wirecast)</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: -apple-system, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: #1D1F26;
+			color: #d4d4d4;
+			padding: 12px;
+			min-height: 100vh;
+		}
+
+		.container {
+			width: 100%;
+		}
+
+		.form-group {
+			margin-bottom: 10px;
+		}
+
+		label {
+			display: block;
+			margin-bottom: 5px;
+			font-weight: 400;
+			color: #a0a0a0;
+			font-size: 11px;
+		}
+
+		input[type="text"],
+		textarea,
+		select {
+			width: 100%;
+			padding: 7px 9px;
+			background: #13141A;
+			border: 1px solid transparent;
+			border-radius: 3px;
+			color: #d4d4d4;
+			font-size: 12.5px;
+			font-family: inherit;
+		}
+
+		textarea {
+			resize: vertical;
+			min-height: 64px;
+		}
+
+		input:focus,
+		select:focus,
+		textarea:focus {
+			outline: none;
+			border-color: #4a9eff;
+		}
+
+		select option {
+			background: #272A33;
+			color: #d4d4d4;
+		}
+
+		.form-row {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 12px;
+		}
+
+		.color-row {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+		}
+
+		input[type="color"] {
+			width: 26px;
+			height: 26px;
+			padding: 0;
+			background: #13141A;
+			border: 2px solid #272A33;
+			border-radius: 50%;
+			cursor: pointer;
+			-webkit-appearance: none;
+			appearance: none;
+		}
+
+		input[type="color"]::-webkit-color-swatch-wrapper {
+			padding: 0;
+			border-radius: 50%;
+		}
+
+		input[type="color"]::-webkit-color-swatch {
+			border: none;
+			border-radius: 50%;
+		}
+
+		.color-row input[type="text"] {
+			display: none;
+		}
+
+		.template-options {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 6px;
+		}
+
+		.template-options label {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 6px;
+			background: #272A33;
+			border: none;
+			border-radius: 4px;
+			padding: 9px 7px 11px;
+			cursor: pointer;
+			margin: 0;
+			text-align: center;
+		}
+
+		.template-options input[type="radio"] {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			padding: 0;
+			margin: -1px;
+			overflow: hidden;
+			clip: rect(0, 0, 0, 0);
+			white-space: nowrap;
+			border: 0;
+		}
+
+		.template-options label:has(input:checked) {
+			background: #2c445e;
+		}
+
+		.template-options label:has(input:focus-visible) {
+			outline: 2px solid #4a9eff;
+			outline-offset: 1px;
+		}
+
+		.template-name {
+			font-size: 11px;
+			font-weight: 600;
+			color: #d4d4d4;
+		}
+
+		.settings {
+			margin-bottom: 10px;
+		}
+
+		.settings summary {
+			cursor: pointer;
+			font-size: 11px;
+			color: #a0a0a0;
+			padding: 4px 0;
+			list-style: none;
+		}
+
+		.settings summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.settings summary::before {
+			content: '\25B8';
+			display: inline-block;
+			margin-right: 5px;
+			font-size: 9px;
+			transition: transform 0.15s;
+		}
+
+		.settings[open] summary::before {
+			transform: rotate(90deg);
+		}
+
+		.settings > *:first-child,
+		.settings > #quarterLanguageRow {
+			margin-top: 8px;
+		}
+
+		.template-preview {
+			width: 100%;
+			height: 28px;
+			position: relative;
+			overflow: hidden;
+			background: #13141A;
+			border-radius: 3px;
+		}
+
+		.template-preview .bar {
+			position: absolute;
+			left: 8%;
+			width: 84%;
+			height: 5px;
+			border-radius: 2px;
+			background: #c6a15b;
+		}
+
+		.template-preview .bar.alt {
+			background: #ffffff;
+		}
+
+		.preview-1 .slash {
+			top: 3px;
+			height: 22px;
+			width: 6px;
+			left: 6%;
+			background: linear-gradient(135deg, #c6a15b, #ffffff);
+			opacity: 1;
+			transform: skewX(-20deg) translateX(0);
+			will-change: transform;
+			animation: preview-1-slash 2.4s ease-in-out infinite;
+		}
+		.preview-1 .bar1 {
+			top: 7px;
+			opacity: 1;
+			transform: translateX(0);
+			will-change: transform;
+			animation: preview-1-line 2.4s ease-in-out infinite;
+		}
+		.preview-1 .bar2 {
+			top: 16px;
+			opacity: 1;
+			transform: translateX(0);
+			will-change: transform;
+			animation: preview-1-line 2.4s ease-in-out 0.15s infinite;
+		}
+		@keyframes preview-1-slash {
+			0%, 10% { transform: skewX(-20deg) translateX(40px); }
+			30%, 100% { transform: skewX(-20deg) translateX(0); }
+		}
+		@keyframes preview-1-line {
+			0%, 14% { transform: translateX(-100%); }
+			34%, 100% { transform: translateX(0); }
+		}
+
+		.preview-2 .bar1 {
+			top: 16px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-2-up 2.4s ease-out infinite;
+		}
+		.preview-2 .bar2 {
+			top: 6px;
+			opacity: 1;
+			transform: translateY(0);
+			will-change: transform;
+			animation: preview-2-down 2.4s ease-out infinite;
+		}
+		@keyframes preview-2-up {
+			0%, 10% { transform: translateY(18px); }
+			30%, 100% { transform: translateY(0); }
+		}
+		@keyframes preview-2-down {
+			0%, 10% { transform: translateY(-18px); }
+			30%, 100% { transform: translateY(0); }
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.template-preview * {
+				animation: none !important;
+			}
+		}
+
+		.btn-show {
+			width: 100%;
+			padding: 10px;
+			margin-top: 4px;
+			border: none;
+			border-radius: 3px;
+			font-size: 12.5px;
+			font-weight: 600;
+			letter-spacing: 0.4px;
+			text-transform: uppercase;
+			cursor: pointer;
+			color: #ffffff;
+			background: #4a9eff;
+			transition: background 0.15s;
+		}
+
+		.btn-show:hover {
+			background: #62aeff;
+		}
+
+		.status {
+			margin-top: 8px;
+			text-align: center;
+			font-size: 11px;
+			color: #7fc97f;
+			min-height: 14px;
+		}
+
+		.lesson-picker {
+			margin-bottom: 10px;
+		}
+
+		.lesson-picker summary {
+			cursor: pointer;
+			font-size: 11px;
+			color: #a0a0a0;
+			padding: 4px 0;
+			list-style: none;
+		}
+
+		.lesson-picker summary::-webkit-details-marker {
+			display: none;
+		}
+
+		.lesson-picker summary::before {
+			content: '\25B8';
+			display: inline-block;
+			margin-right: 5px;
+			font-size: 9px;
+			transition: transform 0.15s;
+		}
+
+		.lesson-picker[open] summary::before {
+			transform: rotate(90deg);
+		}
+
+		.lesson-picker > .form-group:first-child {
+			margin-top: 8px;
+		}
+
+		.lesson-picker-unavailable {
+			font-size: 11.5px;
+			color: #a0a0a0;
+			background: #13141A;
+			border-radius: 3px;
+			padding: 9px 10px;
+			line-height: 1.5;
+		}
+
+		.question-list {
+			display: flex;
+			flex-direction: column;
+			gap: 4px;
+			max-height: 220px;
+			overflow-y: auto;
+		}
+
+		.question-day-heading {
+			font-size: 10.5px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			color: #7d8291;
+			padding: 6px 2px 2px;
+		}
+
+		.question-day-heading:first-child {
+			padding-top: 0;
+		}
+
+		.question-letter-row {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 5px;
+			padding: 2px 0 4px;
+		}
+
+		.question-row {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 30px;
+			height: 30px;
+			padding: 0 8px;
+			text-align: center;
+			background: #272A33;
+			border: none;
+			border-radius: 4px;
+			cursor: pointer;
+			color: #c6a15b;
+			font-weight: 600;
+			font-family: inherit;
+			font-size: 13px;
+		}
+
+		.question-row:hover {
+			background: #2e323d;
+		}
+
+		.question-row:focus-visible {
+			outline: 2px solid #4a9eff;
+			outline-offset: 1px;
+		}
+
+		.question-row.current {
+			background: #2c445e;
+			color: #d4d4d4;
+		}
+
+		.active-lesson-label {
+			font-size: 11px;
+			font-weight: 600;
+			color: #a0a0a0;
+			margin-bottom: 6px;
+		}
+
+		.question-preview-label {
+			font-size: 10px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			color: #7d8291;
+			margin-top: 6px;
+		}
+
+		.question-preview {
+			font-size: 11.5px;
+			color: #a0a0a0;
+			background: #13141A;
+			border-radius: 3px;
+			padding: 7px 9px;
+			margin-top: 3px;
+			line-height: 1.4;
+			min-height: 32px;
+		}
+
+		.question-preview .q-letter {
+			font-weight: 600;
+			color: #c6a15b;
+		}
+
+		.question-nav {
+			display: flex;
+			gap: 8px;
+			margin-top: 8px;
+		}
+
+		.btn-secondary {
+			flex: 1 1 0;
+			padding: 8px;
+			border: none;
+			border-radius: 3px;
+			font-size: 12px;
+			font-weight: 600;
+			letter-spacing: 0.3px;
+			cursor: pointer;
+			color: #d4d4d4;
+			background: #272A33;
+			transition: background 0.15s;
+		}
+
+		.btn-secondary:hover:not(:disabled) {
+			background: #323644;
+		}
+
+		.btn-secondary:disabled {
+			opacity: 0.4;
+			cursor: not-allowed;
+		}
+
+		.current-question-label {
+			font-size: 11px;
+			color: #a0a0a0;
+			text-align: center;
+			margin-top: 6px;
+			min-height: 14px;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="panel">
+			<div class="form-group">
+				<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
+			</div>
+
+			<div class="form-group">
+				<textarea id="line2" aria-label="Line 2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
+			</div>
+
+			<details class="lesson-picker" id="lessonPicker" open>
+				<summary>Lesson &amp; Question</summary>
+
+				<div id="lessonPickerUnavailable" class="lesson-picker-unavailable" hidden>
+					This panel needs the local server. Open it as
+					<strong>http://localhost:8001/panel-wirecast.html</strong> instead of
+					double-clicking it.
+				</div>
+
+				<div id="lessonPickerUi">
+					<div class="active-lesson-label" id="activeLessonLabel"></div>
+
+					<div class="form-group">
+						<div class="question-list" id="questionList"></div>
+						<div class="question-preview-label" id="questionPreviewLabel" hidden>Preview</div>
+						<div class="question-preview" id="questionPreview"></div>
+					</div>
+
+					<div class="question-nav">
+						<button type="button" class="btn-secondary" id="prevBtn">&larr; Previous</button>
+						<button type="button" class="btn-secondary" id="nextBtn">Next &rarr;</button>
+					</div>
+					<div class="current-question-label" id="currentQuestionLabel"></div>
+				</div>
+			</details>
+
+			<details class="settings">
+				<summary>Settings</summary>
+
+				<div id="quarterLanguageUnavailable" class="lesson-picker-unavailable" hidden>
+					This panel needs the local server. Open it as
+					<strong>http://localhost:8001/panel-wirecast.html</strong> instead.
+				</div>
+
+				<div class="form-row" id="quarterLanguageRow">
+					<div class="form-group">
+						<label for="quarterSelect">Quarter</label>
+						<select id="quarterSelect"></select>
+					</div>
+					<div class="form-group">
+						<label for="languageSelect">Language</label>
+						<select id="languageSelect"></select>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="lessonSelect">Lesson</label>
+					<select id="lessonSelect"></select>
+				</div>
+
+				<div class="form-group">
+					<div class="template-options">
+						<label>
+							<input type="radio" name="template" value="1" checked>
+							<span class="template-preview preview-1" aria-hidden="true">
+								<span class="bar slash"></span>
+								<span class="bar bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Slash &amp; Slide</span>
+						</label>
+						<label>
+							<input type="radio" name="template" value="2">
+							<span class="template-preview preview-2" aria-hidden="true">
+								<span class="bar bar1"></span>
+								<span class="bar alt bar2"></span>
+							</span>
+							<span class="template-name">Slide Up / Down</span>
+						</label>
+					</div>
+				</div>
+
+				<div class="form-row">
+					<div class="form-group">
+						<label for="color1picker">Color 1</label>
+						<div class="color-row">
+							<input type="color" id="color1picker" value="#ffffff">
+							<input type="text" id="color1" value="fff">
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="color2picker">Color 2</label>
+						<div class="color-row">
+							<input type="color" id="color2picker" value="#c6a15b">
+							<input type="text" id="color2" value="c6a15b">
+						</div>
+					</div>
+				</div>
+			</details>
+
+			<button class="btn-show" id="showBtn">Show</button>
+			<div class="status" id="status"></div>
+		</div>
+	</div>
+
+	<script>
+		const STORAGE_KEY = 'infor-r-lower-thirds-state';
+		const PICKER_STORAGE_KEY = 'infor-r-lower-thirds-panel-settings';
+
+		const line1El = document.getElementById('line1');
+		const line2El = document.getElementById('line2');
+		const color1El = document.getElementById('color1');
+		const color2El = document.getElementById('color2');
+		const color1PickerEl = document.getElementById('color1picker');
+		const color2PickerEl = document.getElementById('color2picker');
+		const statusEl = document.getElementById('status');
+
+		// Keep the hex text input and the native color picker in sync
+		function syncPickerToText(picker, text) {
+			picker.addEventListener('input', () => {
+				text.value = picker.value.replace('#', '');
+			});
+		}
+		function syncTextToPicker(text, picker) {
+			text.addEventListener('input', () => {
+				const hex = text.value.replace('#', '').trim();
+				if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+					picker.value = '#' + hex;
+				}
+			});
+		}
+		syncPickerToText(color1PickerEl, color1El);
+		syncPickerToText(color2PickerEl, color2El);
+		syncTextToPicker(color1El, color1PickerEl);
+		syncTextToPicker(color2El, color2PickerEl);
+
+		function sanitizeHex(value, fallback) {
+			const hex = (value || '').replace('#', '').trim();
+			return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
+		}
+
+		document.getElementById('showBtn').addEventListener('click', () => {
+			const templateEl = document.querySelector('input[name="template"]:checked');
+			const data = {
+				id: templateEl ? templateEl.value : '1',
+				line1: line1El.value,
+				line2: line2El.value,
+				color1: sanitizeHex(color1El.value, 'fff'),
+				color2: sanitizeHex(color2El.value, 'c6a15b'),
+				_t: Date.now() // timestamp lets result-wirecast.html detect new presses
+			};
+
+			// Write to localStorage for result-wirecast.html to read via polling
+			try {
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+				statusEl.textContent = 'Sent to result-wirecast.html at ' + new Date().toLocaleTimeString();
+				setTimeout(() => { statusEl.textContent = ''; }, 4000);
+			} catch (e) {
+				statusEl.textContent = 'Error: could not save to localStorage';
+				setTimeout(() => { statusEl.textContent = ''; }, 4000);
+			}
+		});
+
+		// --- Lesson & Question picker -----------------------------------------
+		(function () {
+			const unavailableEl = document.getElementById('lessonPickerUnavailable');
+			const uiEl = document.getElementById('lessonPickerUi');
+			const quarterLanguageUnavailableEl = document.getElementById('quarterLanguageUnavailable');
+			const quarterLanguageRowEl = document.getElementById('quarterLanguageRow');
+			const quarterSelectEl = document.getElementById('quarterSelect');
+			const languageSelectEl = document.getElementById('languageSelect');
+			const lessonSelectEl = document.getElementById('lessonSelect');
+			const activeLessonLabelEl = document.getElementById('activeLessonLabel');
+			const questionListEl = document.getElementById('questionList');
+			const questionPreviewEl = document.getElementById('questionPreview');
+			const questionPreviewLabelEl = document.getElementById('questionPreviewLabel');
+			const prevBtn = document.getElementById('prevBtn');
+			const nextBtn = document.getElementById('nextBtn');
+			const currentQuestionLabelEl = document.getElementById('currentQuestionLabel');
+
+			if (location.protocol === 'file:') {
+				document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (needs http://localhost:8001)';
+				uiEl.hidden = true;
+				unavailableEl.hidden = false;
+				quarterLanguageRowEl.hidden = true;
+				quarterLanguageUnavailableEl.hidden = false;
+				return;
+			}
+
+			function loadSavedPickerSettings() {
+				try {
+					const raw = localStorage.getItem(PICKER_STORAGE_KEY);
+					return raw ? JSON.parse(raw) : null;
+				} catch (e) {
+					return null;
+				}
+			}
+
+			function savePickerSettings() {
+				try {
+					localStorage.setItem(PICKER_STORAGE_KEY, JSON.stringify({
+						quarter: currentQuarter,
+						language: currentLang,
+						lessonNo: currentLessonNo
+					}));
+				} catch (e) {
+					// Silently ignore
+				}
+			}
+
+			let bundle = null;
+			let currentQuarter = null;
+			let currentLang = null;
+			let currentLessonNo = null;
+			let currentQuestionIndex = null;
+
+			function getQuarterData(quarter) {
+				return bundle.quarters[quarter];
+			}
+
+			function getLangData(quarter, lang) {
+				return getQuarterData(quarter).languages[lang];
+			}
+
+			function getLesson(quarter, lang, lessonNo) {
+				const lessons = getLangData(quarter, lang).lessons;
+				return lessons.find((l) => String(l.no) === String(lessonNo)) || null;
+			}
+
+			function sortedQuarterKeys() {
+				return Object.keys(bundle.quarters).sort().reverse();
+			}
+
+			function populateQuarterSelect(preferredQuarter) {
+				const quarters = sortedQuarterKeys();
+				quarterSelectEl.innerHTML = '';
+				for (const key of quarters) {
+					const q = getQuarterData(key);
+					const opt = document.createElement('option');
+					opt.value = key;
+					opt.textContent = q.year + ' Q' + q.quarter;
+					quarterSelectEl.appendChild(opt);
+				}
+				const stillExists = preferredQuarter != null && quarters.includes(preferredQuarter);
+				currentQuarter = stillExists ? preferredQuarter : quarters[0];
+				quarterSelectEl.value = currentQuarter;
+			}
+
+			function populateLanguageSelect(preferredLang) {
+				const langs = Object.keys(getQuarterData(currentQuarter).languages).sort();
+				languageSelectEl.innerHTML = '';
+				for (const lang of langs) {
+					const opt = document.createElement('option');
+					opt.value = lang;
+					opt.textContent = lang.toUpperCase();
+					languageSelectEl.appendChild(opt);
+				}
+				const stillExists = preferredLang != null && langs.includes(preferredLang);
+				currentLang = stillExists ? preferredLang : (langs.includes('ru') ? 'ru' : langs[0]);
+				languageSelectEl.value = currentLang;
+			}
+
+			function populateLessonSelect(preserveLessonNo) {
+				const lessons = getLangData(currentQuarter, currentLang).lessons;
+				lessonSelectEl.innerHTML = '';
+				for (const lesson of lessons) {
+					const opt = document.createElement('option');
+					opt.value = lesson.no;
+					opt.textContent = lesson.no + '. ' + lesson.title;
+					lessonSelectEl.appendChild(opt);
+				}
+				const stillExists = preserveLessonNo != null && lessons.some((l) => String(l.no) === String(preserveLessonNo));
+				currentLessonNo = stillExists ? preserveLessonNo : lessons[0].no;
+				lessonSelectEl.value = currentLessonNo;
+				updateActiveLessonLabel();
+			}
+
+			function updateActiveLessonLabel() {
+				const lessons = getLangData(currentQuarter, currentLang).lessons;
+				const lesson = lessons.find((l) => String(l.no) === String(currentLessonNo));
+				activeLessonLabelEl.textContent = lesson ? lesson.no + '. ' + lesson.title : '';
+			}
+
+			function showPreview(q) {
+				questionPreviewLabelEl.hidden = false;
+				questionPreviewEl.innerHTML = '';
+				const letterSpan = document.createElement('span');
+				letterSpan.className = 'q-letter';
+				letterSpan.textContent = q.letter + '. ';
+				questionPreviewEl.appendChild(letterSpan);
+				questionPreviewEl.appendChild(document.createTextNode(q.text));
+			}
+
+			function renderQuestionList() {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				questionListEl.innerHTML = '';
+				questionPreviewEl.innerHTML = '';
+				questionPreviewLabelEl.hidden = true;
+				let lastSectionTitle = null;
+				let letterRow = null;
+				lesson.questions.forEach((q, idx) => {
+					if (q.sectionTitle !== lastSectionTitle) {
+						const heading = document.createElement('div');
+						heading.className = 'question-day-heading';
+						heading.textContent = q.sectionTitle;
+						questionListEl.appendChild(heading);
+						lastSectionTitle = q.sectionTitle;
+
+						letterRow = document.createElement('div');
+						letterRow.className = 'question-letter-row';
+						questionListEl.appendChild(letterRow);
+					}
+
+					const row = document.createElement('button');
+					row.type = 'button';
+					row.className = 'question-row';
+					row.textContent = q.letter;
+					row.title = q.letter + '. ' + q.text;
+					if (idx === currentQuestionIndex) row.classList.add('current');
+
+					row.addEventListener('mouseenter', () => showPreview(q));
+					row.addEventListener('focus', () => showPreview(q));
+					row.addEventListener('click', () => loadQuestion(idx));
+					letterRow.appendChild(row);
+				});
+				updateNav();
+			}
+
+			function loadQuestion(idx) {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				const q = lesson.questions[idx];
+				if (!q) return;
+
+				currentQuestionIndex = idx;
+				line1El.value = q.sectionTitle;
+				line2El.value = q.letter + '. ' + q.text;
+				showPreview(q);
+
+				let currentRow = null;
+				questionListEl.querySelectorAll('.question-row').forEach((row, rowIdx) => {
+					const isCurrent = rowIdx === idx;
+					row.classList.toggle('current', isCurrent);
+					if (isCurrent) currentRow = row;
+				});
+				if (currentRow) currentRow.scrollIntoView({ block: 'nearest' });
+				updateNav();
+			}
+
+			function updateNav() {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				const total = lesson.questions.length;
+				const hasCurrent = currentQuestionIndex != null;
+
+				prevBtn.disabled = !hasCurrent || currentQuestionIndex <= 0;
+				nextBtn.disabled = !hasCurrent || currentQuestionIndex >= total - 1;
+
+				if (hasCurrent) {
+					currentQuestionLabelEl.textContent = (currentQuestionIndex + 1) + ' of ' + total;
+				} else {
+					currentQuestionLabelEl.textContent = total > 0 ? '' : 'No questions found for this lesson';
+				}
+			}
+
+			prevBtn.addEventListener('click', () => {
+				if (currentQuestionIndex != null && currentQuestionIndex > 0) {
+					loadQuestion(currentQuestionIndex - 1);
+				}
+			});
+
+			nextBtn.addEventListener('click', () => {
+				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
+				if (currentQuestionIndex != null && currentQuestionIndex < lesson.questions.length - 1) {
+					loadQuestion(currentQuestionIndex + 1);
+				}
+			});
+
+			quarterSelectEl.addEventListener('change', () => {
+				currentQuarter = quarterSelectEl.value;
+				populateLanguageSelect(currentLang);
+				populateLessonSelect(currentLessonNo);
+				currentQuestionIndex = null;
+				renderQuestionList();
+				savePickerSettings();
+			});
+
+			languageSelectEl.addEventListener('change', () => {
+				currentLang = languageSelectEl.value;
+				populateLessonSelect(currentLessonNo);
+				currentQuestionIndex = null;
+				renderQuestionList();
+				savePickerSettings();
+			});
+
+			lessonSelectEl.addEventListener('change', () => {
+				currentLessonNo = lessonSelectEl.value;
+				currentQuestionIndex = null;
+				updateActiveLessonLabel();
+				renderQuestionList();
+				savePickerSettings();
+			});
+
+			fetch('lessons-data.json')
+				.then((res) => {
+					if (!res.ok) throw new Error('HTTP ' + res.status);
+					return res.json();
+				})
+				.then((data) => {
+					bundle = data;
+					const saved = loadSavedPickerSettings();
+					populateQuarterSelect(saved ? saved.quarter : null);
+					populateLanguageSelect(saved ? saved.language : null);
+					populateLessonSelect(saved ? saved.lessonNo : null);
+					renderQuestionList();
+				})
+				.catch((err) => {
+					document.getElementById('lessonPicker').querySelector('summary').textContent = 'Lesson & Question (could not load data)';
+					uiEl.hidden = true;
+					unavailableEl.hidden = false;
+					unavailableEl.textContent = 'Could not load lessons-data.json (' + err.message + '). Make sure the local server is running and this page was opened as http://localhost:8001/panel-wirecast.html.';
+					quarterLanguageRowEl.hidden = true;
+					quarterLanguageUnavailableEl.hidden = false;
+				});
+		})();
+	</script>
+</body>
+</html>
