@@ -1109,11 +1109,11 @@
 				same as if a human had typed into them.
 				-->
 				<div class="form-group">
-					<input type="text" id="line1" aria-label="Line 1" placeholder="God's Love for Man" value="God's Love for Man">
+					<input type="text" id="line1" aria-label="Line 1" placeholder="Line 1 — the section heading">
 				</div>
 
 				<div class="form-group">
-					<textarea id="line2" aria-label="Line 2" placeholder="a. What evidence of God's love is given to humanity?">a. What evidence of God's love is given to humanity?</textarea>
+					<textarea id="line2" aria-label="Line 2" placeholder="Line 2 — the letter and the question"></textarea>
 				</div>
 
 				<!--
@@ -1606,6 +1606,12 @@
 		// "Show Question" button, which this replaced in name and position
 		// only; result.html sees exactly what it always saw.
 		document.getElementById('showQuestionBtn').addEventListener('click', () => {
+			// Empty fields would go to air as the overlay's own stand-in words.
+			if (!line1El.value.trim() && !line2El.value.trim()) {
+				statusEl.textContent = 'Nothing to show yet -- pick a question';
+				setTimeout(() => { statusEl.textContent = ''; }, 4000);
+				return;
+			}
 			const templateEl = document.querySelector('input[name="template"]:checked');
 			const data = {
 				id: templateEl ? templateEl.value : '1',
@@ -1922,15 +1928,13 @@
 						btn.classList.add('current');
 						btn.setAttribute('aria-current', 'true');
 					}
-					// Picking a section only switches which letters are shown --
-					// it does NOT load a question or change what is on air. The
-					// presenter then picks the letter. (Line 1/Line 2 are only
-					// ever written by loadQuestion().)
-					btn.addEventListener('click', () => {
-						activeSectionIndex = i;
-						renderCircles();
-						updateSectionStatus();
-					});
+					// Picking a section loads its first question. It used to only
+					// switch which letters were shown and leave Line 1/Line 2 alone,
+					// which meant a section could be lit on the panel while the
+					// fields -- and so the next SHOW -- still held a question from
+					// somewhere else. Loading is not showing: nothing goes on air
+					// until SHOW is pressed.
+					btn.addEventListener('click', () => loadQuestion(section.indices[0]));
 					sectionRowEl.appendChild(btn);
 				});
 
@@ -2005,12 +2009,30 @@
 			}
 
 			// Rebuilds everything that depends on the chosen lesson.
-			function renderQuestionList() {
+			// `keepIndex` is the question to land on, where it still exists:
+			// switching LANGUAGE mid-lesson stays on the same question, so the
+			// presenter can show it again in another tongue; a new lesson or
+			// quarter starts from its first.
+			//
+			// Something is always loaded. It used to leave Line 1/Line 2 alone
+			// until a letter was clicked, so after choosing German the fields
+			// still held whatever was there before -- at first the English
+			// placeholder text -- and SHOW sent that to air, in the wrong
+			// language, with every selector on the panel saying otherwise.
+			function renderQuestionList(keepIndex) {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				sections = lesson ? buildSections(lesson) : [];
-				// A fresh lesson starts on its first section with nothing loaded,
-				// rather than keeping an index that may not exist in this lesson.
 				activeSectionIndex = 0;
+				const total = lesson ? lesson.questions.length : 0;
+				if (total > 0) {
+					loadQuestion(keepIndex != null && keepIndex < total ? keepIndex : 0);
+					return;
+				}
+				// A lesson with no questions at all: say so, and do not leave the
+				// last lesson's question sitting in the fields.
+				line1El.value = '';
+				line2El.value = '';
+				window._loadedQuestion = null;
 				renderCircles();
 				updateSectionStatus();
 				updateNav();
@@ -2110,10 +2132,11 @@
 
 			languageSelectEl.addEventListener('change', () => {
 				currentLang = languageSelectEl.value;
+				const keepIndex = currentQuestionIndex;
 				populateLessonSelect(currentLessonNo);
 				currentQuestionIndex = null;
 				updateCurrentLessonGlobal();
-				renderQuestionList();
+				renderQuestionList(keepIndex);
 				savePickerSettings();
 			});
 
