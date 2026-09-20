@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Lower thirds — live demo</title>
+	<!--
+	A way to SEE the system, and to try it, in an ordinary browser.
+
+	result.html is genuinely transparent, so opened on its own it is white text
+	on a white page; and the panel and the overlay only reach each other when
+	they share an origin. This page puts both side by side -- the overlay over a
+	stand-in picture at the real 1920x1080, scaled to fit, and the real panel
+	next to it -- as two iframes on one origin, which is all the two need to
+	talk exactly as they do inside OBS. Everything in it is live: pick a
+	question, press Show, press Next, press Stop.
+
+	Two ways to open it, and it works out which it is:
+
+	  published (GitHub Pages, or any web server at the repository root)
+	      the iframes are relative paths, nothing to start. There is no lesson
+	      bundle there -- it is never published -- so the panel falls back to
+	      its sample lessons and says so.
+
+	  from disk (double-click)
+	      a file:// page cannot host the pair -- the panel has to fetch its
+	      data and the two have to share an origin -- so the iframes point at
+	      the local server instead:
+
+	          cd OBS_InforR-Lower && python3 -m http.server 8001
+
+	It is a preview, not the truth: OBS renders through its own embedded
+	browser, and the final look is only ever confirmed there.
+	-->
+	<style>
+		* { box-sizing: border-box; }
+		html, body { margin: 0; min-height: 100%; background: #0b0d14; color: #b7c0dd; font: 13px -apple-system, 'Segoe UI', sans-serif; }
+		.layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; min-height: 100vh; padding: 20px; }
+		.stage-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+		.bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+		.bar b { color: #f5f7ff; font-weight: 600; }
+		.bar span { color: #747e9e; }
+		.bar button { border: 1px solid #303a60; background: #202844; color: #b7c0dd; border-radius: 999px; padding: 5px 12px; font: inherit; cursor: pointer; }
+		.bar button.is-on { border-color: #b8ff3d; color: #b8ff3d; }
+		/* The stage keeps 16:9 and holds a full-size 1920x1080 frame scaled down
+		   to it, so every pixel value in the overlay is the real one. */
+		.stage { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: #1b1e26 center / cover no-repeat; box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.6); }
+		.stage iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; transform-origin: 0 0; background: transparent; }
+		.panel-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+		.panel-col iframe { flex: 1; min-height: 620px; width: 100%; border: 1px solid #1c2240; border-radius: 12px; background: #090b14; }
+		.note { color: #5b6587; font-size: 12px; line-height: 1.55; }
+		.note b { color: #b7c0dd; font-weight: 600; }
+		.note a { color: #b8ff3d; }
+		.down { padding: 14px 16px; border: 1px solid #5a2a2a; border-radius: 10px; color: #ff8a8a; display: none; }
+		/* A phone gets the two stacked: the stage on top, the panel under it. */
+		@media (max-width: 820px) {
+			.layout { grid-template-columns: minmax(0, 1fr); }
+			.panel-col iframe { min-height: 680px; }
+		}
+	</style>
+</head>
+<body>
+	<div class="layout">
+		<div class="stage-col">
+			<div class="bar">
+				<b>On air</b><span>1920 × 1080, scaled to fit</span>
+				<span style="flex:1"></span>
+				<span>Picture:</span>
+				<button type="button" data-bg="screenshots/backdrops/backdrop-1.jpg" class="is-on">Photo 1</button>
+				<button type="button" data-bg="screenshots/backdrops/backdrop-2.jpg">Photo 2</button>
+				<button type="button" data-bg="">Dark</button>
+				<button type="button" data-bg="bright">Bright</button>
+			</div>
+			<div class="stage" id="stage">
+				<iframe id="result" title="Overlay" allowtransparency="true"></iframe>
+			</div>
+			<div class="down" id="down">
+				Nothing is answering on http://localhost:8001 — start it with
+				<code>cd OBS_InforR-Lower &amp;&amp; python3 -m http.server 8001</code> and reload.
+			</div>
+			<div class="note">
+				In the panel: click a <b>section number</b>, then a <b>letter</b>, then <b style="color:#b8ff3d">SHOW</b>.
+				Press <b>Next</b> and SHOW again to watch only the changed line move; pick the long question to watch the plate grow.
+				<b style="color:#ff8a8a">STOP</b> takes it down. Language, lesson, colours and the second style are under <b>Settings</b>.
+				The bright picture is the hard case for legibility — worth a look.
+				<span id="sampleHint"></span>
+				<br>The photographs stand in for a camera feed. This is a browser preview; OBS renders through its own engine, and the final look is confirmed there.
+				<a href="README.md">README</a> · <a href="HOW-TO-USE-IN-OBS.md">How to use it in OBS</a>
+			</div>
+		</div>
+		<div class="panel-col">
+			<div class="bar"><b>Panel</b><span>as docked in OBS</span></div>
+			<iframe id="panel" title="Control panel"></iframe>
+		</div>
+	</div>
+
+	<script>
+		const stage = document.getElementById('stage');
+		const frame = document.getElementById('result');
+
+		// From disk the pair has to come from the local server; published, they
+		// are simply next to this file.
+		const fromDisk = location.protocol === 'file:';
+		const BASE = fromDisk ? 'http://localhost:8001/' : 'OBS_InforR-Lower/';
+		frame.src = BASE + 'result.html';
+		document.getElementById('panel').src = BASE + 'panel.html';
+		if (!fromDisk) {
+			document.getElementById('sampleHint').textContent =
+				' The lessons here are samples — the real lesson text is never published.';
+		}
+
+		function fit() {
+			frame.style.transform = 'scale(' + (stage.clientWidth / 1920) + ')';
+		}
+		new ResizeObserver(fit).observe(stage);
+		fit();
+
+		function setPicture(value) {
+			if (value === 'bright') {
+				stage.style.backgroundImage = 'linear-gradient(135deg, #f4efe6, #cfd8e6)';
+			} else if (value) {
+				stage.style.backgroundImage = 'url("' + value + '")';
+			} else {
+				stage.style.backgroundImage = 'linear-gradient(160deg, #1a1d23 0%, #23262d 45%, #14161a 100%)';
+			}
+		}
+		document.querySelectorAll('[data-bg]').forEach((button) => {
+			button.addEventListener('click', () => {
+				document.querySelectorAll('[data-bg]').forEach((b) => b.classList.toggle('is-on', b === button));
+				setPicture(button.dataset.bg);
+			});
+		});
+		setPicture('screenshots/backdrops/backdrop-1.jpg');
+
+		// From disk, a server that is not running just shows two blank boxes,
+		// which says nothing about why.
+		if (fromDisk) {
+			fetch(BASE + 'result.html', { mode: 'no-cors' }).catch(() => {
+				document.getElementById('down').style.display = 'block';
+			});
+		}
+	</script>
+</body>
+</html>

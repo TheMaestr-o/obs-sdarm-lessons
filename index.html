@@ -41,6 +41,15 @@
   a.btn b{display:block;font-size:.92rem;margin-bottom:2px}
   a.btn small{color:var(--muted);font-size:.78rem}
 
+  /* The one primary action on the page: try it. */
+  a.demo{display:flex;align-items:center;gap:14px;text-decoration:none;margin:0 0 22px;padding:16px 20px;
+    border-radius:12px;background:#0b0d14;color:#f5f7ff;border:1px solid #1c2240;
+    transition:transform .12s, box-shadow .12s}
+  a.demo:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.22)}
+  a.demo .go{flex:none;padding:9px 18px;border-radius:999px;background:#b8ff3d;color:#10130c;font-weight:700;font-size:.9rem}
+  a.demo b{display:block;font-size:1rem}
+  a.demo small{color:#9aa4c4;font-size:.8rem}
+
   .note{font-size:.85rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--hair)}
   .note b{color:var(--ink)}
 
@@ -69,6 +78,11 @@
   <h1>SDARM Lesson Questions — OBS Lower Thirds</h1>
   <div class="sub">Our own lesson-question overlay system — a control panel and an overlay page that OBS takes as a Browser Source. Ready to go live? See <a href="HOW-TO-USE-IN-OBS.md">HOW-TO-USE-IN-OBS.md</a> for the practical setup walkthrough, <a href="README.md">README.md</a> for what this is, and <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for who wrote what.</div>
 
+  <a class="demo" href="preview.html">
+    <span class="go">Live demo</span>
+    <span><b>Try it in the browser</b><small>The real panel next to the real overlay over a stand-in picture — pick a question, press Show, press Next, press Stop.</small></span>
+  </a>
+
   <div class="callout">
     <b>⚠️ Browser ≠ OBS</b>
     What you see here in a regular browser (Chrome/Safari) isn't a guarantee of the same look inside OBS.
@@ -86,19 +100,18 @@
     </div>
     <ol class="steps">
       <li>Open both links in two tabs of the same browser</li>
-      <li>In the panel, fill in line 1 (the lesson topic) and line 2 (a letter + the question, e.g. "a. What evidence..."), pick a style, and press <b>Show</b></li>
-      <li>The overlay plays its entrance animation once and then <b>holds indefinitely</b> — it does not auto-hide. Press <b>Show</b> again whenever you're ready to advance to the next question</li>
+      <li>In the panel, click a section number and then a question letter (or type line 1 and line 2 yourself), pick a style, and press <b>Show</b></li>
+      <li>The overlay plays its entrance once and then <b>holds indefinitely</b> — it does not auto-hide. Pick the next question and press <b>Show</b> again: the plate stays, only the line that changed moves. <b>Stop</b> takes it down, and is lit red for as long as something is up</li>
     </ol>
-    <div class="note"><b>Look:</b> styles 1 and 2 reimplement the motion design of <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a> — the reference we were pointed at in the first place — as our own CSS (<code>OBS_InforR-Lower/native/</code>), so the entrance animation holds forever instead of auto-reversing after a couple of seconds. Style 3, "Quiet Rule", is our own design with no counterpart in the original. Background is true CSS transparency — no Chroma Key filter needed in OBS. The panel offers exactly these three: the other templates the original shipped with all broke on a long question and were dropped (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a> for which and why). See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for exactly what is ours and what is borrowed.</div>
+    <div class="note"><b>Look:</b> Slash &amp; Slide is the author's own design — a translucent plate cut at 13°, a gold stripe riding the cut, the heading in gold capitals, the question in white with its scripture reference in gold italic; the plate grows when a question wraps. Slide Up / Down is centred over a scrim. The easing both share comes from <a href="https://codepen.io/mattchestnut/pen/dMrONe" target="_blank" rel="noopener">CodePen mattchestnut/dMrONe</a>, the reference we were pointed at in the first place. Background is true CSS transparency — no Chroma Key filter needed in OBS. A third style, "Quiet Rule", still renders for <code>id=3</code> but the panel offers these two (see <a href="OBS_InforR-Lower/LOCAL-SETUP.md">LOCAL-SETUP.md</a>). All 22 lesson languages are drawn in fonts that ship with the project, Japanese, Chinese and Thai included. See <a href="AUTHORSHIP.md">AUTHORSHIP.md</a> for exactly what is ours and what is borrowed.</div>
     <div class="shots">
       <figure><img src="screenshots/panel.png" alt="The control panel with a lesson loaded and a question selected"><figcaption>The panel at its real dock width, lesson loaded, question <b>а</b> selected</figcaption></figure>
     </div>
     <div class="anim">
-      <figure><img src="screenshots/plan3-styles/slash-and-slide.gif" alt="Slash and Slide: a gold slash draws in, then both lines slide in from the left and stay"><figcaption><b>Slash &amp; Slide</b> — gold slash, text slides in from the left</figcaption></figure>
+      <figure><img src="screenshots/plan3-styles/slash-and-slide.gif" alt="Slash and Slide: a gold stripe draws in, a slanted plate wipes out from it, then both lines slide in and stay"><figcaption><b>Slash &amp; Slide</b> — stripe, then plate, then the words</figcaption></figure>
       <figure><img src="screenshots/plan3-styles/slide-up-down.gif" alt="Slide Up / Down: the heading rises from below while the question descends from above, both then holding"><figcaption><b>Slide Up / Down</b> — heading rises, question descends, centred</figcaption></figure>
-      <figure><img src="screenshots/plan3-styles/quiet-rule.gif" alt="Quiet Rule: a vertical gold rule draws downward and the right-aligned text settles beside it"><figcaption><b>Quiet Rule</b> <span style="opacity:.7">— our own</span> — gold rule draws down, text settles right-aligned</figcaption></figure>
     </div>
-    <div class="note">Each preview runs the entrance once and then keeps going for another second and a half — that flat, unchanging tail is the point. On stream it stays there until the presenter presses <b>Show</b> again. The dark background stands in for the video underneath; the overlay itself is transparent.</div>
+    <div class="note">Each preview runs the entrance once and then keeps going for another two seconds — that flat, unchanging tail is the point. On stream it stays there until the presenter moves on. The dark background stands in for the video underneath; the overlay itself is transparent.</div>
   </div>
 
   <div class="group future">

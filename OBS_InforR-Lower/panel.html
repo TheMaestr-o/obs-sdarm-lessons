@@ -1058,6 +1058,12 @@
 			50% { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.19), 0 8px 22px -2px rgba(255, 59, 59, 0.7); }
 		}
 
+		.sample-note {
+			text-align: center;
+			font-size: 10.5px;
+			color: var(--muted-2);
+		}
+
 		.status {
 			text-align: center;
 			font-size: 11px;
@@ -1278,6 +1284,7 @@
 					<button class="btn-show btn-show-stop" id="stopBtn">Stop</button>
 					<button class="btn-show btn-show-primary" id="showQuestionBtn">Show</button>
 				</div>
+				<div class="sample-note" id="sampleNote" hidden>Sample lessons. Build the real ones with tools/build-lessons-data.py.</div>
 				<div class="status" id="status"></div>
 			</div>
 		</div>
@@ -1582,6 +1589,10 @@
 					id: templateEl ? templateEl.value : '1',
 					line1: lesson.title,
 					line2: lesson.introduction,
+					// The verse's own reference, set apart after it the same way a
+					// question's is.
+					ref: lesson.introductionRef || '',
+					lang: window._currentLang || '',
 					color1: sanitizeHex(color1El.value, 'fff'),
 					color2: sanitizeHex(color2El.value, 'c6a15b'),
 					mode: 'lesson',
@@ -1601,6 +1612,7 @@
 				line1: line1El.value,
 				line2: line2El.value,
 				ref: refForLine2(),
+				lang: window._currentLang || '',
 				color1: sanitizeHex(color1El.value, 'fff'),
 				color2: sanitizeHex(color2El.value, 'c6a15b'),
 				mode: 'question',
@@ -1824,6 +1836,9 @@
 			function updateCurrentLessonGlobal() {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
 				window._currentLesson = lesson;
+				// The overlay picks its font by language for the scripts that
+				// share characters (Chinese and Japanese), so it has to be told.
+				window._currentLang = currentLang;
 			}
 
 			// Groups the lesson's flat questions[] array into sections by each
@@ -2111,11 +2126,22 @@
 				savePickerSettings();
 			});
 
+			// The real bundle is built locally and never published -- the lesson
+			// text is not this project's to give away -- so a fresh checkout, and
+			// the public demo, have none. Those get a small sample instead, which
+			// is enough to see every part of the system work; the note under the
+			// buttons says so, because sample questions on a real stream would be
+			// a bad surprise.
+			const readJson = (res) => {
+				if (!res.ok) throw new Error('HTTP ' + res.status);
+				return res.json();
+			};
 			fetch('lessons-data.json')
-				.then((res) => {
-					if (!res.ok) throw new Error('HTTP ' + res.status);
-					return res.json();
-				})
+				.then(readJson)
+				.catch(() => fetch('lessons-data.sample.json').then(readJson).then((data) => {
+					document.getElementById('sampleNote').hidden = false;
+					return data;
+				}))
 				.then((data) => {
 					bundle = data;
 					const saved = loadSavedPickerSettings();

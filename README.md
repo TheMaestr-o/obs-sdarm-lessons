@@ -4,6 +4,12 @@ An overlay system for putting Sabbath School lesson questions on screen during a
 church broadcast. A control panel picks the lesson and the question; a second page
 renders it as an animated lower third that OBS (or Wirecast) takes as a Browser Source.
 
+### [▶ Live demo](https://themaestr-o.github.io/obs-sdarm-lessons/preview.html)
+
+The real panel next to the real overlay, over a stand-in picture, in your browser — pick a
+question, press **Show**, press **Next**, press **Stop**. It runs on sample lessons: the
+real lesson text is never published (see [Lesson content](#lesson-content)).
+
 The question **stays on screen until the presenter advances it**. That one requirement is
 why this exists rather than being a configuration of something off the shelf — the
 ready-made lower thirds all animate in, hold for a couple of seconds, and animate back
@@ -90,6 +96,12 @@ broadcast.
 - **Works entirely offline.** No CDN, no Google Fonts, no network call at any point. The
   fonts are bundled. This is a hard requirement, not a preference — see
   [`native/fonts/README.md`](OBS_InforR-Lower/native/fonts/README.md).
+- **All 22 languages in the project's own fonts** — Japanese, Chinese and Thai included,
+  as cut-down Noto Sans files, so none of them depends on what the streaming machine
+  happens to have installed. Every question of every language is rendered and measured by
+  a sweep before a release: headings stay on one line, questions on one or two, nothing is
+  clipped. The lesson's own letters are used — а, б, **ц** in Serbian, ก, ข in Thai,
+  capitals in Portuguese — not an alphabet imposed from outside.
 - **Remembers your settings** between sessions (quarter, language, lesson).
 
 ## Getting started
@@ -126,6 +138,14 @@ python3 -m http.server 8001
 Both must be on the same `http://localhost:8001` origin; that is how they reach each
 other. Fill in the two lines (or click a question), pick a style, press **Show**.
 
+**Or just look at it.** With that server running, open [`preview.html`](preview.html) —
+double-clicking it is fine. It is the same page as the live demo: the panel beside the
+overlay over a picture, with your real lessons instead of the samples.
+
+Without step 1 the panel still works: it falls back to
+`OBS_InforR-Lower/lessons-data.sample.json`, a handful of made-up questions in six
+languages, and says so under its buttons.
+
 Full walkthroughs: [HOW-TO-USE-IN-OBS.md](HOW-TO-USE-IN-OBS.md) for the practical OBS
 setup, [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md) for how it works
 and why it is built this way, [OBS_InforR-Lower/WIRECAST-SETUP.md](OBS_InforR-Lower/WIRECAST-SETUP.md)
@@ -143,6 +163,7 @@ that is the only view that matches what goes out.
 ```
 OBS/
 ├── index.html                       — hub page, with the style previews
+├── preview.html                     — the live demo: panel beside overlay, in a browser
 ├── OBS_InforR-Lower/                — the system in actual use
 │   ├── panel.html                   — control panel (OBS)
 │   ├── result.html                  — overlay page, added to OBS as a Browser Source
@@ -150,7 +171,9 @@ OBS/
 │   ├── result-wirecast.html         — overlay page (Wirecast)
 │   ├── native/overlay.html/.css     — the overlay renderer and its animations
 │   ├── native/fonts/                — bundled Open Sans + Arimo (OFL)
-│   └── tools/build-lessons-data.py  — builds lessons-data.json
+│   ├── lessons-data.sample.json     — made-up questions, used when there is no real bundle
+│   ├── tools/build-lessons-data.py  — builds lessons-data.json, checks font coverage
+│   └── tools/build-cjk-fonts.py     — cuts the Japanese / Chinese / Thai fonts
 ├── sbl-question-card/               — earlier question-extraction script
 ├── screenshots/                     — the previews above, plus the panel shot
 └── tests/                           — Playwright script that regenerates those previews
