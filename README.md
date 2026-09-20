@@ -7,8 +7,8 @@ renders it as an animated lower third that OBS (or Wirecast) takes as a Browser 
 ### [▶ Live demo](https://themaestr-o.github.io/obs-sdarm-lessons/preview.html)
 
 The real panel next to the real overlay, over a stand-in picture, in your browser — pick a
-question, press **Show**, press **Next**, press **Stop**. It runs on sample lessons: the
-real lesson text is never published (see [Lesson content](#lesson-content)).
+question, press **Show**, press **Next**, press **Stop**. It runs on sample lessons in all
+22 languages: the real lesson text is never published (see [Lesson content](#lesson-content)).
 
 The question **stays on screen until the presenter advances it**. That one requirement is
 why this exists rather than being a configuration of something off the shelf — the
@@ -143,8 +143,9 @@ double-clicking it is fine. It is the same page as the live demo: the panel besi
 overlay over a picture, with your real lessons instead of the samples.
 
 Without step 1 the panel still works: it falls back to
-`OBS_InforR-Lower/lessons-data.sample.json`, a handful of made-up questions in six
-languages, and says so under its buttons.
+`OBS_InforR-Lower/lessons-data.sample.json` — the same two made-up lessons in all 22
+languages, with each language's own letters, lesson headers and way of citing a verse — and
+says so under its buttons.
 
 Full walkthroughs: [HOW-TO-USE-IN-OBS.md](HOW-TO-USE-IN-OBS.md) for the practical OBS
 setup, [OBS_InforR-Lower/LOCAL-SETUP.md](OBS_InforR-Lower/LOCAL-SETUP.md) for how it works

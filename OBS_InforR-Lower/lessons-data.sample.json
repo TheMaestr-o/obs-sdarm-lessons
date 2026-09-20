@@ -1,129 +1,1573 @@
 {
-  "_note": "Sample data, written for this repository so that a fresh checkout and the public demo have something to show. It is NOT lesson text. The real bundle, lessons-data.json, is built locally by tools/build-lessons-data.py and is deliberately not published; when it exists the panel uses it and never reads this file.",
-  "quarters": {
-    "2026-3": {
-      "year": 2026,
-      "quarter": 3,
-      "languages": {
-        "en": {
-          "quarterTitle": "Sample Quarter",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "Lesson 1",
-              "title": "A Sample Lesson",
-              "introduction": "This sentence stands in for a memory verse. It is long enough to show how a verse sits on the plate and where it wraps.",
-              "introductionRef": "Psalm 119:105",
-              "questions": [
-                { "letter": "a", "sectionTitle": "1. The First Section", "text": "What does this sample question ask?", "ref": "John 3:16" },
-                { "letter": "b", "sectionTitle": "1. The First Section", "text": "What happens to the plate when a question is long enough to run past the right-hand margin and has to continue on a second line underneath the first?", "ref": "Romans 8:28" },
-                { "letter": "a", "sectionTitle": "2. The Second Section", "text": "Why does only one line move when the section stays the same?", "ref": "Psalm 23:1" },
-                { "letter": "b", "sectionTitle": "2. The Second Section", "text": "What does the reference at the end of a question look like?", "ref": "Matthew 5:16; James 1:5" },
-                { "letter": "c", "sectionTitle": "2. The Second Section", "text": "How does a question with no reference look?", "ref": "" }
-              ]
-            },
-            {
-              "no": "2",
-              "header": "Lesson 2",
-              "title": "Another Sample Lesson",
-              "introduction": "A second stand-in verse, shorter than the first.",
-              "introductionRef": "Proverbs 3:5",
-              "questions": [
-                { "letter": "a", "sectionTitle": "1. Opening", "text": "What is the first question of the second lesson?", "ref": "Isaiah 40:31" },
-                { "letter": "b", "sectionTitle": "1. Opening", "text": "And the one after it?", "ref": "Philippians 4:13" },
-                { "letter": "a", "sectionTitle": "2. Closing", "text": "What closes the sample?", "ref": "Revelation 22:21" }
-              ]
-            }
-          ]
+ "_note": "Sample data, written for this repository so that a fresh checkout and the public demo have something to show. It is NOT lesson text. The real bundle, lessons-data.json, is built locally by tools/build-lessons-data.py and is deliberately not published; when it exists the panel uses it and never reads this file.",
+ "quarters": {
+  "2026-3": {
+   "year": 2026,
+   "quarter": 3,
+   "languages": {
+    "bg": {
+     "quarterTitle": "Примерно тримесечие",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Урок 1",
+       "title": "Примерен урок",
+       "introduction": "Това изречение стои на мястото на стих за запомняне. То е достатъчно дълго, за да покаже как стихът ляга върху плочката и къде се пренася.",
+       "introductionRef": "Псалм 119:105",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Първият раздел",
+         "text": "Какво пита този примерен въпрос?",
+         "ref": "Йоан 3:16"
         },
-        "de": {
-          "quarterTitle": "Beispielquartal",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "1. Lektion",
-              "title": "Eine Beispiellektion",
-              "introduction": "Dieser Satz steht anstelle eines Merkverses. Er ist lang genug, um zu zeigen, wie ein Vers auf der Tafel sitzt und wo er umbricht.",
-              "introductionRef": "Psalm 119,105",
-              "questions": [
-                { "letter": "a", "sectionTitle": "1. Der erste Abschnitt", "text": "Was fragt diese Beispielfrage?", "ref": "Johannes 3,16" },
-                { "letter": "b", "sectionTitle": "1. Der erste Abschnitt", "text": "Was geschieht mit der Tafel, wenn eine Frage so lang ist, dass sie über den rechten Rand hinausläuft und in einer zweiten Zeile darunter weitergehen muss?", "ref": "Römer 8,28" },
-                { "letter": "a", "sectionTitle": "2. Der zweite Abschnitt", "text": "Warum bewegt sich nur eine Zeile, wenn der Abschnitt derselbe bleibt?", "ref": "Psalm 23,1" },
-                { "letter": "b", "sectionTitle": "2. Der zweite Abschnitt", "text": "Wie sieht die Bibelstelle am Ende einer Frage aus?", "ref": "Matthäus 5,16; Jakobus 1,5" }
-              ]
-            }
-          ]
+        {
+         "letter": "б",
+         "sectionTitle": "1. Първият раздел",
+         "text": "Какво става с плочката, когато въпросът е толкова дълъг, че излиза извън дясното поле и трябва да продължи на втори ред под първия?",
+         "ref": "Римляни 8:28"
         },
-        "ru": {
-          "quarterTitle": "Пример квартала",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "УРОК 1",
-              "title": "Пример урока",
-              "introduction": "Это предложение стоит на месте стиха для запоминания. Оно достаточно длинное, чтобы показать, как стих ложится на плашку и где переносится.",
-              "introductionRef": "Псалом 118:105",
-              "questions": [
-                { "letter": "а", "sectionTitle": "1. Первый раздел", "text": "О чём спрашивает этот пример вопроса?", "ref": "Иоанна 3:16" },
-                { "letter": "б", "sectionTitle": "1. Первый раздел", "text": "Что происходит с плашкой, когда вопрос настолько длинный, что выходит за правое поле и должен продолжиться второй строкой под первой?", "ref": "Римлянам 8:28" },
-                { "letter": "а", "sectionTitle": "2. Второй раздел", "text": "Почему движется только одна строка, если раздел остаётся тем же?", "ref": "Псалом 22:1" },
-                { "letter": "б", "sectionTitle": "2. Второй раздел", "text": "Как выглядит ссылка в конце вопроса?", "ref": "Матфея 5:16; Иакова 1:5" }
-              ]
-            }
-          ]
+        {
+         "letter": "а",
+         "sectionTitle": "2. Вторият раздел",
+         "text": "Защо се движи само един ред, когато разделът остава същият?",
+         "ref": "Псалм 23:1"
         },
-        "ja": {
-          "quarterTitle": "サンプルの四半期",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "第1課",
-              "title": "サンプルのレッスン",
-              "introduction": "この文は暗唱聖句の代わりに置かれたサンプルです。",
-              "introductionRef": "詩篇 119:105",
-              "questions": [
-                { "letter": "a", "sectionTitle": "1. 最初のセクション", "text": "このサンプルの質問は何を尋ねていますか。", "ref": "ヨハネ 3:16" },
-                { "letter": "b", "sectionTitle": "1. 最初のセクション", "text": "質問が長くて右の余白を越えるとき、プレートはどうなりますか。", "ref": "ローマ 8:28" },
-                { "letter": "a", "sectionTitle": "2. 次のセクション", "text": "聖書の箇所はどのように表示されますか。", "ref": "マタイ 5:16" }
-              ]
-            }
-          ]
+        {
+         "letter": "б",
+         "sectionTitle": "2. Вторият раздел",
+         "text": "Как изглежда препратката в края на въпроса?",
+         "ref": "Матей 5:16; Яков 1:5"
         },
-        "zh": {
-          "quarterTitle": "示例季度",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "第一课",
-              "title": "示例课程",
-              "introduction": "这句话是示例，用来代替背诵经文。",
-              "introductionRef": "诗篇 119:105",
-              "questions": [
-                { "letter": "a", "sectionTitle": "1. 第一部分", "text": "这个示例问题问的是什么？", "ref": "约翰福音 3:16" },
-                { "letter": "b", "sectionTitle": "1. 第一部分", "text": "当问题很长、超出右边的空白时，底板会怎样变化？", "ref": "罗马书 8:28" },
-                { "letter": "a", "sectionTitle": "2. 第二部分", "text": "经文出处是怎样显示的？", "ref": "马太福音 5:16" }
-              ]
-            }
-          ]
-        },
-        "th": {
-          "quarterTitle": "ไตรมาสตัวอย่าง",
-          "lessons": [
-            {
-              "no": "1",
-              "header": "บทเรียนที่ 1",
-              "title": "บทเรียนตัวอย่าง",
-              "introduction": "ประโยคนี้เป็นตัวอย่างที่ใช้แทนข้อท่องจำ",
-              "introductionRef": "สดุดี 119:105",
-              "questions": [
-                { "letter": "ก", "sectionTitle": "1. ส่วนแรก", "text": "คำถามตัวอย่างนี้ถามอะไร", "ref": "ยอห์น 3:16" },
-                { "letter": "ข", "sectionTitle": "1. ส่วนแรก", "text": "เมื่อคำถามยาวจนเกินขอบด้านขวา แผ่นป้ายจะเป็นอย่างไร", "ref": "โรม 8:28" },
-                { "letter": "ก", "sectionTitle": "2. ส่วนที่สอง", "text": "ข้ออ้างอิงพระคัมภีร์แสดงอย่างไร", "ref": "มัทธิว 5:16" }
-              ]
-            }
-          ]
+        {
+         "letter": "в",
+         "sectionTitle": "2. Вторият раздел",
+         "text": "Как изглежда въпрос без препратка?",
+         "ref": ""
         }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Урок 2",
+       "title": "Още един примерен урок",
+       "introduction": "Втори примерен стих, по-кратък от първия.",
+       "introductionRef": "Притчи 3:5",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Начало",
+         "text": "Кой е първият въпрос на втория урок?",
+         "ref": "Исая 40:31"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Начало",
+         "text": "А следващият?",
+         "ref": "Филипяни 4:13"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Край",
+         "text": "С какво завършва примерът?",
+         "ref": "Откровение 22:21"
+        }
+       ]
       }
+     ]
+    },
+    "cs": {
+     "quarterTitle": "Ukázkové čtvrtletí",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "LEKCE 1",
+       "title": "Ukázková lekce",
+       "introduction": "Tato věta stojí na místě verše k zapamatování. Je dost dlouhá na to, aby ukázala, jak verš sedí na tabulce a kde se zalamuje.",
+       "introductionRef": "Žalm 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. První oddíl",
+         "text": "Na co se ptá tato ukázková otázka?",
+         "ref": "Jan 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. První oddíl",
+         "text": "Co se stane s tabulkou, když je otázka tak dlouhá, že přesáhne pravý okraj a musí pokračovat na druhém řádku pod prvním?",
+         "ref": "Římanům 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Druhý oddíl",
+         "text": "Proč se pohne jen jeden řádek, když oddíl zůstává stejný?",
+         "ref": "Žalm 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Druhý oddíl",
+         "text": "Jak vypadá biblický odkaz na konci otázky?",
+         "ref": "Matouš 5:16; Jakub 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Druhý oddíl",
+         "text": "Jak vypadá otázka bez odkazu?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "LEKCE 2",
+       "title": "Další ukázková lekce",
+       "introduction": "Druhý zástupný verš, kratší než první.",
+       "introductionRef": "Přísloví 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Úvod",
+         "text": "Jaká je první otázka druhé lekce?",
+         "ref": "Izaiáš 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Úvod",
+         "text": "A ta další?",
+         "ref": "Filipenským 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Závěr",
+         "text": "Čím ukázka končí?",
+         "ref": "Zjevení 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "de": {
+     "quarterTitle": "Beispielquartal",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "1. Lektion",
+       "title": "Eine Beispiellektion",
+       "introduction": "Dieser Satz steht anstelle eines Merkverses. Er ist lang genug, um zu zeigen, wie ein Vers auf der Tafel sitzt und wo er umbricht.",
+       "introductionRef": "Psalm 119,105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Der erste Abschnitt",
+         "text": "Was fragt diese Beispielfrage?",
+         "ref": "Johannes 3,16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Der erste Abschnitt",
+         "text": "Was geschieht mit der Tafel, wenn eine Frage so lang ist, dass sie über den rechten Rand hinausläuft und in einer zweiten Zeile darunter weitergehen muss?",
+         "ref": "Römer 8,28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Der zweite Abschnitt",
+         "text": "Warum bewegt sich nur eine Zeile, wenn der Abschnitt derselbe bleibt?",
+         "ref": "Psalm 23,1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Der zweite Abschnitt",
+         "text": "Wie sieht die Bibelstelle am Ende einer Frage aus?",
+         "ref": "Matthäus 5,16; Jakobus 1,5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Der zweite Abschnitt",
+         "text": "Wie sieht eine Frage ohne Bibelstelle aus?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "2. Lektion",
+       "title": "Noch eine Beispiellektion",
+       "introduction": "Ein zweiter Platzhaltervers, kürzer als der erste.",
+       "introductionRef": "Sprüche 3,5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Einstieg",
+         "text": "Wie lautet die erste Frage der zweiten Lektion?",
+         "ref": "Jesaja 40,31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Einstieg",
+         "text": "Und die danach?",
+         "ref": "Philipper 4,13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Abschluss",
+         "text": "Womit endet das Beispiel?",
+         "ref": "Offenbarung 22,21"
+        }
+       ]
+      }
+     ]
+    },
+    "en": {
+     "quarterTitle": "Sample Quarter",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Lesson 1",
+       "title": "A Sample Lesson",
+       "introduction": "This sentence stands in for a memory verse. It is long enough to show how a verse sits on the plate and where it wraps.",
+       "introductionRef": "Psalm 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. The First Section",
+         "text": "What does this sample question ask?",
+         "ref": "John 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. The First Section",
+         "text": "What happens to the plate when a question is long enough to run past the right-hand margin and has to continue on a second line underneath the first?",
+         "ref": "Romans 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. The Second Section",
+         "text": "Why does only one line move when the section stays the same?",
+         "ref": "Psalm 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. The Second Section",
+         "text": "What does the reference at the end of a question look like?",
+         "ref": "Matthew 5:16; James 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. The Second Section",
+         "text": "How does a question with no reference look?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Lesson 2",
+       "title": "Another Sample Lesson",
+       "introduction": "A second stand-in verse, shorter than the first.",
+       "introductionRef": "Proverbs 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Opening",
+         "text": "What is the first question of the second lesson?",
+         "ref": "Isaiah 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Opening",
+         "text": "And the one after it?",
+         "ref": "Philippians 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Closing",
+         "text": "What closes the sample?",
+         "ref": "Revelation 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "es": {
+     "quarterTitle": "Trimestre de muestra",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Lección 1",
+       "title": "Una lección de muestra",
+       "introduction": "Esta frase ocupa el lugar de un versículo para memorizar. Es lo bastante larga para mostrar cómo se asienta un versículo sobre la placa y dónde salta de línea.",
+       "introductionRef": "Salmos 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. La primera sección",
+         "text": "¿Qué pregunta esta pregunta de muestra?",
+         "ref": "Juan 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. La primera sección",
+         "text": "¿Qué le ocurre a la placa cuando una pregunta es tan larga que sobrepasa el margen derecho y tiene que continuar en una segunda línea debajo de la primera?",
+         "ref": "Romanos 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. La segunda sección",
+         "text": "¿Por qué se mueve solo una línea cuando la sección sigue siendo la misma?",
+         "ref": "Salmos 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. La segunda sección",
+         "text": "¿Cómo se ve la referencia al final de una pregunta?",
+         "ref": "Mateo 5:16; Santiago 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. La segunda sección",
+         "text": "¿Cómo se ve una pregunta sin referencia?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Lección 2",
+       "title": "Otra lección de muestra",
+       "introduction": "Un segundo versículo de muestra, más corto que el primero.",
+       "introductionRef": "Proverbios 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Apertura",
+         "text": "¿Cuál es la primera pregunta de la segunda lección?",
+         "ref": "Isaías 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Apertura",
+         "text": "¿Y la que le sigue?",
+         "ref": "Filipenses 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Cierre",
+         "text": "¿Con qué termina la muestra?",
+         "ref": "Apocalipsis 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "fr": {
+     "quarterTitle": "Trimestre d’exemple",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Leçon 1",
+       "title": "Une leçon d’exemple",
+       "introduction": "Cette phrase tient lieu de verset à mémoriser. Elle est assez longue pour montrer comment un verset se pose sur la plaque et où il passe à la ligne.",
+       "introductionRef": "Psaumes 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. La première section",
+         "text": "Que demande cette question d’exemple ?",
+         "ref": "Jean 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. La première section",
+         "text": "Qu’arrive-t-il à la plaque lorsqu’une question est si longue qu’elle dépasse la marge de droite et doit se poursuivre sur une seconde ligne, sous la première ?",
+         "ref": "Romains 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. La deuxième section",
+         "text": "Pourquoi une seule ligne bouge-t-elle quand la section reste la même ?",
+         "ref": "Psaumes 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. La deuxième section",
+         "text": "À quoi ressemble la référence à la fin d’une question ?",
+         "ref": "Matthieu 5:16; Jacques 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. La deuxième section",
+         "text": "À quoi ressemble une question sans référence ?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Leçon 2",
+       "title": "Une autre leçon d’exemple",
+       "introduction": "Un second verset d’exemple, plus court que le premier.",
+       "introductionRef": "Proverbes 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Ouverture",
+         "text": "Quelle est la première question de la deuxième leçon ?",
+         "ref": "Ésaïe 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Ouverture",
+         "text": "Et la suivante ?",
+         "ref": "Philippiens 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Conclusion",
+         "text": "Qu’est-ce qui clôt l’exemple ?",
+         "ref": "Apocalypse 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "hr": {
+     "quarterTitle": "Ogledno tromjesečje",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "1. lekcija",
+       "title": "Ogledna lekcija",
+       "introduction": "Ova rečenica stoji umjesto stiha za pamćenje. Dovoljno je duga da pokaže kako stih leži na pločici i gdje prelazi u novi red.",
+       "introductionRef": "Psalam 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Prvi odjeljak",
+         "text": "Što pita ovo ogledno pitanje?",
+         "ref": "Ivan 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Prvi odjeljak",
+         "text": "Što se događa s pločicom kada je pitanje toliko dugo da prelazi desni rub i mora se nastaviti u drugom retku ispod prvoga?",
+         "ref": "Rimljanima 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Drugi odjeljak",
+         "text": "Zašto se pomiče samo jedan redak kada odjeljak ostaje isti?",
+         "ref": "Psalam 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Drugi odjeljak",
+         "text": "Kako izgleda biblijski navod na kraju pitanja?",
+         "ref": "Matej 5:16; Jakov 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Drugi odjeljak",
+         "text": "Kako izgleda pitanje bez navoda?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "2. lekcija",
+       "title": "Još jedna ogledna lekcija",
+       "introduction": "Drugi ogledni stih, kraći od prvoga.",
+       "introductionRef": "Izreke 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Uvod",
+         "text": "Koje je prvo pitanje druge lekcije?",
+         "ref": "Izaija 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Uvod",
+         "text": "A ono nakon njega?",
+         "ref": "Filipljanima 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Završetak",
+         "text": "Čime završava ovaj primjer?",
+         "ref": "Otkrivenje 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "hu": {
+     "quarterTitle": "Minta negyedév",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "1. Tanulmány",
+       "title": "Minta tanulmány",
+       "introduction": "Ez a mondat egy alapige helyén áll. Elég hosszú ahhoz, hogy megmutassa, hogyan ül egy vers a táblán, és hol törik új sorba.",
+       "introductionRef": "Zsol 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Az első rész",
+         "text": "Mit kérdez ez a mintakérdés?",
+         "ref": "Jn 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Az első rész",
+         "text": "Mi történik a táblával, ha egy kérdés olyan hosszú, hogy túlnyúlik a jobb margón, és az első sor alatt egy második sorban kell folytatódnia?",
+         "ref": "Rm 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. A második rész",
+         "text": "Miért csak egy sor mozdul, ha a rész ugyanaz marad?",
+         "ref": "Zsol 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. A második rész",
+         "text": "Hogyan néz ki az igehely a kérdés végén?",
+         "ref": "Mt 5:16; Jak 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. A második rész",
+         "text": "Hogyan néz ki egy kérdés igehely nélkül?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "2. Tanulmány",
+       "title": "Még egy minta tanulmány",
+       "introduction": "Egy második mintavers, rövidebb az elsőnél.",
+       "introductionRef": "Péld 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Bevezetés",
+         "text": "Mi a második tanulmány első kérdése?",
+         "ref": "Ésa 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Bevezetés",
+         "text": "És az azt követő?",
+         "ref": "Fili 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Befejezés",
+         "text": "Mi zárja a mintát?",
+         "ref": "Jel 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "id": {
+     "quarterTitle": "Triwulan Contoh",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Pelajaran 1",
+       "title": "Pelajaran Contoh",
+       "introduction": "Kalimat ini menggantikan ayat hafalan. Kalimat ini cukup panjang untuk menunjukkan bagaimana sebuah ayat terletak pada pelat dan di mana barisnya terpotong.",
+       "introductionRef": "Mazmur 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Bagian Pertama",
+         "text": "Apa yang ditanyakan oleh pertanyaan contoh ini?",
+         "ref": "Yohanes 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Bagian Pertama",
+         "text": "Apa yang terjadi pada pelat ketika sebuah pertanyaan begitu panjang sehingga melewati batas kanan dan harus berlanjut pada baris kedua di bawah baris pertama?",
+         "ref": "Roma 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Bagian Kedua",
+         "text": "Mengapa hanya satu baris yang bergerak ketika bagiannya tetap sama?",
+         "ref": "Mazmur 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Bagian Kedua",
+         "text": "Seperti apa tampilan ayat rujukan di akhir sebuah pertanyaan?",
+         "ref": "Matius 5:16; Yakobus 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Bagian Kedua",
+         "text": "Seperti apa tampilan pertanyaan tanpa ayat rujukan?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Pelajaran 2",
+       "title": "Pelajaran Contoh Lainnya",
+       "introduction": "Ayat contoh kedua, lebih pendek daripada yang pertama.",
+       "introductionRef": "Amsal 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Pembukaan",
+         "text": "Apa pertanyaan pertama dari pelajaran kedua?",
+         "ref": "Yesaya 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Pembukaan",
+         "text": "Dan pertanyaan sesudahnya?",
+         "ref": "Filipi 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Penutup",
+         "text": "Apa yang menutup contoh ini?",
+         "ref": "Wahyu 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "it": {
+     "quarterTitle": "Trimestre di esempio",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "1a Lezione",
+       "title": "Una lezione di esempio",
+       "introduction": "Questa frase sta al posto di un versetto da memorizzare. È abbastanza lunga da mostrare come un versetto si posa sulla targa e dove va a capo.",
+       "introductionRef": "Salmo 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. La prima sezione",
+         "text": "Che cosa chiede questa domanda di esempio?",
+         "ref": "Giovanni 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. La prima sezione",
+         "text": "Che cosa succede alla targa quando una domanda è così lunga da superare il margine destro e deve continuare su una seconda riga sotto la prima?",
+         "ref": "Romani 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. La seconda sezione",
+         "text": "Perché si muove una sola riga quando la sezione resta la stessa?",
+         "ref": "Salmo 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. La seconda sezione",
+         "text": "Come appare il riferimento alla fine di una domanda?",
+         "ref": "Matteo 5:16; Giacomo 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. La seconda sezione",
+         "text": "Come appare una domanda senza riferimento?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "2a Lezione",
+       "title": "Un’altra lezione di esempio",
+       "introduction": "Un secondo versetto di esempio, più breve del primo.",
+       "introductionRef": "Proverbi 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Apertura",
+         "text": "Qual è la prima domanda della seconda lezione?",
+         "ref": "Isaia 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Apertura",
+         "text": "E quella successiva?",
+         "ref": "Filippesi 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Chiusura",
+         "text": "Che cosa chiude l’esempio?",
+         "ref": "Apocalisse 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "ja": {
+     "quarterTitle": "サンプルの四半期",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "第1課",
+       "title": "サンプルのレッスン",
+       "introduction": "この文は暗唱聖句の代わりに置かれたサンプルです。聖句がプレートの上にどのように収まり、どこで改行されるかを示すのに十分な長さがあります。",
+       "introductionRef": "詩篇 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. 最初のセクション",
+         "text": "このサンプルの質問は何を尋ねていますか。",
+         "ref": "ヨハネによる福音書 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. 最初のセクション",
+         "text": "質問がとても長く、右の余白を越えてしまい、一行目の下の二行目に続けなければならないとき、プレートはどうなりますか。",
+         "ref": "ローマ人への手紙 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. 次のセクション",
+         "text": "セクションが同じままのとき、なぜ一行だけが動くのですか。",
+         "ref": "詩篇 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. 次のセクション",
+         "text": "質問の終わりにある聖書の箇所は、どのように表示されますか。",
+         "ref": "マタイによる福音書 5:16; ヤコブの手紙 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. 次のセクション",
+         "text": "聖書の箇所がない質問は、どのように見えますか。",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "第2課",
+       "title": "もう一つのサンプルのレッスン",
+       "introduction": "二つ目のサンプル聖句です。一つ目より短くなっています。",
+       "introductionRef": "箴言 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. はじめに",
+         "text": "第2課の最初の質問は何ですか。",
+         "ref": "イザヤ書 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. はじめに",
+         "text": "その次の質問は何ですか。",
+         "ref": "ピリピ人への手紙 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. おわりに",
+         "text": "このサンプルは何で終わりますか。",
+         "ref": "ヨハネの黙示録 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "mk": {
+     "quarterTitle": "Пример за тримесечје",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "1. ЛЕКЦИЈА",
+       "title": "Пример за лекција",
+       "introduction": "Оваа реченица стои на местото на стих за паметење. Доволно е долга за да покаже како стихот лежи на плочката и каде преминува во нов ред.",
+       "introductionRef": "Псалм 119:105",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Првиот дел",
+         "text": "Што прашува ова пример-прашање?",
+         "ref": "Јован 3:16"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Првиот дел",
+         "text": "Што се случува со плочката кога прашањето е толку долго што ја преминува десната маргина и мора да продолжи во втор ред под првиот?",
+         "ref": "Римјаните 8:28"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Вториот дел",
+         "text": "Зошто се движи само еден ред кога делот останува ист?",
+         "ref": "Псалм 23:1"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "2. Вториот дел",
+         "text": "Како изгледа библискиот навод на крајот од прашањето?",
+         "ref": "Матеј 5:16; Јаков 1:5"
+        },
+        {
+         "letter": "в",
+         "sectionTitle": "2. Вториот дел",
+         "text": "Како изгледа прашање без навод?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "2. ЛЕКЦИЈА",
+       "title": "Уште еден пример за лекција",
+       "introduction": "Втор пример за стих, пократок од првиот.",
+       "introductionRef": "Изреки 3:5",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Вовед",
+         "text": "Кое е првото прашање од втората лекција?",
+         "ref": "Исаија 40:31"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Вовед",
+         "text": "А следното?",
+         "ref": "Филипјаните 4:13"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Завршеток",
+         "text": "Со што завршува примерот?",
+         "ref": "Откровение 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "pt": {
+     "quarterTitle": "Trimestre de exemplo",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Lição 1",
+       "title": "Uma lição de exemplo",
+       "introduction": "Esta frase ocupa o lugar de um verso áureo. É longa o bastante para mostrar como um verso se assenta na placa e onde quebra de linha.",
+       "introductionRef": "Salmos 119:105",
+       "questions": [
+        {
+         "letter": "A",
+         "sectionTitle": "1. A primeira seção",
+         "text": "O que esta pergunta de exemplo pergunta?",
+         "ref": "João 3:16"
+        },
+        {
+         "letter": "B",
+         "sectionTitle": "1. A primeira seção",
+         "text": "O que acontece com a placa quando uma pergunta é tão longa que ultrapassa a margem direita e precisa continuar em uma segunda linha abaixo da primeira?",
+         "ref": "Romanos 8:28"
+        },
+        {
+         "letter": "A",
+         "sectionTitle": "2. A segunda seção",
+         "text": "Por que apenas uma linha se move quando a seção continua a mesma?",
+         "ref": "Salmos 23:1"
+        },
+        {
+         "letter": "B",
+         "sectionTitle": "2. A segunda seção",
+         "text": "Como fica a referência no fim de uma pergunta?",
+         "ref": "Mateus 5:16; Tiago 1:5"
+        },
+        {
+         "letter": "C",
+         "sectionTitle": "2. A segunda seção",
+         "text": "Como fica uma pergunta sem referência?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Lição 2",
+       "title": "Outra lição de exemplo",
+       "introduction": "Um segundo verso de exemplo, mais curto que o primeiro.",
+       "introductionRef": "Provérbios 3:5",
+       "questions": [
+        {
+         "letter": "A",
+         "sectionTitle": "1. Abertura",
+         "text": "Qual é a primeira pergunta da segunda lição?",
+         "ref": "Isaías 40:31"
+        },
+        {
+         "letter": "B",
+         "sectionTitle": "1. Abertura",
+         "text": "E a seguinte?",
+         "ref": "Filipenses 4:13"
+        },
+        {
+         "letter": "A",
+         "sectionTitle": "2. Encerramento",
+         "text": "O que encerra o exemplo?",
+         "ref": "Apocalipse 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "ro": {
+     "quarterTitle": "Trimestru de exemplu",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Lecția 1",
+       "title": "O lecție de exemplu",
+       "introduction": "Această propoziție ține locul unui text de memorat. Este suficient de lungă pentru a arăta cum se așază un verset pe placă și unde trece pe rândul următor.",
+       "introductionRef": "Psalmii 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Prima secțiune",
+         "text": "Ce întreabă această întrebare de exemplu?",
+         "ref": "Ioan 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Prima secțiune",
+         "text": "Ce se întâmplă cu placa atunci când o întrebare este atât de lungă încât depășește marginea din dreapta și trebuie să continue pe un al doilea rând, sub primul?",
+         "ref": "Romani 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. A doua secțiune",
+         "text": "De ce se mișcă doar un rând atunci când secțiunea rămâne aceeași?",
+         "ref": "Psalmii 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. A doua secțiune",
+         "text": "Cum arată referința de la sfârșitul unei întrebări?",
+         "ref": "Matei 5:16; Iacov 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. A doua secțiune",
+         "text": "Cum arată o întrebare fără referință?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Lecția 2",
+       "title": "Încă o lecție de exemplu",
+       "introduction": "Un al doilea verset de exemplu, mai scurt decât primul.",
+       "introductionRef": "Proverbele 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Deschidere",
+         "text": "Care este prima întrebare din lecția a doua?",
+         "ref": "Isaia 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Deschidere",
+         "text": "Și cea de după ea?",
+         "ref": "Filipeni 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Încheiere",
+         "text": "Ce încheie exemplul?",
+         "ref": "Apocalipsa 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "ru": {
+     "quarterTitle": "Пример квартала",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "УРОК 1",
+       "title": "Пример урока",
+       "introduction": "Это предложение стоит на месте стиха для запоминания. Оно достаточно длинное, чтобы показать, как стих ложится на плашку и где переносится.",
+       "introductionRef": "Псалтирь 118:105",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Первый раздел",
+         "text": "О чём спрашивает этот пример вопроса?",
+         "ref": "От Иоанна 3:16"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Первый раздел",
+         "text": "Что происходит с плашкой, когда вопрос настолько длинный, что выходит за правое поле и должен продолжиться второй строкой под первой?",
+         "ref": "К Римлянам 8:28"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Второй раздел",
+         "text": "Почему движется только одна строка, если раздел остаётся тем же?",
+         "ref": "Псалтирь 22:1"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "2. Второй раздел",
+         "text": "Как выглядит ссылка в конце вопроса?",
+         "ref": "От Матфея 5:16; Иакова 1:5"
+        },
+        {
+         "letter": "в",
+         "sectionTitle": "2. Второй раздел",
+         "text": "Как выглядит вопрос без ссылки?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "УРОК 2",
+       "title": "Ещё один пример урока",
+       "introduction": "Второй стих-пример, короче первого.",
+       "introductionRef": "Притчи 3:5",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Начало",
+         "text": "Какой первый вопрос второго урока?",
+         "ref": "Исаии 40:31"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Начало",
+         "text": "А следующий за ним?",
+         "ref": "К Филиппийцам 4:13"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Завершение",
+         "text": "Чем заканчивается пример?",
+         "ref": "Откровение 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "rw": {
+     "quarterTitle": "Igihembwe cy’icyitegererezo",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Icyigisho 1",
+       "title": "Icyigisho cy’icyitegererezo",
+       "introduction": "Iyi nteruro iri mu mwanya w’umurongo wo kuzirikana. Ni ndende bihagije kugira ngo yerekane uko umurongo wicara ku kibaho n’aho ukomereza ku murongo ukurikira.",
+       "introductionRef": "Zaburi 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Igice cya mbere",
+         "text": "Iki kibazo cy’icyitegererezo kibaza iki?",
+         "ref": "Yohana 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Igice cya mbere",
+         "text": "Bigenda bite ku kibaho iyo ikibazo ari kirekire cyane ku buryo kirenga umupaka w’iburyo kandi kigomba gukomereza ku murongo wa kabiri munsi y’uwa mbere?",
+         "ref": "Abaroma 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Igice cya kabiri",
+         "text": "Kuki umurongo umwe gusa ari wo wimuka iyo igice kidahindutse?",
+         "ref": "Zaburi 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Igice cya kabiri",
+         "text": "Isomo rya Bibiliya riri ku iherezo ry’ikibazo risa rite?",
+         "ref": "Matayo 5:16; Yakobo 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Igice cya kabiri",
+         "text": "Ikibazo kidafite isomo rya Bibiliya gisa gite?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Icyigisho 2",
+       "title": "Ikindi cyigisho cy’icyitegererezo",
+       "introduction": "Umurongo wa kabiri w’icyitegererezo, mugufi kurusha uwa mbere.",
+       "introductionRef": "Imigani 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Intangiriro",
+         "text": "Ikibazo cya mbere cy’icyigisho cya kabiri ni ikihe?",
+         "ref": "Yesaya 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Intangiriro",
+         "text": "N’igikurikiraho?",
+         "ref": "Abafilipi 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Umusozo",
+         "text": "Icyitegererezo gisozwa n’iki?",
+         "ref": "Ibyahishuwe 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "sr": {
+     "quarterTitle": "Огледно тромесечје",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Лекција 1",
+       "title": "Огледна лекција",
+       "introduction": "Ова реченица стоји уместо стиха за памћење. Довољно је дуга да покаже како стих лежи на плочици и где прелази у нови ред.",
+       "introductionRef": "Псалам 119:105",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Први одељак",
+         "text": "Шта пита ово огледно питање?",
+         "ref": "Јован 3:16"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Први одељак",
+         "text": "Шта се дешава са плочицом када је питање толико дуго да прелази десну маргину и мора да се настави у другом реду испод првог?",
+         "ref": "Римљанима 8:28"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Други одељак",
+         "text": "Зашто се помера само један ред када одељак остаје исти?",
+         "ref": "Псалам 23:1"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "2. Други одељак",
+         "text": "Како изгледа библијски навод на крају питања?",
+         "ref": "Матеј 5:16; Јаков 1:5"
+        },
+        {
+         "letter": "ц",
+         "sectionTitle": "2. Други одељак",
+         "text": "Како изгледа питање без навода?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Лекција 2",
+       "title": "Још једна огледна лекција",
+       "introduction": "Други огледни стих, краћи од првог.",
+       "introductionRef": "Приче 3:5",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Увод",
+         "text": "Које је прво питање друге лекције?",
+         "ref": "Исаија 40:31"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Увод",
+         "text": "А оно после њега?",
+         "ref": "Филибљанима 4:13"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Завршетак",
+         "text": "Чиме се завршава пример?",
+         "ref": "Откривење 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "th": {
+     "quarterTitle": "ไตรมาสตัวอย่าง",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "บทที่ 1",
+       "title": "บทเรียนตัวอย่าง",
+       "introduction": "ประโยคนี้เป็นตัวอย่างที่ใช้แทนข้อท่องจำ ประโยคนี้ยาวพอที่จะแสดงให้เห็นว่าข้อพระคัมภีร์วางอยู่บนแผ่นป้ายอย่างไร และขึ้นบรรทัดใหม่ที่ใด",
+       "introductionRef": "สดุดี 119:105",
+       "questions": [
+        {
+         "letter": "ก",
+         "sectionTitle": "1. ส่วนแรก",
+         "text": "คำถามตัวอย่างนี้ถามอะไร?",
+         "ref": "ยอห์น 3:16"
+        },
+        {
+         "letter": "ข",
+         "sectionTitle": "1. ส่วนแรก",
+         "text": "จะเกิดอะไรขึ้นกับแผ่นป้าย เมื่อคำถามยาวมากจนเกินขอบด้านขวาของหน้าจอ และจำเป็นต้องต่อไปยังบรรทัดที่สองซึ่งอยู่ใต้บรรทัดแรก แผ่นป้ายจะสูงขึ้นเพื่อรองรับข้อความทั้งหมดหรือไม่?",
+         "ref": "โรม 8:28"
+        },
+        {
+         "letter": "ก",
+         "sectionTitle": "2. ส่วนที่สอง",
+         "text": "ทำไมจึงมีเพียงบรรทัดเดียวที่เคลื่อนไหว เมื่อหัวข้อยังคงเป็นหัวข้อเดิม?",
+         "ref": "สดุดี 23:1"
+        },
+        {
+         "letter": "ข",
+         "sectionTitle": "2. ส่วนที่สอง",
+         "text": "ข้ออ้างอิงพระคัมภีร์ท้ายคำถามมีลักษณะอย่างไร?",
+         "ref": "มัทธิว 5:16; ยากอบ 1:5"
+        },
+        {
+         "letter": "ค",
+         "sectionTitle": "2. ส่วนที่สอง",
+         "text": "คำถามที่ไม่มีข้ออ้างอิงมีลักษณะอย่างไร?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "บทที่ 2",
+       "title": "บทเรียนตัวอย่างอีกบทหนึ่ง",
+       "introduction": "ข้อพระคัมภีร์ตัวอย่างข้อที่สอง สั้นกว่าข้อแรก",
+       "introductionRef": "สุภาษิต 3:5",
+       "questions": [
+        {
+         "letter": "ก",
+         "sectionTitle": "1. เปิดบท",
+         "text": "คำถามแรกของบทเรียนที่สองคืออะไร?",
+         "ref": "อิสยาห์ 40:31"
+        },
+        {
+         "letter": "ข",
+         "sectionTitle": "1. เปิดบท",
+         "text": "แล้วคำถามถัดไปล่ะ?",
+         "ref": "ฟีลิปปี 4:13"
+        },
+        {
+         "letter": "ก",
+         "sectionTitle": "2. ปิดบท",
+         "text": "ตัวอย่างนี้ปิดท้ายด้วยอะไร?",
+         "ref": "วิวรณ์ 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "tl": {
+     "quarterTitle": "Halimbawang Kuwarter",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "Leksiyon 1",
+       "title": "Isang Halimbawang Leksiyon",
+       "introduction": "Ang pangungusang ito ay nasa lugar ng talatang sauluhin. Ito ay sapat na haba upang ipakita kung paano nakalagay ang isang talata sa plaka at kung saan ito pumuputol sa susunod na linya.",
+       "introductionRef": "Awit 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Ang Unang Bahagi",
+         "text": "Ano ang itinatanong ng halimbawang tanong na ito?",
+         "ref": "Juan 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Ang Unang Bahagi",
+         "text": "Ano ang nangyayari sa plaka kapag ang isang tanong ay napakahaba, anupat lumalampas sa kanang gilid at kailangang magpatuloy sa ikalawang linya sa ilalim ng una?",
+         "ref": "Roma 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Ang Ikalawang Bahagi",
+         "text": "Bakit isang linya lamang ang gumagalaw kapag ang bahagi ay nananatiling pareho?",
+         "ref": "Awit 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Ang Ikalawang Bahagi",
+         "text": "Paano ipinapakita ang sanggunian sa katapusan ng isang tanong?",
+         "ref": "Mateo 5:16; Santiago 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Ang Ikalawang Bahagi",
+         "text": "Paano ipinapakita ang isang tanong na walang sanggunian?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "Leksiyon 2",
+       "title": "Isa Pang Halimbawang Leksiyon",
+       "introduction": "Ikalawang halimbawang talata, maikli kaysa sa una.",
+       "introductionRef": "Mga Kawikaan 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Pambungad",
+         "text": "Ano ang unang tanong ng ikalawang leksiyon?",
+         "ref": "Isaias 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Pambungad",
+         "text": "At ang susunod dito?",
+         "ref": "Filipos 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Pangwakas",
+         "text": "Ano ang nagtatapos sa halimbawa?",
+         "ref": "Pahayag 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "uk": {
+     "quarterTitle": "Приклад кварталу",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "УРОК 1",
+       "title": "Приклад уроку",
+       "introduction": "Це речення стоїть на місці вірша для запам’ятовування. Воно достатньо довге, щоб показати, як вірш лягає на плашку і де переноситься.",
+       "introductionRef": "Псалом 119:105",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Перший розділ",
+         "text": "Про що запитує цей приклад запитання?",
+         "ref": "Від Івана 3:16"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Перший розділ",
+         "text": "Що відбувається з плашкою, коли запитання настільки довге, що виходить за праве поле й мусить продовжитися другим рядком під першим?",
+         "ref": "До римлян 8:28"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Другий розділ",
+         "text": "Чому рухається лише один рядок, якщо розділ залишається тим самим?",
+         "ref": "Псалом 23:1"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "2. Другий розділ",
+         "text": "Як виглядає посилання наприкінці запитання?",
+         "ref": "Від Матвія 5:16; Якова 1:5"
+        },
+        {
+         "letter": "в",
+         "sectionTitle": "2. Другий розділ",
+         "text": "Як виглядає запитання без посилання?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "УРОК 2",
+       "title": "Ще один приклад уроку",
+       "introduction": "Другий вірш-приклад, коротший за перший.",
+       "introductionRef": "Притчі Соломона 3:5",
+       "questions": [
+        {
+         "letter": "а",
+         "sectionTitle": "1. Початок",
+         "text": "Яке перше запитання другого уроку?",
+         "ref": "Ісаї 40:31"
+        },
+        {
+         "letter": "б",
+         "sectionTitle": "1. Початок",
+         "text": "А наступне за ним?",
+         "ref": "До филип’ян 4:13"
+        },
+        {
+         "letter": "а",
+         "sectionTitle": "2. Завершення",
+         "text": "Чим завершується приклад?",
+         "ref": "Об’явлення 22:21"
+        }
+       ]
+      }
+     ]
+    },
+    "zh": {
+     "quarterTitle": "示例季度",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "第一课",
+       "title": "示例课程",
+       "introduction": "这句话是示例，用来代替背诵经文。它足够长，可以显示经文在底板上的样子，以及在哪里换行。",
+       "introductionRef": "诗篇 119：105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. 第一部分",
+         "text": "这个示例问题问的是什么？",
+         "ref": "约翰福音 3：16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. 第一部分",
+         "text": "当一个问题写得很长，超出了屏幕右边留出的空白，不得不在第一行的下面另起第二行继续写下去的时候，这块底板会发生怎样的变化，它的高度又会怎样调整呢？",
+         "ref": "罗马书 8：28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. 第二部分",
+         "text": "当这一部分没有改变时，为什么只有一行在移动？",
+         "ref": "诗篇 23：1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. 第二部分",
+         "text": "问题末尾的经文出处是怎样显示的？",
+         "ref": "马太福音 5：16；雅各书 1：5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. 第二部分",
+         "text": "没有经文出处的问题是什么样子？",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "第二课",
+       "title": "另一个示例课程",
+       "introduction": "第二节示例经文，比第一节短。",
+       "introductionRef": "箴言 3：5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. 开始",
+         "text": "第二课的第一个问题是什么？",
+         "ref": "以赛亚书 40：31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. 开始",
+         "text": "接下来的那个问题呢？",
+         "ref": "腓立比书 4：13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. 结束",
+         "text": "这个示例以什么结束？",
+         "ref": "启示录 22：21"
+        }
+       ]
+      }
+     ]
+    },
+    "zu": {
+     "quarterTitle": "Ikota Eyisibonelo",
+     "lessons": [
+      {
+       "no": "1",
+       "header": "ISIFUNDO 1",
+       "title": "Isifundo Esiyisibonelo",
+       "introduction": "Lo musho umi esikhundleni sevesi lokubamba ngekhanda. Mude ngokwanele ukukhombisa ukuthi ivesi lihlala kanjani epuletini nokuthi liqhubekela kuphi emugqeni olandelayo.",
+       "introductionRef": "Amahubo 119:105",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Isigaba Sokuqala",
+         "text": "Ubuzani lo mbuzo oyisibonelo?",
+         "ref": "Johane 3:16"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Isigaba Sokuqala",
+         "text": "Kwenzekani epuletini lapho umbuzo umude kakhulu kangangokuthi udlula umkhawulo ongakwesokudla futhi kufanele uqhubeke emugqeni wesibili ngaphansi kowokuqala?",
+         "ref": "Roma 8:28"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Isigaba Sesibili",
+         "text": "Kungani kunyakaza umugqa owodwa kuphela lapho isigaba sihlala sinjalo?",
+         "ref": "Amahubo 23:1"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "2. Isigaba Sesibili",
+         "text": "Ibukeka kanjani inkomba yeBhayibheli ekugcineni kombuzo?",
+         "ref": "Mathewu 5:16; Jakobe 1:5"
+        },
+        {
+         "letter": "c",
+         "sectionTitle": "2. Isigaba Sesibili",
+         "text": "Ubukeka kanjani umbuzo ongenayo inkomba?",
+         "ref": ""
+        }
+       ]
+      },
+      {
+       "no": "2",
+       "header": "ISIFUNDO 2",
+       "title": "Esinye Isifundo Esiyisibonelo",
+       "introduction": "Ivesi lesibili eliyisibonelo, elifushane kunelokuqala.",
+       "introductionRef": "Izaga 3:5",
+       "questions": [
+        {
+         "letter": "a",
+         "sectionTitle": "1. Isingeniso",
+         "text": "Yimuphi umbuzo wokuqala wesifundo sesibili?",
+         "ref": "Isaya 40:31"
+        },
+        {
+         "letter": "b",
+         "sectionTitle": "1. Isingeniso",
+         "text": "Nalowo olandelayo?",
+         "ref": "Filiphi 4:13"
+        },
+        {
+         "letter": "a",
+         "sectionTitle": "2. Isiphetho",
+         "text": "Isibonelo siphetha ngani?",
+         "ref": "Isambulo 22:21"
+        }
+       ]
+      }
+     ]
     }
+   }
   }
+ }
 }
