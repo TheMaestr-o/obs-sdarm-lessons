@@ -4,7 +4,7 @@ const fs = require('fs');
 const { execFileSync } = require('child_process');
 
 // Regenerates the animated GIF previews and the matching still PNGs for the
-// three overlay styles, plus the control-panel screenshot. Paths resolve
+// two overlay styles the panel offers, plus the control-panel screenshot. Paths resolve
 // relative to this file (tests/), same as the other scripts here, so this
 // works from any checkout.
 //
@@ -32,11 +32,11 @@ const BACKDROP = `
   background: linear-gradient(160deg, #1a1d23 0%, #23262d 45%, #14161a 100%) !important;
 `;
 
-// Capture window: the longest entrance is style 1 (last line starts at 2.2s
-// and runs 0.8s, so motion ends at 3.0s). 4.6s of capture leaves ~1.6s of the
-// held end state on screen -- the point of the project is that it holds, so a
-// preview that cut at 3.0s would show exactly the thing this system doesn't do.
-const CAPTURE_MS = 4600;
+// Capture window: the longest entrance is style 1 (the question starts at 0.7s
+// and runs 0.7s, so motion ends at 1.4s). 3.4s of capture leaves two seconds of
+// the held end state on screen -- the point of the project is that it holds, so
+// a preview that cut at 1.4s would show exactly the thing this system doesn't do.
+const CAPTURE_MS = 3400;
 const FPS = 12;
 
 // Only the lower third of a 1920x1080 frame is captured. A full-height shot is
@@ -47,19 +47,23 @@ const LINE1 = '1. БОГ ЕСТЬ ЛЮБОВЬ';
 const SHORT_Q = 'а. Какое свидетельство о Божьей любви дано человечеству?';
 const LONG_Q = 'б. Каким образом Бог явил Свою любовь к падшему человечеству, и что это означает для каждого из нас сегодня?';
 
+// Each question carries its scripture reference, the way the panel sends it --
+// the overlay sets it apart in gold italic, and the docs should show that.
 const STYLES = [
-  { id: '1', slug: 'slash-and-slide', line2: SHORT_Q },
+  { id: '1', slug: 'slash-and-slide', line2: SHORT_Q, ref: '1 Иоанна 4:8, 16' },
   // One style gets a deliberately longer question so text wrapping is visible
   // in the docs rather than only ever being shown with a one-line question.
-  { id: '2', slug: 'slide-up-down', line2: LONG_Q },
-  { id: '3', slug: 'quiet-rule', line2: LONG_Q }
+  { id: '2', slug: 'slide-up-down', line2: LONG_Q, ref: 'Иоанна 3:16' }
+  // id 3, "Quiet Rule", still renders but the panel no longer offers it, so
+  // the docs no longer lead with it either.
 ];
 
-function overlayUrl({ id, line2 }) {
+function overlayUrl({ id, line2, ref }) {
   const q = new URLSearchParams({
     id,
     line1: LINE1,
     line2,
+    ref,
     color1: 'ffffff',
     color2: 'c6a15b'
   });
@@ -222,7 +226,9 @@ async function capturePanel(context) {
 (async () => {
   fs.mkdirSync(OUT_STYLES, { recursive: true });
   const frameRoot = fs.mkdtempSync(path.join(require('os').tmpdir(), 'obs-frames-'));
-  const browser = await chromium.launch();
+  // PW_CHANNEL=chrome runs the Chrome already on the machine instead of the
+  // Chromium build Playwright downloads -- handy where that download is absent.
+  const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
   const context = await browser.newContext({ deviceScaleFactor: 1 });
 
   for (const style of STYLES) {

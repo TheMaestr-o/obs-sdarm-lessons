@@ -14,28 +14,38 @@ thirds projects. One of those, Vasco Cruz's `lower-thirds-obs`, was the starting
 What grew out of it no longer shares any code with it, so the comparison and the borrowed
 files have been removed — what is left is the system described here.
 
-## The three styles
+## The two styles
 
-Each one plays its entrance once and then holds. The previews below keep running for a
-second and a half after the motion stops — that unchanging tail is the whole point, and on
-stream it lasts as long as the presenter needs. The dark background stands in for the
-video underneath; the overlay itself is genuinely transparent.
+Each one plays its entrance once and then holds. The previews below keep running for two
+seconds after the motion stops — that unchanging tail is the whole point, and on stream it
+lasts as long as the presenter needs. The dark background stands in for the video
+underneath; the overlay itself is genuinely transparent.
 
-**Slash & Slide** — gold slash, text slides in from the left, left-aligned.
+**Slash & Slide** — a translucent plate with its left edge cut at 13°, a gold stripe riding
+the cut, the section heading in gold capitals and the question under it in white. The
+stripe draws in first, the plate wipes out from behind it, then the words. A question that
+wraps makes the plate taller; the slant stays on the same line.
 
-![Slash and Slide: a gold slash draws in, then both lines slide in from the left and stay](screenshots/plan3-styles/slash-and-slide.gif)
+![Slash and Slide: a gold stripe draws in, a slanted plate wipes out from it, then both lines slide in and stay](screenshots/plan3-styles/slash-and-slide.gif)
 
-**Slide Up / Down** — centred, the heading rises from below while the question descends
-from above.
+**Slide Up / Down** — centred over a scrim, the heading rises from below while the question
+descends from above. Shown with a long question so the wrapping is visible.
 
 ![Slide Up / Down: the heading rises and the question descends, both then holding](screenshots/plan3-styles/slide-up-down.gif)
 
-**Quiet Rule** — right-aligned against a vertical gold rule that draws downward. Ours,
-with no counterpart in the original.
+Both set the scripture reference that closes a question apart from it, in gold italic.
 
-![Quiet Rule: a vertical gold rule draws downward and the right-aligned text settles beside it](screenshots/plan3-styles/quiet-rule.gif)
+There is a third, **Quiet Rule** — right-aligned against a vertical gold rule. It still
+renders if a scene asks for it (`id=3`), but the design settled on two and the panel offers
+two.
 
-The last two are shown with a long question so the wrapping is visible.
+### What changing the question looks like
+
+The lower third does not come down and go back up every time. If the style stays the
+same, the plate stays exactly where it is and only the line that actually changed slides
+out and back — stepping from question *b* to question *c* moves one line. If the new
+question needs another line, the plate grows to fit it. **Stop** plays the entrance in
+reverse instead of cutting to nothing.
 
 ## The panel
 
@@ -45,6 +55,23 @@ Next walk the lesson without reopening anything.
 
 <img src="screenshots/panel.png" alt="The control panel with a lesson loaded and a question selected" width="420">
 
+## The design
+
+Both the overlay and the panel are built to a Figma design, and the numbers in the CSS are
+read off its frames rather than eyeballed. Every frame is exported to
+[`screenshots/figma/`](screenshots/figma/) — the on-air frames for one- and two-line
+questions in both styles, the transparent strips on their own, how it sits in a YouTube
+live page, and the panel in both accent colours with Stop dark and lit.
+
+<img src="screenshots/figma/obs-slash-and-slide-2-zeilen.jpg" alt="Design frame: the Slash & Slide lower third over a full 1920×1080 picture, with a question that wraps to two lines and its reference in gold italic" width="720">
+
+<img src="screenshots/figma/panel-lime.png" alt="Design frame: the control panel, Stop dark" width="300"> <img src="screenshots/figma/panel-lime-stop-aktiv.png" alt="Design frame: the control panel while on air, Stop lit red" width="300">
+
+<img src="screenshots/figma/youtube-live-slash-and-slide.jpg" alt="Design frame: the lower third as it appears inside a YouTube live page" width="720">
+
+The photographs in those frames are stand-ins for a camera feed. Nothing in them was
+broadcast.
+
 ## What it does
 
 - **Picks questions from the real lessons.** The panel reads a built lesson bundle and
@@ -52,8 +79,12 @@ Next walk the lesson without reopening anything.
   overlay's two lines: the day heading, and the question itself. **22 languages.**
 - **Steps through a lesson.** Previous / Next move between questions without reopening
   the list — the thing you actually do repeatedly during a stream.
-- **Three animation styles**, picked by name with a small looping preview: Slash & Slide,
-  Slide Up / Down, and Quiet Rule.
+- **Two animation styles**, picked by name from a small looping miniature of each: Slash &
+  Slide and Slide Up / Down.
+- **Carries the scripture reference.** The lesson prints a reference after each question;
+  the panel sends it along and the overlay sets it in gold italic at the end of the line.
+- **Stop is lit while you are on air.** The panel's Stop button turns red for exactly as
+  long as something is showing, and comes back lit if the dock is reopened mid-stream.
 - **Genuinely transparent.** Real CSS alpha, so no Chroma Key filter in OBS — nothing gets
   accidentally keyed out of dark lesson text.
 - **Works entirely offline.** No CDN, no Google Fonts, no network call at any point. The
