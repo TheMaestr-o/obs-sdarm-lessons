@@ -62,20 +62,22 @@ To actually type into it during the stream:
    - **Line 1** — the lesson topic (e.g. "God's Love for Man")
    - **Line 2** — the letter and the question (e.g. "a. What evidence of
      God's love is given to humanity?")
-   - **Template** — pick one of the three style cards (Slash & Slide, Slide
-     Up / Down, Quiet Rule) — click to preview the little animation
-     right in the panel before committing
+   - **Animation style** — pick one of the two style cards (Slash & Slide,
+     Slide Up / Down); each card is a little looping miniature of how that
+     style arrives
    - **Colors** — leave as-is (gold accent, matching the lesson) or pick
      your own
 3. Press **Show**. The question animates onto the bottom of your stream and
-   **stays there** — it will not disappear on its own.
-4. When you're ready for the next question, just fill in the new Line
-   1/Line 2 and press **Show** again — the old question is replaced
-   instantly by the new one, playing the entrance animation again.
-5. To temporarily clear the overlay without a new question queued, you'd
-   need to hide the Browser Source in OBS itself (click the eye icon next
-   to the source) and unhide it later — there's currently no "hide" button
-   in the panel itself, only "show the next thing."
+   **stays there** — it will not disappear on its own. The **Stop** button
+   turns red: something is on air.
+4. When you're ready for the next question, click its letter (or **Next**)
+   and press **Show** again. The plate stays where it is and only the line
+   that changed slides out and back in — the whole lower third does not
+   replay. If you picked the question with the letters, its scripture
+   reference comes along and is set in gold italic; if you retype Line 2 by
+   hand, no reference is sent.
+5. Press **Stop** to take it down. It leaves the way it came, in reverse,
+   and Stop goes dark again.
 
 ## Alternative: a permanent dock instead of a Control scene
 

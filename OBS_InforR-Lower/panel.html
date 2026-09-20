@@ -33,6 +33,15 @@
 		editor" (node 12667:15) rather than being eyeballed, which is why the
 		hexes look arbitrary -- they are not, they are the design's own.
 
+		Re-aligned to that frame as it stands now, which moved on after the
+		first rebuild: two animation styles instead of three (Quiet Rule is
+		still in native/overlay.css, just no longer offered), Previous / Next
+		outside the picker card, only the letter row boxed with a lime
+		connector pointing into it, preset names under the chips rather than
+		inside them, plain colour cells with no pencil badge, no hover
+		preview box, STOP to the left of SHOW -- and STOP lit red for as long
+		as something is on air.
+
 		Constraints unchanged: one self-contained file, no build step, no CDN,
 		no web fonts (the stream box is offline), and nothing newer than
 		`:has()`, which is already proven safe in OBS's CEF build. Nothing in
@@ -113,12 +122,12 @@
 		
 
 		/* ---------- Main content ------------------------------------------
-		   Section spacing 10px, padding 12px, per the design. */
+		   Section spacing 14px, padding 16px, per the design. */
 		.panel-body {
-			padding: 12px;
+			padding: 16px;
 			display: flex;
 			flex-direction: column;
-			gap: 10px;
+			gap: 14px;
 		}
 
 		/* ---------- Lesson title ------------------------------------------
@@ -247,27 +256,31 @@
 		   title on the left and a muted status on the right. */
 		.card {
 			background: var(--card);
-			border: 1px solid var(--border-2);
-			border-radius: 10px;
-			padding: 0 14px 14px;
+			border: 0;
+			border-radius: 20px;
+			padding: 0 16px 16px;
+			box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12), 0 14px 15px rgba(0, 0, 0, 0.2);
 		}
 
 		.card-settings {
 			background: var(--card-2);
-			border-radius: 8px;
+			border-radius: 12px;
 			padding: 0 10px 10px;
+			box-shadow: none;
 		}
 
+		/* The header is a small muted label, as drawn -- "Lesson & Question" --
+		   and the lime status on its right does the talking. */
 		.card > summary {
 			display: flex;
 			align-items: center;
-			gap: 8px;
+			gap: 5px;
 			cursor: pointer;
-			font-size: 13px;
-			font-weight: 600;
+			font-size: 11px;
+			font-weight: 500;
 			letter-spacing: 0.1px;
-			color: var(--text-bright);
-			padding: 13px 0;
+			color: var(--muted);
+			padding: 14px 0 12px;
 			list-style: none;
 		}
 
@@ -318,10 +331,17 @@
 		   block: the mockup shows capitals, but forcing a case the lesson
 		   content does not use was explicitly rejected before and must not
 		   come back. */
+		/* Only the letter row is boxed, as drawn: the section circles sit bare
+		   on the card, the connector under the active one points into this
+		   box, and the box hugs its letters rather than the card's width, so a
+		   two-question section is a small box and not a wide, empty one. */
 		.questions-box {
+			width: fit-content;
+			max-width: 100%;
+			margin: 0 auto;
 			background: var(--bg-2);
 			border: 1px solid var(--border-2);
-			border-radius: 10px;
+			border-radius: 16px;
 			padding: 10px;
 		}
 
@@ -330,7 +350,7 @@
 			flex-wrap: wrap;
 			align-items: center;
 			justify-content: center;
-			gap: 10px;
+			gap: 8px;
 		}
 
 		/* Inactive: a thin muted ring on the card background, no fill.
@@ -385,10 +405,10 @@
 			            0 8px 18px -4px rgba(184, 255, 61, 0.33);
 		}
 
-		/* Short connector between the section row and the question row, as
-		   drawn -- a vertical line with a small dot, reading as "these
-		   questions belong to the section selected above". Purely decorative:
-		   aria-hidden in the markup, plain CSS, no image.
+		/* Short connector between the section row and the question box, as
+		   drawn -- a half-strength lime line ending in a solid lime dot,
+		   reading as "these questions belong to the section selected above".
+		   Purely decorative: aria-hidden in the markup, plain CSS, no image.
 
 		   It is 52px wide (one section circle) and slides horizontally to sit
 		   under whichever section is active, rather than staying pinned to the
@@ -403,8 +423,7 @@
 			position: relative;
 			width: 52px;
 			height: 16px;
-			margin: 0;
-			margin-left: var(--connector-x, 50%);
+			margin: 8px 0 8px var(--connector-x, 50%);
 			transform: translateX(-50%);
 			transition: margin-left 0.14s;
 		}
@@ -414,10 +433,11 @@
 			position: absolute;
 			left: 50%;
 			top: 0;
-			width: 1.5px;
-			height: 10px;
-			margin-left: -0.75px;
-			background: var(--border-3);
+			width: 2px;
+			height: 12px;
+			margin-left: -1px;
+			border-radius: 1px;
+			background: rgba(184, 255, 61, 0.5);
 		}
 
 		.circle-connector::after {
@@ -425,20 +445,20 @@
 			position: absolute;
 			left: 50%;
 			bottom: 0;
-			width: 5px;
-			height: 5px;
-			margin-left: -2.5px;
+			width: 6px;
+			height: 6px;
+			margin-left: -3px;
 			border-radius: 50%;
-			background: var(--border-3);
+			background: var(--accent);
 		}
 
 		/* ---------- Previous / Next ---------------------------------------
-		   Two 44px pills side by side. Previous is dark, Next is solid lime
-		   and is clearly the primary of the pair. */
+		   Two 44px pills side by side, between the picker card and Settings
+		   rather than inside the card, as drawn. Previous is dark, Next is
+		   solid lime and is clearly the primary of the pair. */
 		.question-nav {
 			display: flex;
 			gap: 12px;
-			margin-top: 12px;
 		}
 
 		.btn-pill {
@@ -489,45 +509,20 @@
 			background: #c6ff63;
 		}
 
-		/* ---------- Preview ------------------------------------------------
-		   Shows the full text of whichever question was most recently
-		   hovered, keyboard-focused, or clicked. A tooltip alone is too slow
-		   to appear and does nothing for keyboard use, so this live area is
-		   the primary path and the native `title` is the extra. */
-		.question-preview-label {
-			font-size: 10px;
-			font-weight: 600;
-			letter-spacing: 0.6px;
-			text-transform: uppercase;
-			color: var(--muted);
-			margin-top: 12px;
-			margin-bottom: 5px;
-		}
-
-		.question-preview {
-			font-size: 12px;
-			color: var(--muted);
-			background: var(--field);
-			border: 1px solid var(--border-2);
-			border-radius: 10px;
-			padding: 8px 10px;
-			line-height: 1.5;
-			min-height: 36px;
-		}
-
-		.question-preview .q-letter {
-			font-weight: 700;
-			color: var(--accent);
-		}
-
-		/* Position-within-lesson count ("11 of 13") -- the one piece of
-		   information not already visible elsewhere on screen. */
+		/* Only ever carries the "no questions" data error now -- the loaded
+		   letter is already told by the lime circle and the header status,
+		   the question itself is in the field at the top, and the design
+		   draws nothing else under the letter box. Collapses entirely while
+		   empty so it costs the card no height. */
 		.current-question-label {
 			font-size: 11px;
 			color: var(--muted);
 			text-align: center;
-			margin-top: 9px;
-			min-height: 14px;
+			margin-top: 10px;
+		}
+
+		.current-question-label:empty {
+			display: none;
 		}
 
 		.active-lesson-label {
@@ -564,9 +559,9 @@
 		}
 
 		.section-head-title {
-			font-size: 11.5px;
-			font-weight: 600;
-			color: var(--text);
+			font-size: 11px;
+			font-weight: 500;
+			color: var(--muted);
 			letter-spacing: 0.1px;
 		}
 
@@ -591,34 +586,27 @@
 
 		.preset-options {
 			display: flex;
-			gap: 8px;
+			gap: 6px;
 			flex: 1 1 auto;
 			min-width: 0;
 		}
 
 		/* Same clickable-<label>-wrapping-a-radio pattern the animation
 		   styles already use, so keyboard operation and grouping come for
-		   free from the native radio. */
+		   free from the native radio. The label is a column: the chip on top,
+		   the name under it -- the design draws the names as a row of their
+		   own beneath the chips, not inside them. */
 		.preset-options label {
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			justify-content: center;
-			gap: 5px;
-			width: 56px;
-			height: 56px;
+			gap: 8px;
+			width: 52px;
 			flex: none;
-			background: var(--field);
-			border: 1.5px solid var(--border-2);
-			border-radius: 12px;
 			padding: 0;
 			margin: 0;
 			cursor: pointer;
 			text-align: center;
-		}
-
-		.preset-options label:hover {
-			background: var(--field-hover);
 		}
 
 		/* Visually hidden but still focusable/keyboard-operable -- NOT
@@ -636,50 +624,58 @@
 			border: 0;
 		}
 
-		.preset-options label:has(input:checked) {
+		.preset-chip {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 52px;
+			height: 52px;
+			background: var(--field);
+			border: 1px solid var(--border-2);
+			border-radius: 12px;
+			transition: background 0.12s, border-color 0.12s;
+		}
+
+		.preset-options label:hover .preset-chip {
+			background: var(--field-hover);
+		}
+
+		.preset-options label:has(input:checked) .preset-chip {
 			border-color: var(--accent);
 			-webkit-filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
 			filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
 		}
 
-		.preset-options label:has(input:focus-visible) {
+		.preset-options label:has(input:focus-visible) .preset-chip {
 			outline: 2px solid var(--accent);
 			outline-offset: 2px;
 		}
 
-		/* Two overlapping circles previewing the pair, 30x24 overall as the
-		   design specifies. The circles are 21px rather than a full 24 so
-		   that at the design's 30px total width a useful crescent of the
-		   FIRST colour still shows past the second -- at 24px each the front
-		   dot covered all but a 6px sliver of the back one, which made the
-		   four chips read as one colour apiece instead of a pair. Same
-		   footprint, same overlap, both colours legible.
-
-		   Colours are written onto the two spans as inline styles by the
-		   script from PRESETS, so the palette lives in exactly one place
-		   (the script) instead of being duplicated here and there. */
+		/* Two overlapping 17px circles in a 28x22 box -- the design's double
+		   swatch, the second set down and to the right of the first. Colours
+		   are written onto the two spans as inline styles by the script from
+		   PRESETS, so the palette lives in exactly one place. */
 		.preset-dots {
 			position: relative;
-			width: 30px;
-			height: 24px;
+			width: 28px;
+			height: 22px;
 			flex: none;
 		}
 
 		.preset-dot {
 			position: absolute;
-			top: 1.5px;
-			width: 21px;
-			height: 21px;
+			width: 17px;
+			height: 17px;
 			border-radius: 50%;
-			border: 1.5px solid var(--field);
+			border: 1px solid rgba(255, 255, 255, 0.28);
 		}
 
-		.preset-dot-1 { left: 0; }
-		.preset-dot-2 { left: 9px; }
+		.preset-dot-1 { left: 0; top: 0; }
+		.preset-dot-2 { left: 10px; top: 4px; }
 
 		.preset-name {
 			font-size: 10px;
-			font-weight: 600;
+			font-weight: 500;
 			color: var(--muted);
 			letter-spacing: 0.1px;
 			line-height: 1;
@@ -690,27 +686,24 @@
 		}
 
 		/* The two free colour pickers, to the right of the presets: one
-		   108x56 tile holding two 44px cells, each with a lime border, a
-		   colour dot and a small pencil badge. Same native
-		   <input type="color"> as before -- clicking opens the OS picker --
-		   just re-shaped to match the design. */
-		/* The design puts the two free-colour cells in one 108x56 tile. The
-		   pencil badges sit proud of their cells' top-right corners, so the
-		   tile is padded a touch on those sides (and the cells nudged down
-		   and in by the same amount) to keep the badges from being clipped by
-		   the tile's own rounded edge -- the tile's outer footprint is
-		   unchanged. */
+		   100x52 tile with a lime ring holding two 40px cells, each showing
+		   its colour as a 22px dot. Same native <input type="color"> as
+		   before -- clicking opens the OS picker -- just shaped to the design.
+		   The pencil badges an earlier round of the design had are gone from
+		   it, and from here. */
 		.color-tiles {
 			display: flex;
 			align-items: center;
-			justify-content: center;
-			gap: 8px;
+			justify-content: space-between;
 			flex: none;
-			width: 108px;
-			height: 56px;
-			padding: 6px 7px 2px 3px;
+			width: 100px;
+			height: 52px;
+			padding: 6px;
 			background: var(--field);
+			border: 1px solid var(--accent);
 			border-radius: 12px;
+			-webkit-filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
+			filter: drop-shadow(0 0 4px rgba(184, 255, 61, 0.12));
 		}
 
 		.color-tiles .form-group {
@@ -719,10 +712,9 @@
 
 		.color-cell {
 			position: relative;
-			width: 42px;
-			height: 42px;
+			width: 40px;
+			height: 40px;
 			flex: none;
-			border: 1.5px solid var(--accent);
 			border-radius: 10px;
 			display: flex;
 			align-items: center;
@@ -730,9 +722,8 @@
 		}
 
 		/* The visible label text is carried by the input's own aria-label and
-		   the wrapping <label for> -- the tile itself is too small for a word
-		   without crowding the dot, and the pencil badge already says
-		   "editable". Keep the <label> element itself (it is what makes
+		   the wrapping <label for> -- the cell is too small for a word without
+		   crowding the dot. Keep the <label> element itself (it is what makes
 		   clicking anywhere in the cell open the picker). */
 		.color-cell label {
 			position: absolute;
@@ -750,11 +741,11 @@
 		}
 
 		input[type="color"] {
-			width: 18px;
-			height: 18px;
+			width: 22px;
+			height: 22px;
 			padding: 0;
 			background: var(--field);
-			border: none;
+			border: 1px solid rgba(255, 255, 255, 0.28);
 			border-radius: 50%;
 			cursor: pointer;
 			/* Chromium/CEF draw this input's own internal swatch as a
@@ -781,40 +772,6 @@
 			border-radius: 50%;
 		}
 
-		/* Small pencil badge top-right of each colour cell -- a decorative
-		   affordance only, never clickable in its own right
-		   (pointer-events:none, so the click falls through to the cell's
-		   <label>, which is what opens the picker).
-
-		   The pencil is an inline SVG, not the U+270E text glyph the design
-		   implies. At 8px the glyph fell through to a system COLOUR EMOJI on
-		   macOS -- a brown-and-yellow pencil picture inside a lime ring,
-		   nothing like the flat lime mark drawn -- and which font answers for
-		   that codepoint is not something this file can rely on inside OBS's
-		   CEF either. The SVG renders identically everywhere and inherits
-		   currentColor, so it stays lime with the rest of the badge. */
-		.color-pencil {
-			position: absolute;
-			top: -5px;
-			right: -5px;
-			width: 12px;
-			height: 12px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			border-radius: 50%;
-			background: var(--bg);
-			border: 1px solid var(--accent);
-			color: var(--accent);
-			pointer-events: none;
-		}
-
-		.color-pencil svg {
-			display: block;
-			width: 7px;
-			height: 7px;
-		}
-
 		/* The hex value (color1/color2) stays a real, functional <input> in
 		   the DOM -- syncPickerToText/syncTextToPicker still read and write
 		   it, and sanitizeHex() still reads it for the Show payload -- it is
@@ -825,17 +782,17 @@
 		}
 
 		/* ---------- Animation styles ---------------------------------------
-		   Three 48px tiles, each previewing its style as two stacked 6px
-		   bars. The SELECTED tile rings in violet, not lime -- deliberate in
-		   the design: choosing an animation is a different kind of choice
-		   from choosing a colour, and the two selections sit close together.
+		   Two 44px tiles, each a miniature of the style it selects. The
+		   SELECTED tile rings in violet, not lime -- deliberate in the design:
+		   choosing an animation is a different kind of choice from choosing a
+		   colour, and the two selections sit close together.
 
-		   The third style is "Quiet Rule" (the mockup's "Quiz Rule" is a
-		   typo); Quiet Rule is the name the real style carries in
-		   native/overlay.css. */
+		   There were three. "Quiet Rule" is still in native/overlay.css and
+		   still renders if something asks for id 3, but the design settled on
+		   two and the panel offers two. */
 		.template-options {
 			display: grid;
-			grid-template-columns: repeat(3, 1fr);
+			grid-template-columns: repeat(2, 1fr);
 			gap: 8px;
 		}
 
@@ -843,7 +800,7 @@
 			display: flex;
 			flex-direction: column;
 			align-items: stretch;
-			gap: 6px;
+			gap: 4px;
 			border: none;
 			padding: 0;
 			cursor: pointer;
@@ -858,7 +815,7 @@
 
 		.template-name {
 			font-size: 10px;
-			font-weight: 600;
+			font-weight: 500;
 			color: var(--muted);
 			text-align: center;
 			line-height: 1.25;
@@ -868,34 +825,27 @@
 			color: var(--text-bright);
 		}
 
-		/* Tiny looping preview swatches: a simplified, isolated re-creation of
-		   each animation's transform direction (not the real overlay.css
-		   keyframes), just enough to show "which way does it move".
+		/* Tiny looping previews: a simplified, isolated re-creation of how each
+		   style arrives (not the real overlay.css keyframes), just enough to
+		   show "which way does it move".
 
 		   Defensive note, carried over because the bug it documents is still
 		   live: `opacity` on every animated element here is a plain, constant
-		   `1` that is never touched by any @keyframes rule -- only
-		   `transform` (and, for preview 3's rule, scaleY) moves during the
-		   entrance phase. So there is no point anywhere in the loop, however
-		   or whenever a paint happens to sample it, where the element is
-		   invisible. This was a real bug, not a theoretical one: these
-		   elements used to rely on their @keyframes' 0% state (opacity:0 /
-		   off-screen transform) as their ONLY source of visibility, and
-		   inside OBS Studio's embedded CEF two of the three swatches rendered
-		   nothing at all -- consistent with CEF applying an early animation
-		   frame once and never painting a later one. Adding a base
-		   `opacity:1` alongside the animation does NOT work (keyframe values
-		   override the base for any property they touch); making 0% the
-		   settled state does NOT fully work either (a freeze landing just
-		   after 0% still lands in the dip). Constant opacity 1 throughout is
-		   the only approach with no invisible window. Keep any future edits
-		   here opacity-constant first, animated-transform second. */
+		   `1` that no @keyframes rule touches -- only `transform` moves. This
+		   was a real bug, not a theoretical one: these elements used to rely on
+		   their keyframes' 0% state (opacity:0) as their ONLY source of
+		   visibility, and inside OBS Studio's embedded CEF the swatches
+		   rendered nothing at all -- consistent with CEF applying an early
+		   animation frame once and never painting a later one. Constant
+		   opacity is the only approach with no invisible window. Keep any
+		   future edits here opacity-constant first, animated-transform
+		   second. */
 		.template-preview {
 			width: 100%;
-			height: 48px;
+			height: 44px;
 			position: relative;
 			overflow: hidden;
-			background: var(--field);
+			background: var(--card-2);
 			border: 1.5px solid var(--border-2);
 			border-radius: 8px;
 		}
@@ -906,137 +856,91 @@
 			box-shadow: 0 0 5px rgba(140, 108, 255, 0.2);
 		}
 
+		/* The 90x26 stage both miniatures are drawn on, centred in the tile
+		   whatever width the dock gives it. It clips, which is what lets the
+		   pieces start outside it. */
+		.template-preview .mini {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			width: 90px;
+			height: 26px;
+			margin: -13px 0 0 -45px;
+			overflow: hidden;
+		}
+
 		.template-preview .bar {
 			position: absolute;
-			left: 10px;
-			height: 6px;
+			height: 5px;
 			border-radius: 3px;
 			background: var(--accent);
+			opacity: 1;
+			will-change: transform;
 		}
 
 		.template-preview .bar.alt {
 			background: #ffffff;
 		}
 
-		/* Bar widths per the design: Slash & Slide lime 44 over white 34;
-		   Slide Up/Down both 48; Quiet Rule lime 32 over white 44. Expressed
-		   as percentages of the tile so they keep their relative lengths when
-		   the three tiles share whatever width the dock actually has -- the
-		   design's pixel widths assume one fixed tile width, and the dock is
-		   resizable. Previews 1 and 3 are inset from one side (by the slash
-		   and the rule respectively), so their percentages are scaled to the
-		   space actually left rather than to the full tile, which is what
-		   pushed the longest bar past the tile edge at dock width. */
-		.preview-1 .bar1 { width: 60%; }
-		.preview-1 .bar2 { width: 46%; }
-		.preview-2 .bar1 { width: 72%; }
-		.preview-2 .bar2 { width: 72%; }
-		.preview-3 .bar1 { width: 40%; }
-		.preview-3 .bar2 { width: 56%; }
-
-		/* Preview 1: diagonal slash, two bars slide in from the left. */
-		.preview-1 .slash {
-			top: 12px;
-			height: 24px;
-			width: 5px;
+		/* Preview 1 -- Slash & Slide, as it goes to air: the dark plate with
+		   its left edge cut at 13 degrees, the accent stick riding that cut,
+		   and the two lines stepping along it, heading further right than the
+		   question. The stick rises, the plate follows it in from the left,
+		   then the lines. */
+		.preview-1 .mini-plate {
+			position: absolute;
 			left: 6px;
-			background: linear-gradient(135deg, var(--accent), #ffffff);
+			top: 1px;
+			width: 84px;
+			height: 24px;
+			background: rgba(0, 0, 0, 0.44);
+			clip-path: polygon(5.54px 0, 100% 0, 100% 100%, 0 100%);
 			opacity: 1;
-			transform: skewX(-20deg) translateX(0);
 			will-change: transform;
-			animation: preview-1-slash 2.4s ease-in-out infinite;
+			animation: mini-from-left 2.8s cubic-bezier(0.19, 0.76, 0.32, 1) infinite;
 		}
-		.preview-1 .bar1 {
-			top: 17px;
-			left: 16px;
+
+		.preview-1 .mini-stick {
+			position: absolute;
+			left: 2.27px;
+			top: 0;
+			width: 8px;
+			height: 26px;
+			background: var(--accent);
+			clip-path: polygon(6px 0, 8px 0, 2px 100%, 0 100%);
 			opacity: 1;
-			transform: translateX(0);
 			will-change: transform;
-			animation: preview-1-line 2.4s ease-in-out infinite;
+			animation: mini-stick 2.8s cubic-bezier(0.19, 0.76, 0.32, 1) infinite;
 		}
-		.preview-1 .bar2 {
-			top: 28px;
-			left: 16px;
-			opacity: 1;
-			transform: translateX(0);
-			will-change: transform;
-			animation: preview-1-line 2.4s ease-in-out 0.15s infinite;
+
+		.preview-1 .bar1 { left: 19px; top: 7px; width: 40px; animation: mini-line 2.8s cubic-bezier(0.19, 0.76, 0.32, 1) infinite; }
+		.preview-1 .bar2 { left: 16px; top: 15px; width: 60px; animation: mini-line 2.8s cubic-bezier(0.19, 0.76, 0.32, 1) 0.12s infinite; }
+
+		@keyframes mini-stick {
+			0%, 6% { transform: translateY(110%); }
+			22%, 100% { transform: translateY(0); }
 		}
-		@keyframes preview-1-slash {
-			0%, 10% { transform: skewX(-20deg) translateX(40px); }
-			30%, 100% { transform: skewX(-20deg) translateX(0); }
-		}
-		@keyframes preview-1-line {
-			0%, 14% { transform: translateX(-140%); }
+		@keyframes mini-from-left {
+			0%, 12% { transform: translateX(-110%); }
 			34%, 100% { transform: translateX(0); }
 		}
-
-		/* Preview 2: line 1 rises from below, line 2 drops from above. */
-		.preview-2 .bar1 {
-			top: 28px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-2-up 2.4s ease-out infinite;
-		}
-		.preview-2 .bar2 {
-			top: 15px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-2-down 2.4s ease-out infinite;
-		}
-		@keyframes preview-2-up {
-			0%, 10% { transform: translateY(18px); }
-			30%, 100% { transform: translateY(0); }
-		}
-		@keyframes preview-2-down {
-			0%, 10% { transform: translateY(-18px); }
-			30%, 100% { transform: translateY(0); }
+		@keyframes mini-line {
+			0%, 26% { transform: translateX(-260%); }
+			46%, 100% { transform: translateX(0); }
 		}
 
-		/* Preview 3: the vertical rule on the right draws downward, then two
-		   right-aligned bars settle up into place beside it. The bars are
-		   right-anchored because right-alignment against a rule is the whole
-		   point of the style -- left-anchored bars would look identical to
-		   preview 2 at this size. */
-		.preview-3 .rule {
-			top: 12px;
-			left: auto;
-			right: 8px;
-			width: 3px;
-			height: 24px;
-			opacity: 1;
-			transform: scaleY(1);
-			transform-origin: 50% 0;
-			will-change: transform;
-			animation: preview-3-rule 2.4s ease-out infinite;
+		/* Preview 2 -- Slide Up / Down: two centred lines, the heading rising
+		   from below while the question drops from above. */
+		.preview-2 .bar1 { left: 23px; top: 7px; width: 44px; animation: mini-up 2.8s ease-out infinite; }
+		.preview-2 .bar2 { left: 23px; top: 15px; width: 44px; animation: mini-down 2.8s ease-out infinite; }
+
+		@keyframes mini-up {
+			0%, 10% { transform: translateY(22px); }
+			32%, 100% { transform: translateY(0); }
 		}
-		.preview-3 .bar1 {
-			top: 17px;
-			left: auto;
-			right: 16px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-3-settle 2.4s ease-out 0.15s infinite;
-		}
-		.preview-3 .bar2 {
-			top: 28px;
-			left: auto;
-			right: 16px;
-			opacity: 1;
-			transform: translateY(0);
-			will-change: transform;
-			animation: preview-3-settle 2.4s ease-out 0.25s infinite;
-		}
-		@keyframes preview-3-rule {
-			0%, 8% { transform: scaleY(0); }
-			28%, 100% { transform: scaleY(1); }
-		}
-		@keyframes preview-3-settle {
-			0%, 12% { transform: translateY(6px); }
-			34%, 100% { transform: translateY(0); }
+		@keyframes mini-down {
+			0%, 10% { transform: translateY(-22px); }
+			32%, 100% { transform: translateY(0); }
 		}
 
 		@media (prefers-reduced-motion: reduce) {
@@ -1132,6 +1036,28 @@
 			background: var(--field-hover);
 		}
 
+		/* On air. STOP is the one control that matters while something is up,
+		   so for exactly that long it is the brightest thing on the panel --
+		   the design's "STOP aktiv" state. The glow breathes; if an embedded
+		   browser ever freezes the animation it just stays lit, which is
+		   still the right thing for it to say. */
+		.btn-show-stop.is-live {
+			background: #ff3b3b;
+			border-color: #ff8a8a;
+			color: #ffffff;
+			box-shadow: 0 4px 10px rgba(0, 0, 0, 0.19), 0 8px 18px -4px rgba(255, 59, 59, 0.45);
+			animation: stop-live 2.2s ease-in-out infinite;
+		}
+
+		.btn-show-stop.is-live:hover {
+			background: #ff5252;
+		}
+
+		@keyframes stop-live {
+			0%, 100% { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.19), 0 8px 18px -4px rgba(255, 59, 59, 0.45); }
+			50% { box-shadow: 0 4px 10px rgba(0, 0, 0, 0.19), 0 8px 22px -2px rgba(255, 59, 59, 0.7); }
+		}
+
 		.status {
 			text-align: center;
 			font-size: 11px;
@@ -1211,30 +1137,24 @@
 					</div>
 
 					<div id="lessonPickerUi">
+						<div class="circle-row" id="sectionRow"></div>
+						<div class="circle-connector" id="circleConnector" aria-hidden="true"></div>
 						<div class="questions-box">
-							<div class="circle-row" id="sectionRow"></div>
-							<div class="circle-connector" id="circleConnector" aria-hidden="true"></div>
 							<div class="circle-row" id="questionRow"></div>
-						</div>
-
-						<!--
-						#questionList is kept as the accessible grouping wrapper
-						for the two circle rows above (it is what the delegated
-						hover/focus preview listeners are attached to); it holds
-						no rows of its own any more.
-						-->
-						<div id="questionList" hidden></div>
-
-						<div class="question-preview-label" id="questionPreviewLabel" hidden>Preview</div>
-						<div class="question-preview" id="questionPreview"></div>
-
-						<div class="question-nav">
-							<button type="button" class="btn-pill btn-pill-dark" id="prevBtn">&#8249;&nbsp; Previous</button>
-							<button type="button" class="btn-pill btn-pill-accent" id="nextBtn">Next &nbsp;&#8594;</button>
 						</div>
 						<div class="current-question-label" id="currentQuestionLabel"></div>
 					</div>
 				</details>
+
+				<!--
+				Previous / Next sit between the picker and Settings, outside both
+				cards, as drawn. Disabled until a question is loaded -- updateNav()
+				in the script is what enables them.
+				-->
+				<div class="question-nav">
+					<button type="button" class="btn-pill btn-pill-dark" id="prevBtn" disabled>&#8592;&nbsp; Previous</button>
+					<button type="button" class="btn-pill btn-pill-accent" id="nextBtn" disabled>Next &nbsp;&#8594;</button>
+				</div>
 
 				<!--
 				Settings -- chosen once per session and rarely touched again,
@@ -1293,7 +1213,6 @@
 										<input type="color" id="color1picker" value="#ffffff" aria-label="Color 1">
 										<input type="text" id="color1" value="fff">
 									</div>
-									<span class="color-pencil" aria-hidden="true"><svg viewBox="0 0 10 10" focusable="false"><path d="M1.6 8.4 L2 6.6 L6.9 1.7 L8.3 3.1 L3.4 8 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path></svg></span>
 								</div>
 							</div>
 							<div class="form-group">
@@ -1303,20 +1222,15 @@
 										<input type="color" id="color2picker" value="#c6a15b" aria-label="Color 2">
 										<input type="text" id="color2" value="c6a15b">
 									</div>
-									<span class="color-pencil" aria-hidden="true"><svg viewBox="0 0 10 10" focusable="false"><path d="M1.6 8.4 L2 6.6 L6.9 1.7 L8.3 3.1 L3.4 8 Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path></svg></span>
 								</div>
 							</div>
 						</div>
 					</div>
 
 					<!--
-					id=1, id=2 and id=3 are offered here. id=3 is no longer the
-					original style of that number (which overlapped line1 and
-					line2) -- it is now "Quiet Rule", written from scratch in
-					native/overlay.css for this panel. id=4 and id=5 are still
-					left out: id=4 never rendered line2 at all, and id=5's
-					framed style was removed. See LOCAL-SETUP.md for the full
-					comparison table.
+					id=1 and id=2 are offered. id=3 ("Quiet Rule") still exists in
+					native/overlay.css and still renders if asked for, but the design
+					settled on two styles and so does this list.
 					-->
 					<div class="section-head">
 						<span class="section-head-title">Animation style</span>
@@ -1326,28 +1240,24 @@
 						<label>
 							<input type="radio" name="template" value="1" checked>
 							<span class="template-preview preview-1" aria-hidden="true">
-								<span class="bar slash"></span>
-								<span class="bar bar1"></span>
-								<span class="bar alt bar2"></span>
+								<span class="mini">
+									<span class="mini-plate"></span>
+									<span class="mini-stick"></span>
+									<span class="bar bar1"></span>
+									<span class="bar alt bar2"></span>
+								</span>
 							</span>
 							<span class="template-name">Slash &amp; Slide</span>
 						</label>
 						<label>
 							<input type="radio" name="template" value="2">
 							<span class="template-preview preview-2" aria-hidden="true">
-								<span class="bar bar1"></span>
-								<span class="bar alt bar2"></span>
+								<span class="mini">
+									<span class="bar bar1"></span>
+									<span class="bar alt bar2"></span>
+								</span>
 							</span>
 							<span class="template-name">Slide Up / Down</span>
-						</label>
-						<label>
-							<input type="radio" name="template" value="3">
-							<span class="template-preview preview-3" aria-hidden="true">
-								<span class="bar rule"></span>
-								<span class="bar bar1"></span>
-								<span class="bar alt bar2"></span>
-							</span>
-							<span class="template-name">Quiet Rule</span>
 						</label>
 					</div>
 
@@ -1365,8 +1275,8 @@
 				title at the top of the panel.
 				-->
 				<div class="show-buttons">
-					<button class="btn-show btn-show-primary" id="showQuestionBtn">Show</button>
 					<button class="btn-show btn-show-stop" id="stopBtn">Stop</button>
+					<button class="btn-show btn-show-primary" id="showQuestionBtn">Show</button>
 				</div>
 				<div class="status" id="status"></div>
 			</div>
@@ -1435,8 +1345,14 @@
 				name.className = 'preset-name';
 				name.textContent = preset.name;
 
+				// The chip is its own box now, with the name under it rather
+				// than inside it -- see .preset-chip.
+				const chip = document.createElement('span');
+				chip.className = 'preset-chip';
+				chip.appendChild(dots);
+
 				label.appendChild(radio);
-				label.appendChild(dots);
+				label.appendChild(chip);
 				label.appendChild(name);
 				presetOptionsEl.appendChild(label);
 
@@ -1592,6 +1508,32 @@
 		});
 
 		// Helper function to send data to the broadcast channel and localStorage
+		// The reference that belongs to what is in Line 2 -- or nothing, if
+		// Line 2 has been edited since the picker filled it.
+		function refForLine2() {
+			const loaded = window._loadedQuestion;
+			return loaded && loaded.line2 === line2El.value ? loaded.ref : '';
+		}
+
+		// --- On air --------------------------------------------------------
+		// The panel cannot see the stream, but it knows the last thing it
+		// sent: anything but a hide means something is up. STOP lights red for
+		// exactly that long. Restored on load from the same localStorage key
+		// the handoff uses, so reopening the dock mid-stream does not show a
+		// dark STOP over a live lower third.
+		const stopBtnEl = document.getElementById('stopBtn');
+		function setOnAir(live) {
+			stopBtnEl.classList.toggle('is-live', live);
+			stopBtnEl.setAttribute('aria-pressed', live ? 'false' : 'true');
+			stopBtnEl.title = live ? 'On air -- press to take it down' : 'Nothing on air';
+		}
+		try {
+			const last = JSON.parse(localStorage.getItem('infor-r-lower-thirds-state') || 'null');
+			setOnAir(Boolean(last && last.mode && last.mode !== 'hide'));
+		} catch (e) {
+			setOnAir(false);
+		}
+
 		function sendData(data) {
 			// Primary channel: works when panel.html and result.html are both Browser
 			// Sources/Interact windows inside the SAME OBS scene-source CEF context
@@ -1617,6 +1559,8 @@
 				// file:// origin, or storage disabled -- BroadcastChannel-only is fine
 				// for the Interact-based setup, so this is silently ignored.
 			}
+
+			setOnAir(data.mode !== 'hide');
 
 			statusEl.textContent = 'Sent to result.html at ' + new Date().toLocaleTimeString();
 			setTimeout(() => { statusEl.textContent = ''; }, 4000);
@@ -1656,6 +1600,7 @@
 				id: templateEl ? templateEl.value : '1',
 				line1: line1El.value,
 				line2: line2El.value,
+				ref: refForLine2(),
 				color1: sanitizeHex(color1El.value, 'fff'),
 				color2: sanitizeHex(color2El.value, 'c6a15b'),
 				mode: 'question',
@@ -1698,8 +1643,6 @@
 			const quarterSelectEl = document.getElementById('quarterSelect');
 			const languageSelectEl = document.getElementById('languageSelect');
 			const lessonSelectEl = document.getElementById('lessonSelect');
-			const questionPreviewEl = document.getElementById('questionPreview');
-			const questionPreviewLabelEl = document.getElementById('questionPreviewLabel');
 			const sectionRowEl = document.getElementById('sectionRow');
 			const connectorEl = document.getElementById('circleConnector');
 			const questionRowEl = document.getElementById('questionRow');
@@ -1883,21 +1826,6 @@
 				window._currentLesson = lesson;
 			}
 
-			// Shows one question's full text in #questionPreview -- driven by
-			// hover/focus (so scanning the letter circles live still lets the
-			// presenter read the question before committing to a click) and by
-			// loadQuestion() (so the preview also reflects whichever question is
-			// actually loaded).
-			function showPreview(q) {
-				questionPreviewLabelEl.hidden = false;
-				questionPreviewEl.innerHTML = '';
-				const letterSpan = document.createElement('span');
-				letterSpan.className = 'q-letter';
-				letterSpan.textContent = q.letter + '. ';
-				questionPreviewEl.appendChild(letterSpan);
-				questionPreviewEl.appendChild(document.createTextNode(q.text));
-			}
-
 			// Groups the lesson's flat questions[] array into sections by each
 			// question's OWN sectionTitle -- the day/subsection heading it
 			// belongs to. Letters restart at "a"/"а" for every section (see
@@ -2002,17 +1930,15 @@
 					// hook loadQuestion() uses to clear/set the "current" mark.
 					btn.className = 'circle-btn circle-question question-row';
 					btn.textContent = q.letter;
-					// Native tooltip -- a mouse-only, no-JS-needed extra on top of
-					// showPreview(), which is the primary path (a tooltip is slow
-					// to appear and does nothing for keyboard use).
+					// The native tooltip is how a question is read before committing
+					// to it: the panel used to mirror the hovered question into a
+					// preview box as well, which the design dropped.
 					btn.title = q.letter + '. ' + q.text;
 					btn.setAttribute('aria-label', q.letter + '. ' + q.text);
 					if (qIdx === currentQuestionIndex) {
 						btn.classList.add('current');
 						btn.setAttribute('aria-current', 'true');
 					}
-					btn.addEventListener('mouseenter', () => showPreview(q));
-					btn.addEventListener('focus', () => showPreview(q));
 					btn.addEventListener('click', () => loadQuestion(qIdx));
 					questionRowEl.appendChild(btn);
 				});
@@ -2066,8 +1992,6 @@
 			// Rebuilds everything that depends on the chosen lesson.
 			function renderQuestionList() {
 				const lesson = getLesson(currentQuarter, currentLang, currentLessonNo);
-				questionPreviewEl.innerHTML = '';
-				questionPreviewLabelEl.hidden = true;
 				sections = lesson ? buildSections(lesson) : [];
 				// A fresh lesson starts on its first section with nothing loaded,
 				// rather than keeping an index that may not exist in this lesson.
@@ -2099,7 +2023,13 @@
 				currentQuestionIndex = idx;
 				line1El.value = q.sectionTitle;
 				line2El.value = q.letter + '. ' + q.text;
-				showPreview(q);
+				// The scripture reference travels beside the question, not inside
+				// it: the overlay sets it apart in the accent colour and italic,
+				// which it can only do if it knows where the question ends. Kept
+				// with the exact text it belongs to, so that an operator who then
+				// retypes Line 2 by hand is not given a reference for a question
+				// they are no longer showing -- see refForLine2().
+				window._loadedQuestion = { line2: line2El.value, ref: q.ref || '' };
 
 				// Crossing a section boundary (the last letter of one section into
 				// the first of the next, or back) has to move the section row too,
@@ -2123,19 +2053,10 @@
 				prevBtn.disabled = !hasCurrent || currentQuestionIndex <= 0;
 				nextBtn.disabled = !hasCurrent || currentQuestionIndex >= total - 1;
 
-				if (hasCurrent) {
-					// Just the position-within-lesson count -- which letter is
-					// loaded is already shown by the lime circle, by the header
-					// status and by the letter in the preview, so repeating it
-					// here would be pure duplication. The count ("11 of 13") is
-					// the one piece of information not visible anywhere else.
-					currentQuestionLabelEl.textContent = (currentQuestionIndex + 1) + ' of ' + total;
-				} else {
-					// No instructional filler -- stay empty until a question is
-					// actually loaded. "No questions found" is kept since that's a
-					// genuine data/error condition, not an instruction.
-					currentQuestionLabelEl.textContent = total > 0 ? '' : 'No questions found for this lesson';
-				}
+				// Nothing to say while things are fine: which question is loaded
+				// is already told by the lime circle and the header status. Only
+				// the genuine data error is worth a line.
+				currentQuestionLabelEl.textContent = total > 0 ? '' : 'No questions found for this lesson';
 			}
 
 			prevBtn.addEventListener('click', () => {
