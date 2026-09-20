@@ -60,35 +60,161 @@ def first_question(sub: dict) -> tuple[str, str] | None:
     return split_letter_marker(parts[0])
 
 
-def question_reference(sub: dict, sep: str = "; ") -> str:
+# The end of a question: its question mark, and any quote or bracket closing after it.
+QUESTION_END_RE = re.compile(r"[?？؟][»”\"’'）)」』]*")
+
+
+def split_trailing_citation(text: str) -> tuple[str, str]:
+    """("...draw men to Himself?", "Exodusi 34:6, 7") from a question that still
+    has the start of its reference stuck to it.
+
+    Where a source did not mark its first citation up as an entry of its own,
+    that citation is simply the tail of the question's text -- "...? Exodusi
+    34:6, 7;" -- and only the citations after it arrive separately. On air that
+    showed as a reference half in white and half in gold. What follows the last
+    question mark is moved across when it reads as a citation:
+
+      it has a digit in it             "Псалтирь 138:23, 24;"   a whole citation
+      or is a word or two, no digit    "До"                      the head of one --
+                                       Ukrainian "До колосян 1:14", split mid-name
+
+    and left alone when it ends in a question mark itself, because then it is
+    not a citation but a second question: "...? What should they do?"."""
+    # Japanese prints its reference in brackets -- "...を挙げなさい（ヨハネ 14:1–3）。" --
+    # and the source leaves the opening one on the end of the question while the
+    # closing one travels with the reference (and is dropped there). On air the
+    # reference is set apart by its colour, so the bracket would open and never close.
+    text = re.sub(r"\s*[（(]\s*$", "", text)
+    ends = list(QUESTION_END_RE.finditer(text))
+    if not ends:
+        return text, ""
+    cut = ends[-1].end()
+    tail = text[cut:].strip()
+    if not tail:
+        return text, ""
+    # Nothing but punctuation, or a bare number -- a page number of the printed
+    # lesson. It belongs to neither the question nor the reference.
+    if not any(c.isalpha() for c in tail) and ":" not in tail and "：" not in tail:
+        return text[:cut].strip(), ""
+    # A word or two only counts as the head of a citation while it is left open:
+    # "До" is one, "Explain." is an instruction and stays with the question.
+    is_citation = any(c.isdigit() for c in tail) or (
+        len(tail.split()) <= 2 and tail[-1] not in ".!。！")
+    if not is_citation:
+        return text, ""
+    return text[:cut].strip(), tail.strip(" .;:,；：。，、")
+
+
+# How an entry of a reference ended in print decides how the next one joins it.
+REF_CLOSERS = " .;:,；：。，、"
+REF_SOFT = ",，、"      # the list carries on: "Romanos 7:12," then "14"
+REF_DASHES = {"-", "–", "—"}
+REF_QUOTES = "«„“\"‘'「『"
+REF_OPENERS = "（(［[「【"
+REF_BARE_NUMBER = re.compile(r"^[\d\s,.:;\-–—]+$")
+ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"))
+
+
+def question_reference(sub: dict, sep: str = "; ", lead: str = "") -> str:
     """The scripture reference printed after a question -- "1. Korinther 13, 12."
 
-    In the source, `q` is a list: the question itself first, then one entry per
-    reference, each carrying an `sOsis` id. Only the first entry used to be
-    read, so the overlay had nothing to set in the gold italic the design
-    gives a reference. Joined as the lesson prints them; the trailing full
-    stop is dropped because on air the reference ends the line, not a
-    sentence."""
-    # Each entry arrives with whatever closed it in print -- "Exodus 34:6, 7;",
-    # "Jonah 4:2.", "出34：6，7；" -- so the closers come off before the entries are
-    # joined again; left on, two of them meet in the middle as ";;".
-    refs = [x.get("text", "").strip().strip(" .;:,；：。，、") for x in sub.get("q", [])[1:] if x.get("text", "").strip()]
-    # An entry that opens with a quotation mark is the verse quoted out in full,
-    # not a citation of it -- "«19Итак, покайтесь...»". It has no place on a lower
-    # third, and leaving it in only to cut it out again leaves its punctuation behind.
-    refs = [r for r in refs if r and r[0] not in "«„“\"‘'「『"]
-    # Some sources (Japanese most of all) split a citation's bracketed note into
-    # an entry of its own -- "ヨナ書 4:2", "（下句）" -- and occasionally leave a lone
-    # bracket behind as a third. The note goes back onto the citation it belongs
-    # to; an entry with nothing in it but brackets is not a citation at all.
+    In the source, `q` is a list: the question itself first, then the reference
+    in pieces -- one entry per citation (each carrying an `sOsis` id) and,
+    between them, whatever the lesson printed there. Almost always that is a
+    space. The rest is what this function is for:
+
+      "Luc 12:32;"  "1"  " Peter 4:13."     a book's number, split off its name
+      "Romanos 7:12,"  "14"  " e "  "Romanos 7:24."    a verse, and a word, between
+      "ヨハネ 16:"  "20"                     a verse split off its chapter
+      "Jonah 4:2"  "(last part);"           a note on the citation before it
+      "Jón 4:2."  "ur; "                    the same note, abbreviated, no brackets
+      "От Иоанна 1:51."  "20"               the printed lesson's page number
+      "«19Итак, покайтесь...»"              the verse itself, quoted in full
+
+    Joining every entry with "; " -- what this did at first -- put "1; Peter
+    4:13" and "От Иоанна 1:51; 20" on air. Each piece now goes where print had
+    it, the page numbers and quoted verses go nowhere, and the trailing full
+    stop is dropped because on air the reference ends the line, not a sentence."""
+    raw = [x.get("text", "") for x in sub.get("q", [])[1:]]
+    # `lead` is what split_trailing_citation() took off the end of the question:
+    # a citation of its own if it has a digit in it, otherwise the opening word of
+    # the first citation -- which is exactly what an unclosed word entry is below.
+    if lead:
+        raw.insert(0, lead + ";" if any(c.isdigit() for c in lead) else lead)
+    # Zero-width spaces come along from the page layout -- inside Thai book names,
+    # and once as an entry with nothing else in it. A reference never wraps, so
+    # they do nothing here except stop two equal citations comparing equal.
+    raw = [r.translate(ZERO_WIDTH) for r in raw]
+    # Out go the blanks, the verses quoted in full (they open with a quotation
+    # mark), and entries that are brackets and nothing else -- the Japanese
+    # source closes every reference with a "）。" of its own.
+    raw = [r for r in raw if r.strip()
+           and r.strip()[0] not in REF_QUOTES
+           and r.strip().strip(REF_CLOSERS + "（）()[]［］「」【】")]
+
     parts: list[str] = []
-    for r in refs:
-        if not r.strip("（）()[]［］「」【】 "):
+    prefix = ""       # words waiting for the citation they open: "e", "До", "1"
+    tight = False     # a dash is waiting: the next citation closes a range
+    prev_end = ""     # the character the entry before ended on, in print
+    for i, r in enumerate(raw):
+        t = r.strip().strip(REF_CLOSERS)
+        end = r.rstrip()[-1:]
+        closed = end in REF_CLOSERS or i == len(raw) - 1
+
+        if t in REF_DASHES:
+            tight = True
             continue
-        if parts and r[0] in "（(［[「【":
-            parts[-1] += ("" if r[0] in "（［「【" else " ") + r
+
+        # "(last part)" -- a note goes back onto the citation it is about.
+        if parts and t[0] in REF_OPENERS:
+            parts[-1] += ("" if t[0] in "（［「【" else " ") + t
+            prev_end = end
+            continue
+
+        if REF_BARE_NUMBER.match(t):
+            if parts and prev_end in REF_SOFT:          # "...7:12," "14"
+                parts[-1] += ("，" if prev_end in "，、" else ", ") + t
+                prev_end = end
+            elif parts and prev_end == ":":             # "...16:" "20"
+                parts[-1] += ":" + t
+                prev_end = end
+            elif t in {"1", "2", "3", "4"} and not closed:   # "1" " Peter 4:13"
+                prefix = f"{prefix} {t}".strip()
+            elif not parts and ":" in t:                # a lead with no book name: "3:8–10"
+                parts.append(t)
+                prev_end = end
+            # Anything else is a page number of the printed lesson, caught up in
+            # the text where the page happened to break. It is not shown.
+            continue
+
+        if not any(c.isdigit() for c in t):             # a word, not a citation
+            if closed and parts:
+                # It closes what it follows: Hungarian "ur" (utolsó rész, "last
+                # part"). Where the citation itself ended on an abbreviation's
+                # dot -- "2Kor 5:14, 15 e." "r" -- the two are one abbreviation.
+                one_word = prev_end == "." and parts[-1][-1:].isalpha()
+                parts[-1] += ("." if one_word else " ") + t
+                prev_end = end
+            elif not closed:
+                prefix = f"{prefix} {t}".strip()
+            continue
+
+        joined_by_word = bool(prefix)
+        if prefix:
+            t = f"{prefix} {t}"
+        # A citation after a comma still gets the full separator. Print had "Romans
+        # 7:12, 14, 24"; the source spells each verse out as a citation of its own,
+        # and "Romans 7:12, Romans 7:14" reads as one run-on where "; " keeps them apart.
+        if tight and parts:
+            # "Псалом 51:12" "-" "Псалми 51:15" is print's "Псалом 51:12-15".
+            a = re.search(r"(\d+)[:：]\d+$", parts[-1])
+            z = re.search(r"(\d+)[:：](\d+)$", t)
+            parts[-1] += "-" + (z.group(2) if a and z and a.group(1) == z.group(1) else t)
+        elif parts and joined_by_word and prev_end not in REF_CLOSERS:
+            parts[-1] += " " + t                         # "Daniel 1:8" "e" "Daniel 1:15"
         else:
-            parts.append(r)
+            parts.append(t)
+        prefix, tight, prev_end = "", False, end
     ref = sep.join(parts)
     # A few sources quote the verse inside the reference ("Деяния 3:19, 20: «19Итак,
     # покайтесь...»"). On a lower third that is a third line of small print, so the
@@ -137,11 +263,18 @@ def build_lesson_entries(data: dict, letters: list[str], ref_sep: str = "; "):
                     # alphabet only for a source that left it out.
                     fallback = letters[day_index] if day_index < len(letters) else str(day_index + 1)
                     letter = marker or fallback
+                    # A citation still attached to the question's text joins the rest
+                    # of its reference -- but only when that leaves a reference short
+                    # enough to show; otherwise the question keeps its text as it was.
+                    trimmed, lead = split_trailing_citation(q)
+                    ref = question_reference(sub, ref_sep, lead)
+                    if lead and not ref:
+                        trimmed, ref = q, question_reference(sub, ref_sep)
                     questions.append({
                         "letter": letter,
                         "sectionTitle": day_title,
-                        "text": q,
-                        "ref": question_reference(sub, ref_sep),
+                        "text": trimmed,
+                        "ref": ref,
                     })
                     day_index += 1
 
