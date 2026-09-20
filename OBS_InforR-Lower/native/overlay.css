@@ -89,8 +89,53 @@
   font-display: block;
 }
 
+/*
+ * Japanese, Chinese, Thai. Open Sans has no glyph for any of them, and three of
+ * the twenty-two lesson languages are written in nothing else -- left to
+ * `sans-serif` they came out in whatever the machine had, which is the failure
+ * described at the top of this block wearing a different hat. These are Noto
+ * Sans cut down to the characters that matter and the two weights the overlay
+ * uses (tools/build-cjk-fonts.py builds them; fonts/README.md has the detail).
+ *
+ * `unicode-range` keeps each one to its own script: they sit after Open Sans in
+ * the stack and are never so much as fetched for a Latin or Cyrillic lesson.
+ * Japanese and Chinese claim the SAME range, on purpose -- the two languages
+ * draw many of the same characters differently, so which file answers for a
+ * Han character is decided by the language of the lesson (see :lang(zh) below),
+ * not by the character.
+ */
+@font-face {
+  font-family: 'Noto Sans JP';
+  src: url('fonts/NotoSansJP-Subset.woff2') format('woff2-variations'),
+       url('fonts/NotoSansJP-Subset.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+3000-30FF, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: 'Noto Sans SC';
+  src: url('fonts/NotoSansSC-Subset.woff2') format('woff2-variations'),
+       url('fonts/NotoSansSC-Subset.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+3000-303F, U+3400-4DBF, U+4E00-9FFF, U+FF00-FFEF;
+}
+
+@font-face {
+  font-family: 'Noto Sans Thai';
+  src: url('fonts/NotoSansThai-Subset.woff2') format('woff2-variations'),
+       url('fonts/NotoSansThai-Subset.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: block;
+  unicode-range: U+0E00-0E7F;
+}
+
 .overlay-root {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Open Sans', 'Noto Sans Thai', 'Noto Sans JP', 'Noto Sans SC', sans-serif;
   text-transform: uppercase;
   line-height: 1;
   position: relative;
@@ -151,6 +196,24 @@
   color: var(--line2-color, #c6a15b);
   font-style: italic;
   white-space: nowrap;
+}
+
+/* A Chinese lesson takes its Han characters from the Chinese file. Without the
+   language the Japanese one, first in the stack, would answer for them -- same
+   characters, the other country's way of drawing them. overlay.html sets `lang`
+   on the root from what the panel sends. */
+.overlay-root:lang(zh) {
+  font-family: 'Open Sans', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+}
+
+/* None of these three scripts has an italic, and none of these fonts pretends
+   to: asked for one, the browser shears the upright, which on a kanji or a Thai
+   vowel mark is just damage. The reference keeps its colour and drops the
+   slant. */
+.overlay-root:lang(ja) .ref,
+.overlay-root:lang(zh) .ref,
+.overlay-root:lang(th) .ref {
+  font-style: normal;
 }
 
 /* ============================================================

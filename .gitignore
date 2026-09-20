@@ -13,3 +13,7 @@ node_modules/
 #
 # to regenerate it locally. See README.md and OBS_InforR-Lower/LOCAL-SETUP.md.
 OBS_InforR-Lower/lessons-data.json
+
+# Upstream font files fetched by tools/build-cjk-fonts.py -- tens of megabytes,
+# and only ever an input to the small subsets that ARE committed.
+OBS_InforR-Lower/tools/.font-cache/

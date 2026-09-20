@@ -64,7 +64,7 @@
 		/*
 		Two ways in, one renderer.
 
-		URL parameters (id, line1, line2, ref, color1, color2, mode) -- read once at
+		URL parameters (id, line1, line2, ref, lang, color1, color2, mode) -- read once at
 		load. This is how the overlay has always been driven and it still works
 		unchanged: result-wirecast.html points its iframe at a fresh URL on every
 		Show, and a page loaded that way simply plays its entrance.
@@ -113,6 +113,9 @@
 				line1: (data.line1 || '').trim() || (mode === 'lesson' ? 'Lesson Title' : 'Section Title'),
 				line2: (data.line2 || '').trim() || (mode === 'lesson' ? 'Memory verse' : 'Question text'),
 				ref: (data.ref || '').trim(),
+				// Two letters, as the lesson bundle names its languages. It picks the
+				// font for scripts that share characters -- see :lang() in overlay.css.
+				lang: /^[a-z]{2,3}$/i.test(data.lang || '') ? data.lang.toLowerCase() : '',
 				color1: sanitizeHex(data.color1, 'ffffff'),
 				color2: sanitizeHex(data.color2, 'c6a15b')
 			};
@@ -184,9 +187,13 @@
 			]));
 		}
 
+		// Colours and language: the two things about a question that are not its
+		// text. Set on every show, entrance or swap alike.
 		function applyColors(s) {
 			root.style.setProperty('--line1-color', '#' + s.color1);
 			root.style.setProperty('--line2-color', '#' + s.color2);
+			if (s.lang) root.lang = s.lang;
+			else root.removeAttribute('lang');
 		}
 
 		// Re-cuts the plate's slant whenever its height changes -- a font finishing
@@ -329,6 +336,7 @@
 				line1: params.get('line1'),
 				line2: params.get('line2'),
 				ref: params.get('ref'),
+				lang: params.get('lang'),
 				color1: params.get('color1'),
 				color2: params.get('color2')
 			});

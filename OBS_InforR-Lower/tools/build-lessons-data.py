@@ -31,21 +31,36 @@ QUARTER_FILE_RE = re.compile(r"^([a-z]{2})-(\d{4})-(\d)\.json$")
 REF_MAX_CHARS = 72
 
 
-def strip_leading_letter(text: str) -> str:
-    """Drop an already-embedded letter marker ('a. ', 'а.') from the start of a
-    question -- the panel adds its own letter/label, so a source string that
-    already starts with one would otherwise show up doubled."""
-    return re.sub(r"^\s*[a-zA-Zа-яА-ЯёЁ]\.\s*", "", text.strip())
+# One letter of any script, then a full stop: "a. ", "а.", "ข. ", "A." -- with or
+# without the space, since the sources are not consistent about it.
+LETTER_MARKER_RE = re.compile(r"^\s*([^\W\d_])\.\s*")
 
 
-def first_question_text(sub: dict) -> str | None:
+def split_letter_marker(text: str) -> tuple[str, str]:
+    """("a", "What evidence...") from "a. What evidence...".
+
+    The marker is split off because the panel prints the letter itself, and a
+    question that kept its own would show it twice. It is RETURNED, not thrown
+    away, because the lesson's own letter is the right one to print and cannot
+    be reconstructed from an alphabet: Serbian counts а, б, ц where Russian
+    counts а, б, в; Portuguese prints capitals; Thai uses ก, ข, ค. The pattern
+    used to know Latin and Cyrillic only, so Thai questions went out as
+    "b. ข. ..." -- both letters."""
+    text = text.strip()
+    m = LETTER_MARKER_RE.match(text)
+    return (m.group(1), text[m.end():]) if m else ("", text)
+
+
+def first_question(sub: dict) -> tuple[str, str] | None:
+    """(letter marker or "", question text) for a subsection, or None if it has
+    no question at all."""
     parts = [x.get("text", "").strip() for x in sub.get("q", []) if x.get("text", "").strip()]
     if not parts:
         return None
-    return strip_leading_letter(parts[0])
+    return split_letter_marker(parts[0])
 
 
-def question_reference(sub: dict) -> str:
+def question_reference(sub: dict, sep: str = "; ") -> str:
     """The scripture reference printed after a question -- "1. Korinther 13, 12."
 
     In the source, `q` is a list: the question itself first, then one entry per
@@ -54,8 +69,27 @@ def question_reference(sub: dict) -> str:
     gives a reference. Joined as the lesson prints them; the trailing full
     stop is dropped because on air the reference ends the line, not a
     sentence."""
-    refs = [x.get("text", "").strip().rstrip(". ") for x in sub.get("q", [])[1:] if x.get("text", "").strip()]
-    ref = "; ".join(r for r in refs if r)
+    # Each entry arrives with whatever closed it in print -- "Exodus 34:6, 7;",
+    # "Jonah 4:2.", "出34：6，7；" -- so the closers come off before the entries are
+    # joined again; left on, two of them meet in the middle as ";;".
+    refs = [x.get("text", "").strip().strip(" .;:,；：。，、") for x in sub.get("q", [])[1:] if x.get("text", "").strip()]
+    # An entry that opens with a quotation mark is the verse quoted out in full,
+    # not a citation of it -- "«19Итак, покайтесь...»". It has no place on a lower
+    # third, and leaving it in only to cut it out again leaves its punctuation behind.
+    refs = [r for r in refs if r and r[0] not in "«„“\"‘'「『"]
+    # Some sources (Japanese most of all) split a citation's bracketed note into
+    # an entry of its own -- "ヨナ書 4:2", "（下句）" -- and occasionally leave a lone
+    # bracket behind as a third. The note goes back onto the citation it belongs
+    # to; an entry with nothing in it but brackets is not a citation at all.
+    parts: list[str] = []
+    for r in refs:
+        if not r.strip("（）()[]［］「」【】 "):
+            continue
+        if parts and r[0] in "（(［[「【":
+            parts[-1] += ("" if r[0] in "（［「【" else " ") + r
+        else:
+            parts.append(r)
+    ref = sep.join(parts)
     # A few sources quote the verse inside the reference ("Деяния 3:19, 20: «19Итак,
     # покайтесь...»"). On a lower third that is a third line of small print, so the
     # quotation goes and the citation stays. Anything still too long to sit at the
@@ -79,7 +113,7 @@ def find_quarter_files(lang: str):
     return sorted(found, key=lambda t: (t[0], t[1]), reverse=True)
 
 
-def build_lesson_entries(data: dict, letters: list[str]):
+def build_lesson_entries(data: dict, letters: list[str], ref_sep: str = "; "):
     lessons = []
     for les in data.get("lessons", []):
         questions = []
@@ -96,22 +130,32 @@ def build_lesson_entries(data: dict, letters: list[str]):
             day_title = day.get("sectionTitle", "").strip()
             day_index = 0
             for sub in day.get("subsections", []):
-                q = first_question_text(sub)
-                if q:
-                    letter = letters[day_index] if day_index < len(letters) else str(day_index + 1)
+                found = first_question(sub)
+                if found and found[1]:
+                    marker, q = found
+                    # The lesson's own letter where it printed one; the positional
+                    # alphabet only for a source that left it out.
+                    fallback = letters[day_index] if day_index < len(letters) else str(day_index + 1)
+                    letter = marker or fallback
                     questions.append({
                         "letter": letter,
                         "sectionTitle": day_title,
                         "text": q,
-                        "ref": question_reference(sub),
+                        "ref": question_reference(sub, ref_sep),
                     })
                     day_index += 1
 
-        # Extract introduction from keyText.text (opening verse/summary)
+        # Extract introduction from keyText.text (opening verse/summary), and the
+        # reference that goes with it -- shown after the verse the same way a
+        # question's reference is. For a source that carries only the label and
+        # no verse (Ukrainian, this quarter) the reference is all there is to show.
         introduction = ""
+        introduction_ref = ""
         key_text = les.get("keyText")
         if isinstance(key_text, dict):
             introduction = key_text.get("text", "").strip()
+            ref = key_text.get("ref")
+            introduction_ref = (ref.get("text", "") if isinstance(ref, dict) else ref or "").strip().rstrip(". ")
         elif isinstance(key_text, str):
             introduction = key_text.strip()
 
@@ -125,6 +169,7 @@ def build_lesson_entries(data: dict, letters: list[str]):
             "header": les.get("header", "").strip(),
             "title": les.get("title", "").strip(),
             "introduction": introduction,
+            "introductionRef": introduction_ref,
             "questions": questions,
         })
     return lessons
@@ -157,7 +202,9 @@ def main():
             quarters.setdefault(key, {"year": year, "quarter": quarter, "languages": {}})
             quarters[key]["languages"][lang] = {
                 "quarterTitle": data.get("title", ""),
-                "lessons": build_lesson_entries(data, letters),
+                # Chinese separates its citations with its own full-width
+                # semicolon; everything else here uses the ASCII one.
+                "lessons": build_lesson_entries(data, letters, "；" if lang == "zh" else "; "),
             }
 
     if not quarters:
@@ -170,6 +217,48 @@ def main():
     bundle = {"quarters": quarters}
     OUT_PATH.write_text(json.dumps(bundle, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nWrote {OUT_PATH} ({OUT_PATH.stat().st_size} bytes)")
+
+    check_font_coverage(quarters)
+
+
+def check_font_coverage(quarters: dict) -> None:
+    """Says so when the lesson text contains a character none of the bundled
+    fonts can draw. The overlay runs offline, so such a character comes out in
+    whatever the streaming machine happens to have installed -- or as a box.
+    A new quarter is the one moment that can change, and this is the script
+    that runs then. Needs fontTools; without it the check is skipped, not failed."""
+    try:
+        from fontTools.ttLib import TTFont
+    except ImportError:
+        print("(fontTools not installed -- skipped the font coverage check)")
+        return
+
+    fonts_dir = OUT_PATH.parent / "native" / "fonts"
+    covered: set[int] = set()
+    for path in sorted(fonts_dir.glob("*.woff2")):
+        covered |= set(TTFont(path).getBestCmap())
+
+    missing: dict[str, set[str]] = {}
+    for q in quarters.values():
+        for lang, data in q["languages"].items():
+            for lesson in data["lessons"]:
+                texts = [lesson["title"], lesson["header"], lesson["introduction"], lesson["introductionRef"]]
+                for question in lesson["questions"]:
+                    texts += [question["text"], question["ref"], question["letter"],
+                              question["sectionTitle"], question["sectionTitle"].upper()]
+                for t in texts:
+                    gaps = {c for c in t if not c.isspace() and ord(c) not in covered}
+                    if gaps:
+                        missing.setdefault(lang, set()).update(gaps)
+
+    if not missing:
+        print("Fonts: every character in every language is covered by the bundled files.")
+        return
+    print("\nFonts: some characters are NOT in the bundled fonts:")
+    for lang, chars in sorted(missing.items()):
+        sample = "".join(sorted(chars))[:40]
+        print(f"  {lang}: {len(chars)} -- {sample}")
+    print("  For ja / zh / th run tools/build-cjk-fonts.py, which re-cuts those fonts from this data.")
 
 
 if __name__ == "__main__":
