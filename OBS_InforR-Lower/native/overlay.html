@@ -7,31 +7,28 @@
 	<!--
 	Copyright (c) 2026 Maestro. MIT licence -- see /LICENSE at the repository root.
 
-	This page builds the overlay markup itself, with ordinary DOM calls. It shared
-	no code with the original lower-thirds script this project started from --
-	which did the same job with document.writeln() -- and that script has since
-	been deleted from the repository. What
-	it draws is not equally original in every part, and overlay.css says exactly
-	where the line falls: styles 1 and 2 reproduce the motion of Matt Chestnut's
-	CodePen (https://codepen.io/mattchestnut/pen/dMrONe, reached via
-	https://github.com/vjccruz/lower-thirds-obs, MIT), while style 3 "Quiet Rule" is
-	ours. The implementation on both sides of that line is ours.
+	This page builds the overlay markup itself, with ordinary DOM calls, and
+	decides how what it is asked to show should ARRIVE: as an entrance, as a
+	swap of one line on a plate that is already up, or -- for STOP -- as an
+	exit. overlay.css has the motion; the choice between the three is made
+	here, in show() and hide().
+
+	It shared no code with the original lower-thirds script this project started
+	from -- which did the same job with document.writeln() -- and that script has
+	since been deleted from the repository. What it draws is not equally original
+	in every part, and overlay.css says exactly where the line falls.
 	-->
 	<style>
 		/*
 		Background is true CSS transparent, not the original's solid black. This is a
 		deliberate improvement over it (see LOCAL-SETUP.md for the reasoning): that
-		page was meant to fill the FULL OBS canvas
-		and relied on a Chroma Key filter (keying out black) for transparency, which
-		was fine there. This page is OUR code and is only ever loaded as a small
-		iframe inside result.html's bottom strip (see result.html), never as a
-		full-canvas Browser Source by itself -- so real alpha transparency via
-		`background: transparent` is both possible and strictly better: no Chroma Key
-		filter needed at all, no risk of keying out a dark color that happens to
-		appear in the lesson text or a dark theme, and it composites correctly over
-		any OBS scene regardless of what's behind it. If a future use of this page
-		DOES want the old solid-black-plus-Chroma-Key behavior (e.g. loading it
-		full-canvas directly), that's a one-line change here.
+		page was meant to fill the FULL OBS canvas and relied on a Chroma Key filter
+		(keying out black) for transparency. This page is only ever loaded as a small
+		iframe inside result.html's bottom strip, never as a full-canvas Browser
+		Source by itself -- so real alpha transparency via `background: transparent`
+		is both possible and strictly better: no Chroma Key filter needed at all, no
+		risk of keying out a dark colour that happens to appear in the lesson text,
+		and it composites correctly over any OBS scene regardless of what's behind it.
 		*/
 		html, body {
 			margin: 0;
@@ -43,14 +40,10 @@
 		}
 
 		/*
-		Bottom-anchor natively: unlike the old original-page-in-an-iframe trick
-		(which needed a short "screen" purely so that CSS's `height:100%` centering
-		would resolve against a short box), this page IS the short box. No iframe-within
-		this page is needed. #overlay-root is sized to match result.html's previous
-		220px strip -- the height derivation (tallest template content vs a
-		1080px-tall OBS canvas) is unchanged and documented in result.html/
-		LOCAL-SETUP.md; this page keeps the same number since it's loaded inside an
-		iframe of that same size by result.html.
+		Bottom-anchored, 220px: the lower third of a 1080px canvas. result.html's
+		iframe is taller than this on purpose -- a style may grow the strip upward
+		for a question that runs to three lines (see overlay.css, style 1), and the
+		room for that has to exist above it.
 		*/
 		#overlay-root {
 			position: fixed;
@@ -69,30 +62,60 @@
 
 	<script>
 		/*
-		Reads the SAME URL parameters panel.html already sends (via result.html's
-		iframe `src`): id, line1, introduction, line2, color1, color2. Builds the markup for
-		whichever of the 3 styles was requested using plain DOM APIs (no
-		document.writeln -- that only works when a script runs during the initial
-		parse, and we want this page to be able to re-render without a reload).
+		Two ways in, one renderer.
 
-		render() clears and rebuilds #overlay-root's markup from scratch. Right now
-		it's only called once, at load, from the URL's own query string (this page
-		is still reloaded via the iframe's `src` on every "Show" press, the same
-		approach the original used, since that's simple and already proven reliable --
-		see LOCAL-SETUP.md). But render() takes plain arguments rather than reading
-		location.search itself, and does not assume it's called exactly once, so a
-		future postMessage-driven live-update path (no reload at all) can call it
-		directly without any changes to this function.
+		URL parameters (id, line1, line2, ref, color1, color2, mode) -- read once at
+		load. This is how the overlay has always been driven and it still works
+		unchanged: result-wirecast.html points its iframe at a fresh URL on every
+		Show, and a page loaded that way simply plays its entrance.
+
+		postMessage from the parent ({channel, type:'show'|'hide', data}) -- how
+		result.html drives it now. The page stays loaded between questions, which
+		is what makes the two things a reload could never do possible: changing
+		one line while the plate stays put, and leaving with an exit instead of
+		vanishing. Messages, not reaching into the iframe: a file:// parent cannot
+		touch a file:// iframe's document (see result.html), but it can always
+		post to it.
 		*/
+		const CHANNEL = 'infor-r-overlay';
 
-		function getParam(params, name, fallback) {
-			const value = params.get(name);
-			return value === null || value === '' ? fallback : value;
-		}
+		// The plate's slant, as the design draws it: 26.5px of lean over 115.5px
+		// of height. Multiplied by the plate's measured height to give the CSS the
+		// one number it cannot derive itself -- see .ss-plate in overlay.css.
+		const SLANT = 26.5 / 115.5;
+
+		// How long each style's exit runs, plus a frame or two. After this the
+		// markup is cleared and the parent is told it may hide the iframe.
+		const EXIT_MS = { '1': 800, '2': 720, '3': 420 };
+		// A changed line takes this long to clear before its replacement is put in.
+		const SWAP_OUT_MS = 270;
+		const RESIZE_MS = 360;
+
+		const root = document.getElementById('overlay-root');
+
+		let current = null;       // what is on air right now, or null
+		let leaveTimer = null;    // running while an exit plays
+		let swapTimer = null;     // running while a changed line clears
+		let pendingFill = null;   // the text replacement that swap is waiting to do
+		let plateObserver = null;
 
 		function sanitizeHex(value, fallback) {
 			const hex = (value || '').replace('#', '').trim();
 			return /^[0-9a-fA-F]{6}$/.test(hex) ? hex : fallback;
+		}
+
+		function normalise(data) {
+			const mode = data.mode === 'lesson' ? 'lesson' : 'question';
+			const id = ['1', '2', '3'].includes(String(data.id)) ? String(data.id) : '1';
+			return {
+				id,
+				mode,
+				line1: (data.line1 || '').trim() || (mode === 'lesson' ? 'Lesson Title' : 'Section Title'),
+				line2: (data.line2 || '').trim() || (mode === 'lesson' ? 'Memory verse' : 'Question text'),
+				ref: (data.ref || '').trim(),
+				color1: sanitizeHex(data.color1, 'ffffff'),
+				color2: sanitizeHex(data.color2, 'c6a15b')
+			};
 		}
 
 		// Small helper to build an element with class names and children in one go,
@@ -104,110 +127,216 @@
 			return node;
 		}
 
-		function textDiv(text) {
-			const inner = document.createElement('div');
-			inner.textContent = text;
-			return inner;
+		// The inner div is the thing that moves; the row around it is the mask.
+		function inner(text, ref) {
+			const node = document.createElement('div');
+			node.textContent = text;
+			if (ref) {
+				node.appendChild(document.createTextNode(' '));
+				const span = document.createElement('span');
+				span.className = 'ref';
+				span.textContent = ref;
+				node.appendChild(span);
+			}
+			return node;
 		}
 
-		function renderSlashSlide(root, line1, introduction, line2) {
+		function row(className, key, text, ref) {
+			const node = el('div', className, [inner(text, ref)]);
+			node.dataset.row = key;
+			return node;
+		}
+
+		function renderSlashSlide(s) {
 			root.className = 'overlay-root style-slash-slide';
-			const block = el('div', 'overlay-block', [
-				el('div', 'ss-slash color2', []),
-				el('div', 'ss-line ss-line1 color1 mask', [textDiv(line1)]),
-				el('div', 'ss-line ss-intro color2 mask', [textDiv(introduction)]),
-				el('div', 'ss-line ss-line2 color1 mask', [textDiv(line2)])
-			]);
-			block.querySelector('.ss-slash').textContent = '/';
-			root.appendChild(block);
+			root.appendChild(el('div', 'overlay-block', [
+				// Behind the text, pinned to the block -- grows when the text does.
+				el('div', 'ss-plate', [
+					el('div', 'ss-wipe', [el('div', 'ss-fill', [])]),
+					el('div', 'ss-stripe', [])
+				]),
+				row('ss-line ss-line1 color2 mask', 'line1', s.line1, ''),
+				row('ss-line ss-line2 color1 mask', 'line2', s.line2, s.ref)
+			]));
+			watchPlate();
 		}
 
-		function renderSlideUpDown(root, line1, introduction, line2) {
+		function renderSlideUpDown(s) {
 			root.className = 'overlay-root style-slide-up-down';
-			const block = el('div', 'overlay-block', [
-				el('div', 'sud-block sud-line1 color2 arimo mask', [textDiv(line1)]),
-				el('div', 'sud-block sud-intro color2 mask', [textDiv(introduction)]),
-				el('div', 'sud-block sud-line2 color1 mask', [textDiv(line2)])
-			]);
-			root.appendChild(block);
+			root.appendChild(el('div', 'overlay-block', [
+				row('sud-block sud-line1 color2 mask', 'line1', s.line1, ''),
+				row('sud-block sud-line2 color1 mask', 'line2', s.line2, s.ref)
+			]));
 		}
-
 
 		/*
 		"Quiet Rule" (id 3). Unlike the two above, this one does NOT wrap each
-		line in a `.mask` with an inner <div> that gets transformed: those two
-		slide their text in from outside its own box, so they need a clipping
-		parent to hide it beforehand. This one only fades and lifts each line a
-		fraction of its own height in place, so there is nothing to clip -- and
-		a fixed-height clipping box would actively break it, since qr-line2 is
-		the line that's allowed to wrap to two lines. The rule element is
-		decorative and empty; it sizes itself off the block via top/bottom.
+		line in a mask: it only fades and lifts each line a fraction of its own
+		height in place, so there is nothing to clip. It has no swap either -- a
+		change simply plays its (short) entrance again.
 		*/
-		function renderQuietRule(root, line1, introduction, line2) {
+		function renderQuietRule(s) {
 			root.className = 'overlay-root style-quiet-rule';
-			const block = el('div', 'overlay-block', [
+			root.appendChild(el('div', 'overlay-block', [
 				el('div', 'qr-rule', []),
-				el('div', 'qr-line1 color2 arimo', [textDiv(line1)])
-			]);
-			// The other two templates always emit their intro row because their
-			// layout gives it a fixed height either way. Here the rows are
-			// content-sized, so an empty intro would contribute nothing but its
-			// own bottom margin -- a gap between label and question that the
-			// design didn't ask for. Emit it only when there's something in it.
-			if (introduction) {
-				block.appendChild(el('div', 'qr-intro color1', [textDiv(introduction)]));
-			}
-			block.appendChild(el('div', 'qr-line2 color1', [textDiv(line2)]));
-			root.appendChild(block);
+				el('div', 'qr-line1 color2 arimo', [inner(s.line1, '')]),
+				el('div', 'qr-line2 color1', [inner(s.line2, s.ref)])
+			]));
 		}
 
-		function render(id, line1, line2, color1, color2, mode) {
-			const root = document.getElementById('overlay-root');
-			// Clear any previous render entirely (removes old elements + any inline
-			// styles/animation state) so a second "Show" with new text starts every
-			// animation fresh rather than being affected by the previous run's
-			// now-`forwards`-held end state.
+		function applyColors(s) {
+			root.style.setProperty('--line1-color', '#' + s.color1);
+			root.style.setProperty('--line2-color', '#' + s.color2);
+		}
+
+		// Re-cuts the plate's slant whenever its height changes -- a font finishing
+		// loading, a question wrapping, the block being resized during a swap. The
+		// observer fires once a frame while the height is in motion, which is what
+		// keeps the edge on the same line all the way through the transition.
+		function watchPlate() {
+			if (plateObserver) plateObserver.disconnect();
+			const plate = root.querySelector('.ss-plate');
+			if (!plate) return;
+			const cut = () => plate.style.setProperty('--ss-slant', (plate.offsetHeight * SLANT).toFixed(2) + 'px');
+			cut();
+			plateObserver = new ResizeObserver(cut);
+			plateObserver.observe(plate);
+		}
+
+		function clear() {
+			if (plateObserver) { plateObserver.disconnect(); plateObserver = null; }
 			root.replaceChildren();
+			root.className = '';
 			root.removeAttribute('style');
-
-			const safeColor1 = sanitizeHex(color1, 'fff');
-			const safeColor2 = sanitizeHex(color2, 'c6a15b');
-			root.style.setProperty('--line1-color', '#' + safeColor1);
-			root.style.setProperty('--line2-color', '#' + safeColor2);
-
-			const safeLine1 = line1 || (mode === 'lesson' ? 'Lesson Title' : 'Section Title');
-			const safeLine2 = line2 || (mode === 'lesson' ? 'MEMORY VERSE' : 'Question Text');
-			// Introduction is handled as an empty string for both modes, but we pass
-			// line2 content to maintain the same 3-line display regardless of mode.
-			const safeIntroduction = '';
-
-			switch (id) {
-				case '2':
-					renderSlideUpDown(root, safeLine1, safeIntroduction, safeLine2);
-					break;
-				case '3':
-					renderQuietRule(root, safeLine1, safeIntroduction, safeLine2);
-					break;
-				// 4 and 5 are still unimplemented ids kept falling back to
-				// style 1 rather than erroring, same as before 3 became real.
-				case '5':
-				case '4':
-				case '1':
-				default:
-					renderSlashSlide(root, safeLine1, safeIntroduction, safeLine2);
-					break;
-			}
 		}
+
+		// Everything rebuilt from nothing, so every entrance starts clean.
+		function renderFresh(s) {
+			clear();
+			applyColors(s);
+			if (s.id === '2') renderSlideUpDown(s);
+			else if (s.id === '3') renderQuietRule(s);
+			else renderSlashSlide(s);
+		}
+
+		// Brings the DOM level with `current` at once: finishes a swap that is
+		// still waiting to put its text in, drops every transitional class.
+		function settle() {
+			if (swapTimer) { clearTimeout(swapTimer); swapTimer = null; }
+			if (pendingFill) { pendingFill(); pendingFill = null; }
+			root.querySelectorAll('.is-out, .is-in').forEach((n) => n.classList.remove('is-out', 'is-in'));
+			const block = root.querySelector('.overlay-block');
+			if (block) { block.classList.remove('is-resizing'); block.style.height = ''; }
+		}
+
+		// Same style already on air: move only what changed.
+		function swapRows(prev, next) {
+			const changed = [];
+			if (prev.line1 !== next.line1) changed.push('line1');
+			if (prev.line2 !== next.line2 || prev.ref !== next.ref) changed.push('line2');
+			if (changed.length === 0) return;   // the same question again -- it is already up
+
+			const block = root.querySelector('.overlay-block');
+			const rows = changed.map((key) => root.querySelector('[data-row="' + key + '"]'));
+			rows.forEach((r) => r.classList.add('is-out'));
+
+			pendingFill = () => {
+				const before = block.offsetHeight;
+				rows.forEach((r) => {
+					const key = r.dataset.row;
+					r.replaceChildren(inner(next[key], key === 'line2' ? next.ref : ''));
+					r.classList.remove('is-out');
+					r.classList.add('is-in');
+				});
+				// A different number of lines: walk the block from its old height to
+				// its new one instead of letting it jump, and the plate -- pinned to
+				// the block -- grows with it.
+				const after = block.offsetHeight;
+				if (after !== before) {
+					block.style.height = before + 'px';
+					void block.offsetHeight;
+					block.classList.add('is-resizing');
+					block.style.height = after + 'px';
+					setTimeout(() => {
+						block.classList.remove('is-resizing');
+						block.style.height = '';
+					}, RESIZE_MS);
+				}
+			};
+
+			swapTimer = setTimeout(() => {
+				swapTimer = null;
+				const fill = pendingFill;
+				pendingFill = null;
+				if (fill) fill();
+			}, SWAP_OUT_MS);
+		}
+
+		function show(data) {
+			const next = normalise(data);
+
+			// Pressed during an exit: the exit is abandoned and this becomes an
+			// ordinary entrance.
+			if (leaveTimer) {
+				clearTimeout(leaveTimer);
+				leaveTimer = null;
+				current = null;
+			}
+
+			settle();
+
+			const swappable = current && current.id === next.id && next.id !== '3';
+			if (swappable) {
+				applyColors(next);
+				swapRows(current, next);
+			} else {
+				renderFresh(next);
+			}
+			current = next;
+		}
+
+		function hide() {
+			if (!current) { notify('hidden'); return; }
+			if (leaveTimer) return;
+			settle();
+			root.classList.add('is-leaving');
+			leaveTimer = setTimeout(() => {
+				leaveTimer = null;
+				current = null;
+				clear();
+				notify('hidden');
+			}, EXIT_MS[current.id] || 800);
+		}
+
+		function notify(type) {
+			if (window.parent !== window) window.parent.postMessage({ channel: CHANNEL, type }, '*');
+		}
+
+		window.addEventListener('message', (event) => {
+			// Only the page that embeds this one may drive it.
+			if (event.source !== window.parent) return;
+			const message = event.data;
+			if (!message || message.channel !== CHANNEL) return;
+			if (message.type === 'show' && message.data) show(message.data);
+			else if (message.type === 'hide') hide();
+		});
 
 		const params = new URLSearchParams(window.location.search);
-		render(
-			getParam(params, 'id', '1'),
-			getParam(params, 'line1', ''),
-			getParam(params, 'line2', ''),
-			getParam(params, 'color1', 'fff'),
-			getParam(params, 'color2', 'c6a15b'),
-			getParam(params, 'mode', 'question')
-		);
+		if (params.has('line1') || params.has('line2')) {
+			show({
+				id: params.get('id'),
+				mode: params.get('mode'),
+				line1: params.get('line1'),
+				line2: params.get('line2'),
+				ref: params.get('ref'),
+				color1: params.get('color1'),
+				color2: params.get('color2')
+			});
+		}
+
+		// Tells the parent that messages will be heard from here on. Until it has
+		// seen this, result.html keeps using the URL to show things.
+		notify('ready');
 	</script>
 </body>
 </html>

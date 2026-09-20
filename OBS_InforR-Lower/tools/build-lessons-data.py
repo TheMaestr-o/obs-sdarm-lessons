@@ -26,6 +26,9 @@ from pathlib import Path
 SOURCE_DIR = Path("/Users/ohnedan/Developer/sbl/data")
 OUT_PATH = Path(__file__).resolve().parent.parent / "lessons-data.json"
 QUARTER_FILE_RE = re.compile(r"^([a-z]{2})-(\d{4})-(\d)\.json$")
+# Longest reference the overlay will carry after a question -- about a third of
+# a line at the question's size, enough for three or four plain citations.
+REF_MAX_CHARS = 72
 
 
 def strip_leading_letter(text: str) -> str:
@@ -40,6 +43,26 @@ def first_question_text(sub: dict) -> str | None:
     if not parts:
         return None
     return strip_leading_letter(parts[0])
+
+
+def question_reference(sub: dict) -> str:
+    """The scripture reference printed after a question -- "1. Korinther 13, 12."
+
+    In the source, `q` is a list: the question itself first, then one entry per
+    reference, each carrying an `sOsis` id. Only the first entry used to be
+    read, so the overlay had nothing to set in the gold italic the design
+    gives a reference. Joined as the lesson prints them; the trailing full
+    stop is dropped because on air the reference ends the line, not a
+    sentence."""
+    refs = [x.get("text", "").strip().rstrip(". ") for x in sub.get("q", [])[1:] if x.get("text", "").strip()]
+    ref = "; ".join(r for r in refs if r)
+    # A few sources quote the verse inside the reference ("Деяния 3:19, 20: «19Итак,
+    # покайтесь...»"). On a lower third that is a third line of small print, so the
+    # quotation goes and the citation stays. Anything still too long to sit at the
+    # end of a line is dropped whole rather than shown cut off mid-citation.
+    if len(ref) > REF_MAX_CHARS:
+        ref = re.sub(r"\s*(\([^)]*\))?\s*:?\s*[«„“\"][^»“”\"]*[»“”\"]", "", ref).strip(" ;")
+    return ref if len(ref) <= REF_MAX_CHARS else ""
 
 
 def find_quarter_files(lang: str):
@@ -76,7 +99,12 @@ def build_lesson_entries(data: dict, letters: list[str]):
                 q = first_question_text(sub)
                 if q:
                     letter = letters[day_index] if day_index < len(letters) else str(day_index + 1)
-                    questions.append({"letter": letter, "sectionTitle": day_title, "text": q})
+                    questions.append({
+                        "letter": letter,
+                        "sectionTitle": day_title,
+                        "text": q,
+                        "ref": question_reference(sub),
+                    })
                     day_index += 1
 
         # Extract introduction from keyText.text (opening verse/summary)

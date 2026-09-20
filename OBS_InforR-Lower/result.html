@@ -12,25 +12,25 @@
 			height: 100%;
 			/* True transparency: native/overlay.html (loaded in the iframe below) is
 			   transparent too, so nothing on this page needs a black backdrop for a
-			   Chroma Key filter to key out anymore -- add this file directly as an
-			   OBS Browser Source with no Chroma Key filter required. */
+			   Chroma Key filter to key out -- add this file directly as an OBS
+			   Browser Source with no Chroma Key filter required. */
 			background: transparent;
 			overflow: hidden;
 		}
 		/*
-		Bottom-anchor strip: native/overlay.html now bottom-anchors ITSELF
-		(position:fixed;left:0;bottom:0 on its own #overlay-root -- see that file),
-		so this iframe no longer needs to be short purely as a CSS trick. It's kept
-		short anyway (same 220px as before) simply because that's the intended
-		lower-third size on the 1920x1080 canvas -- see native/overlay.html's own
-		comment for the height reasoning, unchanged from the original derivation.
+		The overlay anchors ITSELF to the bottom of whatever it is given (see
+		native/overlay.html), in a strip 220px tall -- the lower third of a 1080px
+		canvas. This frame is taller than that on purpose: a question that runs to
+		three lines grows the strip upward rather than off the bottom of the
+		picture, and the room for that has to exist. Everything above the strip is
+		transparent, so the extra height costs nothing on screen.
 		*/
 		#overlayFrame {
 			position: fixed;
 			left: 0;
 			bottom: 0;
 			width: 100%;
-			height: 220px;
+			height: 340px;
 			border: 0;
 			display: block;
 			background: transparent;
@@ -47,87 +47,133 @@
 <body>
 	<!--
 	This page is a thin wrapper around native/overlay.html (OUR OWN code -- see
-	LOCAL-SETUP.md). It does not render the lower third itself: it
-	listens on a BroadcastChannel for new data sent from panel.html and points an
-	<iframe> at native/overlay.html with the new parameters.
+	LOCAL-SETUP.md). It does not render the lower third itself: it listens for
+	what panel.html sends and passes it on to the overlay in the iframe.
 
-	Earlier versions of this file pointed at a third-party lower-thirds page (since
-	deleted from the repository) and, after
-	loading it, reached INTO the iframe's contentDocument to pause its
-	animation mid-hold (freezing it before its built-in reverse phase could play).
-	That approach could not work: Chromium enforces same-origin restrictions
-	between file:// documents strictly enough that a parent file:// page cannot
-	read another file:// iframe's contentDocument, even though both report the
-	same "file://" origin -- confirmed from inside this page's own script, not
-	just from an external test harness. Since OBS's Browser Source is Chromium
-	(CEF) too, that failure mode is real in actual OBS use, not just local testing.
+	How it passes it on changed, and the history is worth keeping. The first
+	version pointed the iframe at a third-party page and reached INTO its
+	contentDocument to freeze the animation mid-hold. That could not work:
+	Chromium will not let a file:// page read another file:// iframe's document,
+	and OBS's Browser Source is Chromium too. The second version side-stepped the
+	problem by never reaching in at all -- it only ever WROTE the iframe's `src`,
+	a fresh URL per question, and the overlay replayed its entrance on every
+	load.
 
-	native/overlay.html sidesteps the problem entirely: its CSS animations are our
-	own, written to run their "appear" phase once and then hold forever
-	(`animation-fill-mode: forwards`, no `alternate`, no auto-reverse) -- so there
-	is nothing left to freeze, and no need to reach into the iframe at all. This
-	page only ever WRITES the iframe's `src`; it never reads anything back out of
-	it. See native/overlay.css and native/overlay.html for the implementation, and
-	LOCAL-SETUP.md for the full writeup.
+	That was reliable and it had two costs. Every new question took the whole
+	lower third down and brought it back, even when only one line had changed;
+	and STOP could do nothing but make the iframe vanish, because a page cannot
+	be asked to leave gracefully by unloading it. So the overlay now stays
+	loaded, and this page talks to it with postMessage -- which, unlike reading
+	its document, IS allowed across file:// origins. The overlay decides how the
+	new content should arrive: an entrance, a swap of the one line that changed,
+	or an exit.
+
+	The `src` route is still here and still used: for the first thing shown (the
+	iframe starts empty), and whenever the overlay has not yet said it is
+	listening.
 
 	Add THIS file (result.html) as the OBS Browser Source at the full canvas size
-	(e.g. 1920x1080), not native/overlay.html directly, and keep panel.html open in
-	a separate window/tab to control it.
+	(e.g. 1920x1080), not native/overlay.html directly.
 	-->
 	<iframe id="overlayFrame" title="Lower third overlay" hidden></iframe>
 
 	<script>
 		const CHANNEL_NAME = 'infor-r-lower-thirds';
 		const STORAGE_KEY = 'infor-r-lower-thirds-state';
+		const OVERLAY_CHANNEL = 'infor-r-overlay';
 		const channel = new BroadcastChannel(CHANNEL_NAME);
 
 		const frameEl = document.getElementById('overlayFrame');
-		let lastAppliedAt = 0; // dedupes the same Show press arriving on both channels
+		let lastAppliedAt = 0;     // dedupes the same press arriving on both channels
+		let overlayReady = false;  // the overlay in the iframe has said it hears messages
+		let onAir = false;         // something is showing, or on its way in
+		let hideTimer = null;      // the safety net under an exit -- see hideOverlay()
+
+		function post(type, data) {
+			// '*' because under file:// the iframe's origin is "null" and cannot be
+			// named. Nothing sensitive travels here -- a lesson question -- and the
+			// overlay checks that the sender is its own parent.
+			frameEl.contentWindow.postMessage({ channel: OVERLAY_CHANNEL, type, data }, '*');
+		}
+
+		window.addEventListener('message', (event) => {
+			if (event.source !== frameEl.contentWindow) return;
+			const message = event.data;
+			if (!message || message.channel !== OVERLAY_CHANNEL) return;
+			if (message.type === 'ready') overlayReady = true;
+			// The exit has finished playing -- nothing left to look at.
+			if (message.type === 'hidden' && !onAir) finishHide();
+		});
+
+		function finishHide() {
+			if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+			frameEl.hidden = true;
+		}
+
+		function hideOverlay() {
+			onAir = false;
+			if (frameEl.hidden) return;
+			if (!overlayReady) { finishHide(); return; }
+			post('hide');
+			// The overlay reports back when its exit is done. If that message never
+			// comes, the iframe is hidden anyway a moment later: STOP has to mean
+			// stop, whatever state the page inside is in.
+			if (hideTimer) clearTimeout(hideTimer);
+			hideTimer = setTimeout(finishHide, 1200);
+		}
+
+		function showOverlay(data) {
+			if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+			const payload = {
+				id: data.id || '1',
+				mode: data.mode || 'question',
+				line1: data.line1 || '',
+				line2: data.line2 || '',
+				ref: data.ref || '',
+				color1: data.color1 || '',
+				color2: data.color2 || ''
+			};
+
+			// Already loaded and listening: hand it the content and let it choose
+			// between an entrance and a swap.
+			if (overlayReady && !frameEl.hidden) {
+				post('show', payload);
+				onAir = true;
+				return;
+			}
+
+			// Otherwise the old way: a fresh URL, which the overlay reads at load.
+			const params = new URLSearchParams();
+			Object.keys(payload).forEach((key) => { if (payload[key]) params.set(key, payload[key]); });
+			// Cache-bust so two identical presses still produce two loads: setting
+			// .src to the string it already holds is a no-op in every browser.
+			params.set('_t', Date.now().toString());
+			overlayReady = false;
+			frameEl.src = 'native/overlay.html?' + params.toString();
+			frameEl.hidden = false;
+			onAir = true;
+		}
 
 		function applyData(data) {
 			if (!data) return;
 
-			// Handle hide mode: immediately clear the overlay without de-duplication check
 			if (data.mode === 'hide') {
-				frameEl.hidden = true;
-				// Clear lastAppliedAt so hide-then-reshow of the same question is not
-				// swallowed by deduplication: the next Show press with the same _t
-				// will reload the content, not be skipped as a duplicate.
+				// Cleared so that hide-then-show of the very same question is not
+				// swallowed as a duplicate of the press that came before the hide.
 				lastAppliedAt = 0;
+				hideOverlay();
 				return;
 			}
 
 			// data._t (panel.html's Date.now() at press time) uniquely identifies one
-			// Show press. Both BroadcastChannel and the storage event can fire for the
-			// SAME press (e.g. if this page and the dock somehow end up sharing an
-			// origin after all, or during local testing) -- applying it twice is
-			// harmless but restarts the entrance animation pointlessly, so skip a
-			// repeat of the exact same press.
+			// press. Both BroadcastChannel and the storage event can fire for the
+			// SAME press (if this page and the dock end up sharing an origin, or
+			// during local testing) -- applying it twice is harmless now, but there
+			// is no reason to.
 			if (data._t && data._t === lastAppliedAt) return;
 			if (data._t) lastAppliedAt = data._t;
 
-			const params = new URLSearchParams();
-			params.set('id', data.id || '1');
-			params.set('line1', data.line1 || '');
-			params.set('introduction', data.introduction || '');
-			params.set('line2', data.line2 || '');
-			params.set('mode', data.mode || 'question');
-			if (data.color1) params.set('color1', data.color1);
-			if (data.color2) params.set('color2', data.color2);
-			// Cache-bust so pressing "Show" twice with identical text still forces the
-			// iframe to reload: setting .src to a string identical to its current
-			// value is a no-op in every browser, and native/overlay.html currently
-			// reads its render() parameters from the URL once at load.
-			params.set('_t', Date.now().toString());
-
-			// Reset the iframe's src on every message so native/overlay.html's
-			// render() always runs again with the new text -- this replaces whatever
-			// was showing (including a still-held, previously-"forwards"-completed
-			// animation) with the new question, satisfying both halves of the
-			// requirement: the overlay holds indefinitely on its own, AND changes
-			// cleanly the moment the presenter presses Show again.
-			frameEl.src = 'native/overlay.html?' + params.toString();
-			frameEl.hidden = false;
+			showOverlay(data);
 		}
 
 		// Primary channel: works when panel.html and this page are both Browser

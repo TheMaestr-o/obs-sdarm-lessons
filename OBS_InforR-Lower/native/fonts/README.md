@@ -1,6 +1,6 @@
 # Bundled fonts
 
-Two font files, carried here on purpose rather than pulled from a CDN.
+Three font files, carried here on purpose rather than pulled from a CDN.
 
 `overlay.css` asks for Open Sans and Arimo. The original lower-thirds CSS this project
 started from (since deleted) got them with two
@@ -17,12 +17,18 @@ fetched over the network at any point.
 | File | Family | Axis |
 |---|---|---|
 | `OpenSans-Variable.woff2` | Open Sans | `wght` 300–800, `wdth` 75–100 |
+| `OpenSans-Italic-Variable.woff2` | Open Sans, italic | `wght` 300–800, `wdth` 75–100 |
 | `Arimo-Variable.woff2` | Arimo | `wght` 400–700 |
 
-Both are variable fonts, so one file per family covers every weight `overlay.css` uses
-(Open Sans 300/400/600, Arimo 400/700) instead of five separate static files. Converted
-to WOFF2 from the upstream TrueType originals — about 490 KB for both, against roughly
-1 MB as `.ttf`.
+All are variable fonts, so one file per face covers every weight `overlay.css` uses
+(Open Sans 600/700 upright and 600 italic, Arimo 400/700) instead of a separate static
+file each. Converted to WOFF2 from the upstream TrueType originals — about 800 KB for the
+three, against roughly 1.7 MB as `.ttf`.
+
+The italic is its own file on purpose. The scripture reference that closes a question is
+set in italic, and a browser asked for an italic it has not been given leans the upright
+over by itself — a slanted roman, not an italic, and it looks like what it is. Open Sans
+has a drawn italic; this is it, from the same upstream as the upright.
 
 ## Licence
 

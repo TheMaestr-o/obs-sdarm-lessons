@@ -19,7 +19,10 @@
 			left: 0;
 			bottom: 0;
 			width: 100%;
-			height: 220px;
+			/* Taller than the 220px strip the overlay draws in: a question that runs to
+			   three lines grows that strip upward, and the room has to exist. Everything
+			   above the strip is transparent. */
+			height: 340px;
 			border: 0;
 			display: block;
 			background: transparent;

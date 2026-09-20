@@ -4,77 +4,63 @@
  * Copyright (c) 2026 Maestro. MIT licence -- see /LICENSE at the repository root.
  *
  * Written from scratch for this project, but not invented from nothing, and it
- * is worth being exact about which half is which. The MOTION -- the easing
- * curve, the distances things travel, how far apart in time the two lines
- * start -- comes from Matt Chestnut's CodePen
+ * is worth being exact about which half is which. The EASING -- the one curve
+ * nearly every movement below shares, `cubic-bezier(0.19, 0.76, 0.32, 1)` --
+ * comes from Matt Chestnut's CodePen
  * (https://codepen.io/mattchestnut/pen/dMrONe), by way of
- * https://github.com/vjccruz/lower-thirds-obs (MIT), and styles 1 and 2 below
- * reproduce it deliberately: `cubic-bezier(0.19, 0.76, 0.32, 1)` and
- * `translate3d(6em, 0, 0)` are his numbers, carried across on purpose so the
- * result still moves the way the reference does. The CODE underneath is ours --
- * different selectors, different structure, and the one behaviour that matters
- * here (see below) is the opposite of his. Style 3, "Quiet Rule", owes nothing
- * to anyone; it is ours entirely.
+ * https://github.com/vjccruz/lower-thirds-obs (MIT), and so does the idea
+ * behind styles 1 and 2: text sliding out from behind a mask. Everything it is
+ * now applied to is ours. Style 1's look -- the slanted plate, the gold stripe
+ * riding its edge, the type -- is the author's own Figma design ("OBS · Slash &
+ * Slide"), and the numbers below are read off that frame rather than eyeballed,
+ * which is why they are as odd as 29.76px. Style 3, "Quiet Rule", owes nothing
+ * to anyone.
  *
- * Our OWN implementation of the "lower third" visual styles. Ids 1 and 2
- * ("Slash & Slide", "Slide Up / Down") re-implement two styles from the
- * original lower-thirds CSS this project started from (since deleted from the
- * repository -- nothing here loaded it); id 3 ("Quiet Rule") is ours alone,
- * with no counterpart there -- the id-5 "Framed Reveal" it replaces was
- * dropped because its drawn SVG frame boxed in a wrapping question sentence it
- * was never sized for. This file never imported from, extended, or modified
- * that CSS -- see LOCAL-SETUP.md for why: its
- * keyframes are built as `-webkit-animation-iteration-count: 2` + `alternate`,
- * which plays the "in" animation once and then IMMEDIATELY plays it backwards
- * to hide the text again, with no way to ask it to just stop after appearing.
- * That's the opposite of what a lesson-question overlay needs (stay up until
- * the presenter advances to the next question), and it can't be patched from
- * outside (see result.html's history / LOCAL-SETUP.md for the iframe
- * same-origin dead end that was tried first).
+ * The one behaviour that matters here is the opposite of the reference's: a
+ * question stays on screen until the presenter moves on. The original played
+ * its entrance and then IMMEDIATELY played it backwards, with no way to ask it
+ * to stop after appearing, and that could not be patched from outside (see
+ * LOCAL-SETUP.md for the iframe same-origin dead end that was tried first).
  *
- * Every animation below:
- *   - Reproduces the ORIGINAL's "appear" keyframe shape and easing as closely
- *     as possible (same cubic-bezier / easing function, same relative timing
- *     offsets between line1 / line2 / decorative elements). Id 3 has no
- *     original to reproduce, so it only has to honour the rules below it.
- *   - Runs exactly ONCE (`animation-iteration-count: 1`, no `alternate`).
- *   - Ends with `animation-fill-mode: forwards`, landing on and staying on
- *     the fully-revealed end state forever -- no reverse, no auto-hide.
+ * Three kinds of motion, and which one plays is decided by what changed:
  *
- * Timing note: the original keyframes spend their first chunk sitting at the
- * "hidden" starting position (e.g. animation-1-slash sits at 0% opacity from
- * 0% to 25% of a 4s duration) before actually moving -- that's how the
- * original staggers line1 vs line2 vs decorative elements within one shared
- * @keyframes block. Rather than reproduce that with a lot of dead keyframe
- * space, each element below gets its OWN short `animation-duration` (long
- * enough to reproduce that element's original absolute movement, converted
- * from the original's percentage-of-duration into seconds) plus an
- * `animation-delay` equal to that element's original absolute start time --
- * so the wall-clock relative timing between elements is preserved exactly,
- * just expressed as delay instead of dead keyframe percentage. Comments next
- * to each block show the original id/keyframe/absolute-time math used.
+ *   ENTRANCE  nothing was on air. The furniture arrives first (stripe, then
+ *             plate), the words after it.
+ *   SWAP      something of the same style was already on air. The plate
+ *             stays exactly where it is and only the line that actually
+ *             changed slides out and back -- stepping from question b to
+ *             question c moves one line, not the whole lower third. If the
+ *             new text needs another line, the plate grows to fit it.
+ *   EXIT      STOP. The entrance in reverse and faster: words, plate, stripe.
+ *
+ * Every entrance is written as a `from`-only keyframe with `backwards` fill,
+ * never as "hidden by default, revealed by the animation". The resting state
+ * in this file IS the visible state. If an animation ever fails to start --
+ * an embedded browser that paints one frame and stops has been seen here
+ * before -- the question is simply on screen without having moved, instead of
+ * being invisible on a live stream with nothing to say why.
  */
 
 /*
- * Both fonts are loaded from files sitting next to this one, never from a CDN.
+ * All fonts are loaded from files sitting next to this one, never from a CDN.
  *
  * The original lower-thirds CSS this project started from opened with two
  * `@import url(https://fonts.googleapis.com/...)` lines. That route is closed: this
  * overlay has to render correctly on a machine with no internet, mid-broadcast,
  * and a failed font import degrades silently -- the text still appears, just in
  * the wrong typeface, which is the kind of thing nobody notices until it is on
- * stream. Naming the families without loading them at all (what this file did
- * before) has the same failure mode for the same reason, and it looked fine here
- * only because Open Sans happens to be installed on this particular Mac.
+ * stream.
  *
- * One variable font per family covers every weight used below -- Open Sans at
- * 300/400/600, Arimo at 400/700 -- so this is two files, not five. `font-display:
- * block` rather than the usual `swap`: these files are local, so the wait is a
- * few milliseconds, and a brief blank is better on camera than text that visibly
- * changes typeface a moment after the animation has already played it in.
+ * One variable font per face covers every weight used below. The italic is its
+ * own file rather than a slanted upright: the scripture reference after a
+ * question is set in italic, and a browser asked for an italic it does not have
+ * leans the upright over by itself, which looks exactly as cheap as it sounds.
+ * `font-display: block` rather than the usual `swap`: these files are local, so
+ * the wait is a few milliseconds, and a brief blank is better on camera than text
+ * that visibly changes typeface a moment after the animation has played it in.
  *
- * Licences: both fonts are SIL Open Font License 1.1, full text in fonts/ next
- * to the files themselves. See fonts/README.md.
+ * Licences: SIL Open Font License 1.1, full text in fonts/ next to the files
+ * themselves. See fonts/README.md.
  */
 @font-face {
   font-family: 'Open Sans';
@@ -82,6 +68,15 @@
        url('fonts/OpenSans-Variable.woff2') format('woff2');
   font-weight: 300 800;
   font-style: normal;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('fonts/OpenSans-Italic-Variable.woff2') format('woff2-variations'),
+       url('fonts/OpenSans-Italic-Variable.woff2') format('woff2');
+  font-weight: 300 800;
+  font-style: italic;
   font-display: block;
 }
 
@@ -103,6 +98,10 @@
   height: 100%;
   overflow: hidden;
   color: var(--line1-color, #fff);
+  /* The house curve -- see the note at the top of the file. */
+  --ease: cubic-bezier(0.19, 0.76, 0.32, 1);
+  /* Its counterpart for things leaving: slow to start, quick to go. */
+  --ease-out: cubic-bezier(0.55, 0, 0.75, 0.2);
 }
 
 .overlay-root .arimo {
@@ -112,17 +111,11 @@
 /* line2 (the actual question text, with its letter -- "a. What evidence...")
    renders in whatever case it's actually written in the lesson data, not
    forced uppercase like line1's day/section heading above it -- line1 is a
-   short topic label where the original CodePen design's all-caps styling
-   still fits, but a full question sentence read in caps live on stream reads
-   as shouting and doesn't match how the lesson itself presents it. One rule
-   per template's own line2 class (see overlay.html's renderSlashSlide /
-   renderSlideUpDown) since each template names it differently.
-
-   Same for intro (the introduction/memory verse) -- not forced uppercase. */
+   short topic label where all-caps still fits, but a full question sentence
+   read in caps live on stream reads as shouting and doesn't match how the
+   lesson itself presents it. */
 .ss-line2,
-.ss-intro,
 .sud-line2,
-.sud-intro,
 .qr-line2,
 .qr-intro {
   text-transform: none;
@@ -133,12 +126,6 @@
   height: auto;
   margin: 1em auto;
   position: relative;
-}
-
-/* For 3-line layouts, ensure sufficient height */
-.style-slash-slide .overlay-block,
-.style-slide-up-down .overlay-block {
-  height: auto;
 }
 
 .mask {
@@ -154,108 +141,282 @@
   color: var(--line2-color, #c6a15b);
 }
 
+/* The scripture reference that closes a question: accent colour, true italic,
+   same weight and size as the sentence it belongs to. It never breaks inside
+   itself -- "Römer 8," at the end of one line and "18–25" at the start of the
+   next is not a reference any more -- so it rides on the question's last line
+   when there is room and moves down whole when there is not. The build script
+   caps a reference at about a third of a line, so "whole" always fits. */
+.ref {
+  color: var(--line2-color, #c6a15b);
+  font-style: italic;
+  white-space: nowrap;
+}
+
 /* ============================================================
  * Style 1 -- "Slash & Slide"
+ *
+ * A translucent black plate whose left edge is cut at 13 degrees, a gold
+ * stripe riding that cut from the outside, the section heading in gold
+ * capitals and the question under it in white.
+ *
+ * Geometry, in the 1920px frame the overlay is designed at. All of it is the
+ * Figma frame's own:
+ *
+ *   text block      x 121, top 16px below the top of the 220px strip
+ *   heading         starts at x 150.76 (block + 29.76)
+ *   question        starts at x 134.20 (block + 13.20) -- the two lines step
+ *                   along the slant, the upper one further right
+ *   right inset     each line stops as far from the right edge as it starts
+ *                   from the left, and wraps there
+ *   plate           16px above the text, 35.6px below; its slanted edge passes
+ *                   through x 130 at the top and leans left at
+ *                   26.5 : 115.5 (12.9 degrees) however tall the plate gets;
+ *                   the right end runs off the frame
+ *   stripe          7.44px wide, flush against the slanted edge, full height
+ *
+ * Nothing here has a fixed height. A question that wraps makes the block
+ * taller, the plate is pinned to the block's top and bottom so it follows,
+ * and the slant is re-cut for the new height (see --ss-slant) so the edge
+ * stays on the same line rather than getting steeper.
  * ============================================================ */
 .style-slash-slide {
   text-align: left;
 }
 
-.style-slash-slide .ss-slash {
-  position: absolute;
-  font-size: 5em;
-  top: -.15em;
-  left: 0;
-  opacity: 0;
-  transform: translate3d(6em, 0, 0);
-  animation: ss-slash 1.8s cubic-bezier(0.19, 0.76, 0.32, 1) 0s 1 forwards;
+/* The strip is 220px for one line or two. A third line would push the plate
+   off the bottom of the frame, so from there the strip grows instead -- it
+   is anchored to the bottom of the canvas, which means growing lifts the
+   plate's top rather than dropping its foot. The 12px is what keeps that
+   foot clear of the very edge. */
+#overlay-root.style-slash-slide {
+  height: auto;
+  min-height: 220px;
+  padding-bottom: 12px;
 }
+
+.style-slash-slide .overlay-block {
+  width: auto;
+  /* 89 + the root's own 32px of padding = the block's x of 121. 102.2 on the
+     right puts the block's edge at 1785.8 -- where the question wraps. */
+  margin: 16px 102.2px 35.6px 89px;
+}
+
+/* --- the plate and its stripe ------------------------------------------ */
+
+/* One box for both, pinned to the text block: 16px above it, 35.6px below,
+   out past the right edge of the frame. Its LEFT edge depends on its own
+   height -- the taller the plate, the further left the foot of the slant
+   reaches -- which is the one thing CSS cannot work out by itself.
+   overlay.html measures the box and writes --ss-slant (height x 26.5/115.5);
+   the fallback is the value for a one-line question, so a first paint before
+   the measurement is already right for the common case. */
+.style-slash-slide .ss-plate {
+  --ss-slant: 32.72px;
+  --ss-stripe: 7.44px;
+  position: absolute;
+  z-index: 0;
+  top: -16px;
+  bottom: -35.6px;
+  /* x 130 (where the slant meets the top) is 9px into the block; step back by
+     the slant and by the stripe that sits outside it. */
+  left: calc(9px - var(--ss-slant) - var(--ss-stripe));
+  right: -138.2px;
+  pointer-events: none;
+}
+
+.style-slash-slide .ss-wipe,
+.style-slash-slide .ss-fill,
+.style-slash-slide .ss-stripe {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+/* The author's plate is not a perfect parallelogram: drawn by hand, its top
+   edge falls 4px and its bottom edge rises 1.5px over the full width, so it
+   tapers very slightly towards the right. Kept, because that is the design. */
+.style-slash-slide .ss-fill {
+  background: rgba(0, 0, 0, 0.44);
+  clip-path: polygon(
+    calc(var(--ss-slant) + var(--ss-stripe)) 0,
+    100% 4px,
+    100% calc(100% - 1.5px),
+    var(--ss-stripe) 100%
+  );
+}
+
+.style-slash-slide .ss-stripe {
+  background: var(--line2-color, #c6a15b);
+  clip-path: polygon(
+    var(--ss-slant) 0,
+    calc(var(--ss-slant) + var(--ss-stripe)) 0,
+    var(--ss-stripe) 100%,
+    0 100%
+  );
+}
+
+/* --- the two lines ------------------------------------------------------ */
 
 .style-slash-slide .ss-line {
   position: relative;
-  font-size: 1.5em;
+  z-index: 1;
+  width: auto;
   height: auto;
-  width: 100%;
-  font-weight: 300;
-  margin-bottom: 0.3em;
-  padding-left: .55em;
+  margin: 0;
+  /* 52px for the heading's 38.4, 39px for the question's 28.8 -- the line
+     boxes the design stacks directly on one another. */
+  line-height: 1.354;
 }
 
 .style-slash-slide .ss-line1 {
-  font-size: 2em;
-  font-weight: 400;
-  padding-left: .93em;
-  margin-bottom: 0.2em;
-}
-
-.style-slash-slide .ss-intro {
-  font-size: 1.4em;
-  font-weight: 300;
-  opacity: 0.85;
-  margin-bottom: 0.2em;
+  font-size: 2.4em;
+  font-weight: 700;
+  padding: 0 16.56px 0 29.76px;
 }
 
 .style-slash-slide .ss-line2 {
-  font-size: 1.5em;
-  font-weight: 300;
-  margin-bottom: 0;
+  font-size: 1.8em;
+  font-weight: 600;
+  padding: 0 0 0 13.2px;
+}
+
+/* --- entrance ------------------------------------------------------------
+   Stripe first, drawn from its foot up along its own slant; the plate wipes
+   out from behind it; then the words come out from behind the plate's edge,
+   heading a beat ahead of the question. 1.4s in all -- the version this
+   replaces took three, and a presenter waiting on a question feels every
+   one of them. */
+.style-slash-slide .ss-stripe {
+  animation: ss-stripe-in 0.5s var(--ease) 0s 1 backwards;
+}
+
+.style-slash-slide .ss-wipe {
+  animation: ss-wipe-in 0.75s var(--ease) 0.2s 1 backwards;
 }
 
 .style-slash-slide .ss-line > div {
-  position: relative;
-  left: -100%;
-}
-
-.style-slash-slide .ss-line1 > div {
-  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 1.8s 1 forwards;
-}
-
-.style-slash-slide .ss-intro > div {
-  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 2.0s 1 forwards;
+  animation: ss-line-in 0.7s var(--ease) 0.55s 1 backwards;
 }
 
 .style-slash-slide .ss-line2 > div {
-  animation: ss-line-in 0.8s cubic-bezier(0.19, 0.76, 0.32, 1) 2.2s 1 forwards;
+  animation-delay: 0.7s;
 }
 
-@keyframes ss-slash {
-  0% {
-    opacity: 0;
-    transform: translate3d(6em, 0, 0);
-  }
-  55% {
-    opacity: 0;
-    transform: translate3d(6em, 0, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
+/* Same four points as the resting shape, all parked on the foot of the
+   stripe, so the top corners travel up the slant rather than straight up. */
+@keyframes ss-stripe-in {
+  from {
+    clip-path: polygon(0 100%, var(--ss-stripe) 100%, var(--ss-stripe) 100%, 0 100%);
   }
 }
 
+@keyframes ss-wipe-in {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* 101, not 100: at exactly 100% the hanging parts of letters -- the tail of a
+   "p", an accent -- still show at the mask's edge for the first frames. */
 @keyframes ss-line-in {
-  0% {
-    left: -100%;
-  }
-  100% {
-    left: 0;
+  from { transform: translate3d(-101%, 0, 0); }
+}
+
+/* --- swap ---------------------------------------------------------------
+   overlay.html marks the line whose text changed with .is-out, waits for it
+   to clear, puts the new text in and marks it .is-in. Lines that did not
+   change are never touched, and neither is the plate. */
+.style-slash-slide .ss-line.is-out > div {
+  animation: ss-line-out 0.26s var(--ease-out) 0s 1 forwards;
+}
+
+.style-slash-slide .ss-line.is-in > div {
+  animation: ss-line-in 0.5s var(--ease) 0s 1 backwards;
+}
+
+@keyframes ss-line-out {
+  to { transform: translate3d(-101%, 0, 0); }
+}
+
+/* While a swap changes the number of lines the block's height is driven by
+   hand so the plate grows rather than jumps -- see swapRows(). */
+.overlay-block.is-resizing {
+  transition: height 0.32s var(--ease);
+}
+
+/* --- exit --------------------------------------------------------------- */
+.style-slash-slide.is-leaving .ss-line > div {
+  animation: ss-line-out 0.32s var(--ease-out) 0s 1 forwards;
+}
+
+.style-slash-slide.is-leaving .ss-line1 > div {
+  animation-delay: 0.06s;
+}
+
+.style-slash-slide.is-leaving .ss-wipe {
+  animation: ss-wipe-out 0.42s var(--ease-out) 0.18s 1 forwards;
+}
+
+.style-slash-slide.is-leaving .ss-stripe {
+  animation: ss-stripe-out 0.3s var(--ease-out) 0.45s 1 forwards;
+}
+
+@keyframes ss-wipe-out {
+  from { clip-path: inset(0 0 0 0); }
+  to   { clip-path: inset(0 100% 0 0); }
+}
+
+@keyframes ss-stripe-out {
+  to {
+    clip-path: polygon(0 100%, var(--ss-stripe) 100%, var(--ss-stripe) 100%, 0 100%);
   }
 }
 
 /* ============================================================
  * Style 2 -- "Slide Up / Down"
+ *
+ * Centred, no plate: a scrim rising from the bottom edge, the heading in
+ * gold capitals, the question under it in white. The two lines arrive from
+ * opposite sides -- the heading rises, the question descends -- and meet.
  * ============================================================ */
-/* The scrim: black at the bottom edge, fading to nothing as it rises, so
-   white text stays readable over a bright shot without a visible band
-   anywhere. Three stops rather than two on purpose -- a plain two-stop
-   fade spends half its height still noticeably dark, which reads as a grey
-   rectangle sitting on the picture. Holding full strength only at the very
-   bottom and thinning quickly puts the density under the text, where it is
-   needed, and leaves the top genuinely clear. It also has to rise well
-   past the text: the overlay box is only as tall as the lower third, so a
-   gradient that stops at the text stops in plain sight. */
 .style-slide-up-down {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  /* Centred in the strip, a touch above the middle: the design puts a
+     one-line question's block at 59-150 of 220 and a two-line one at 45-175,
+     and 5px of lift lands within 2.5px of both. It used to sit on the floor
+     of the strip, which left the heading of a long question pressed against
+     the top. */
+  justify-content: center;
+}
+
+/* With the id, because the strip's own padding is set on #overlay-root and a
+   class alone does not outrank it. */
+#overlay-root.style-slide-up-down {
+  padding-bottom: 5px;
+}
+
+/* The scrim: black at the bottom edge, fading to nothing as it rises, so
+   white text stays readable over a bright shot without a visible band
+   anywhere. Four stops rather than two on purpose -- a plain two-stop fade
+   spends half its height still noticeably dark, which reads as a grey
+   rectangle sitting on the picture. Holding full strength only at the very
+   bottom and thinning quickly puts the density under the text, where it is
+   needed, and leaves the top genuinely clear.
+
+   A pseudo-element rather than the root's own background so that it can
+   fade: a scrim that snaps on a second before the words arrive is the first
+   thing the eye catches. */
+.style-slide-up-down::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.78) 0%,
@@ -263,15 +424,7 @@
     rgba(0, 0, 0, 0.3) 58%,
     rgba(0, 0, 0, 0) 100%
   );
-  display: flex;
-  flex-direction: column;
-  /* Sat centred, which floated the text into the thin upper half of the
-     scrim -- over a bright shot the white question nearly vanished. Pushed
-     to the bottom it sits in the dense part, which is the whole reason the
-     scrim is there. The padding keeps it off the very edge, clear of the
-     title-safe margin. */
-  justify-content: flex-end;
-  padding-bottom: 26px;
+  animation: sud-scrim-in 0.5s ease-out 0s 1 backwards;
 }
 
 .style-slide-up-down .overlay-block {
@@ -279,120 +432,119 @@
 }
 
 /* overflow:hidden is what makes the entrance work: each row's inner div
-   starts translated fully outside this box, so it is genuinely invisible
-   until the animation slides it in. With overflow:visible the text sat
-   plainly on screen in its start position for the first frames before the
-   delayed animation took over, which read as a glitch. Height stays auto
-   so a question that wraps to two or three lines grows the row instead of
-   being clipped -- the mask only has to hide the vertical travel, not
-   constrain the text. */
+   starts translated fully outside this box, so it is genuinely out of sight
+   until it slides in. Height stays auto so a question that wraps to two or
+   three lines grows the row instead of being clipped -- the mask only has to
+   hide the vertical travel, not constrain the text. */
+/* border-box matters more than it looks: the question row carries side
+   padding, and at the default sizing that padding was ADDED to the 100%
+   width -- the row ran 46px past the strip on the right, and "centred" text
+   sat 23px right of the middle of the picture. */
 .style-slide-up-down .sud-block {
+  box-sizing: border-box;
   width: 100%;
   height: auto;
   overflow: hidden;
   position: relative;
   z-index: 1;
   padding: 0;
+  line-height: 1.354;
 }
 
 .style-slide-up-down .sud-line1 {
   font-size: 2.4em;
   font-weight: 700;
-  margin-bottom: 0.3em;
-  padding-top: 0.04em;
-}
-
-/* These start states have to match their keyframe's 0% exactly, including
-   the opacity. They are what is on screen during the animation-delay
-   before the animation takes over, so any mismatch here is visible as a
-   flash in the first moments -- which is exactly what happened when the
-   rows started at 100% and full opacity. */
-.style-slide-up-down .sud-line1 > div {
-  transform: translate3d(0, 110%, 0);
-  opacity: 0;
-  animation: sud-up 0.9s ease-out 0.9s 1 forwards;
-}
-
-.style-slide-up-down .sud-intro {
-  font-size: 1.6em;
-  font-weight: 300;
-  margin-bottom: 0.2em;
-  opacity: 0.85;
-}
-
-.style-slide-up-down .sud-intro > div {
-  transform: translate3d(0, -110%, 0);
-  opacity: 0;
-  animation: sud-down 0.9s ease-out 1.0s 1 forwards;
 }
 
 .style-slide-up-down .sud-line2 {
   font-size: 1.8em;
-  font-weight: 300;
-  margin-top: 0;
+  font-weight: 600;
   padding: 0 0.8em;
 }
 
+.style-slide-up-down .sud-line1 > div {
+  animation: sud-up 0.8s var(--ease) 0.3s 1 backwards;
+}
+
 .style-slide-up-down .sud-line2 > div {
-  transform: translate3d(0, -110%, 0);
-  opacity: 0;
-  animation: sud-down 0.9s ease-out 1.1s 1 forwards;
+  animation: sud-down 0.8s var(--ease) 0.42s 1 backwards;
+}
+
+@keyframes sud-scrim-in {
+  from { opacity: 0; }
 }
 
 /* The travel is 110%, not 100%. At exactly 100% the row's inner div sits
    flush against the mask edge, and the parts of letters that hang past the
    line box -- the dot of an "й", the tail of a "р", accents -- still poked
-   into view for the first frames, which is what read as "a piece of the
-   text appears before the animation". The extra 10% carries those clear of
-   the edge. Same reason both directions carry opacity: a row whose text
-   wraps to two lines travels further than one line's worth, so the mask
-   alone cannot be relied on to cover the whole start position. */
+   into view for the first frames. The extra 10% carries those clear. Opacity
+   rides along for the same reason: a row whose text wraps to two lines
+   travels further than one line's worth, so the mask alone cannot be relied
+   on to cover the whole start position. */
 @keyframes sud-up {
-  0% {
-    transform: translate3d(0, 110%, 0);
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 1;
-  }
+  from { transform: translate3d(0, 110%, 0); opacity: 0; }
+  40%  { opacity: 1; }
 }
 
 @keyframes sud-down {
-  0% {
-    transform: translate3d(0, -110%, 0);
-    opacity: 0;
-  }
-  40% {
-    opacity: 1;
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 1;
-  }
+  from { transform: translate3d(0, -110%, 0); opacity: 0; }
+  40%  { opacity: 1; }
+}
+
+/* swap -- each line leaves the way it came and the new one follows it in */
+.style-slide-up-down .sud-line1.is-out > div {
+  animation: sud-up-out 0.26s var(--ease-out) 0s 1 forwards;
+}
+
+.style-slide-up-down .sud-line2.is-out > div {
+  animation: sud-down-out 0.26s var(--ease-out) 0s 1 forwards;
+}
+
+.style-slide-up-down .sud-line1.is-in > div {
+  animation: sud-up 0.55s var(--ease) 0s 1 backwards;
+}
+
+.style-slide-up-down .sud-line2.is-in > div {
+  animation: sud-down 0.55s var(--ease) 0s 1 backwards;
+}
+
+@keyframes sud-up-out {
+  to { transform: translate3d(0, 110%, 0); opacity: 0; }
+}
+
+@keyframes sud-down-out {
+  to { transform: translate3d(0, -110%, 0); opacity: 0; }
+}
+
+/* exit */
+.style-slide-up-down.is-leaving .sud-line1 > div {
+  animation: sud-up-out 0.34s var(--ease-out) 0.05s 1 forwards;
+}
+
+.style-slide-up-down.is-leaving .sud-line2 > div {
+  animation: sud-down-out 0.34s var(--ease-out) 0s 1 forwards;
+}
+
+.style-slide-up-down.is-leaving::before {
+  animation: sud-scrim-out 0.4s ease-in 0.3s 1 forwards;
+}
+
+@keyframes sud-scrim-out {
+  to { opacity: 0; }
 }
 
 /* ============================================================
  * Style 3 -- "Quiet Rule"
  *
+ * No longer offered by the panel -- the design settled on two styles -- but
+ * kept working: a saved scene or a hand-written URL may still ask for it.
+ *
  * Deliberately built to share nothing with styles 1 and 2 beyond the color
  * variables: right-aligned instead of left/centre, a vertical rule instead of
- * a slash or a gradient scrim alone, and a settle-into-place fade rather than
+ * a plate or a gradient scrim alone, and a settle-into-place fade rather than
  * a slide across the frame. The composition is the one a printed study guide
  * uses for a pull quote -- a hairline rule down the margin, a small tracked
- * label against it, the sentence itself set larger underneath -- which is why
- * it suits a question the congregation is meant to sit with rather than
- * glance at. Right-aligning it also leaves the left two-thirds of the 1920px
- * canvas clear, where the speaker usually stands.
- *
- * The rule is the only thing that "moves" in a directional sense: it grows
- * downward (scaleY from its top edge) while the text settles up into place
- * behind it. That reads as the frame being laid down and the words being set
- * into it, and it costs one transform per element -- no layout-affecting
- * properties are animated, which keeps CEF compositing cheap.
+ * label against it, the sentence itself set larger underneath.
  * ============================================================ */
 .style-quiet-rule {
   text-align: right;
@@ -405,41 +557,20 @@
 /* Bottom-anchored with breathing room under it rather than vertically
    centred: line2 wraps to a second line in some languages, and growing
    upward from a fixed baseline keeps that extra line away from the frame
-   edge instead of pushing the block half off the bottom. */
+   edge instead of pushing the block half off the bottom. The block is capped
+   at 72% -- the measured ceiling for a long German question inside a 220px
+   strip -- and pushed right, which leaves the left of the frame, where the
+   speaker stands, clear. */
 .style-quiet-rule .overlay-block {
-  /* 2.2em bottom keeps the last line off the frame edge. The root's own
-     `padding: 0 2em` only gives ~36px of right gutter and nothing at all at
-     the bottom, which puts text inside the title-safe margin a broadcast
-     needs -- measured at 15px from the bottom edge before this. Padding (not
-     margin) on the right because the rule is positioned against this box's
-     padding edge, so the padding is what holds the text off the rule. */
-  /* The right margin pushes the rule itself off the canvas edge: the root's
-     own `padding: 0 2em` left it only ~36px out, which is inside the
-     title-safe margin a broadcast wants. */
   margin: 0 1.5em 1.5em 0;
   padding-right: 1.9em;
   position: relative;
-  /* The block is capped rather than full-width so a long question breaks into
-     two comfortable lines instead of one very wide one that the eye has to
-     track all the way across a 1920px frame. Right margin comes from the
-     padding above; `margin-left:auto` pushes the capped box to the right.
-
-     72% is the measured ceiling, not a guess: the root is 220px tall and
-     clips (overflow:hidden), and since this block grows upward from a fixed
-     bottom margin, every extra wrapped line eats headroom. Measured with a
-     deliberately long German question -- at 62% it wrapped to 4 lines and
-     overran the root by 6px; at 72% the same text is 3 lines with 37px to
-     spare, and a normal two-line question has 81px. Going wider than this
-     buys no further reduction in line count (78% measured identical) while
-     eating into the left third of the frame, where the speaker stands. */
   max-width: 72%;
   margin-left: auto;
 }
 
 /* The rule sits on the block's right edge, spanning the whole block however
-   tall it ends up -- because it's an absolutely-positioned child with
-   top:0/bottom:0 it re-measures itself for free when line2 wraps, with no
-   height that has to be kept in sync with the text. */
+   tall it ends up -- top:0/bottom:0 re-measures it for free when line2 wraps. */
 .style-quiet-rule .qr-rule {
   position: absolute;
   top: 0;
@@ -447,24 +578,17 @@
   bottom: 0;
   width: 4px;
   background: var(--line2-color, #c6a15b);
-  transform: scaleY(0);
   transform-origin: 50% 0;
-  animation: qr-rule-draw 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s 1 forwards;
+  animation: qr-rule-draw 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s 1 backwards;
 }
 
-/* Wide tracking is what makes a short label read as a label next to a much
-   larger sentence, rather than as a first line of the same paragraph. The
-   trailing letter-space is trimmed so the label's last glyph still aligns
-   flush with the rule. */
 .style-quiet-rule .qr-line1 {
   font-size: 1.5em;
   font-weight: 600;
   letter-spacing: 0.22em;
   margin: 0 0 0.55em;
   margin-right: -0.22em;
-  opacity: 0;
-  transform: translate3d(0, 0.5em, 0);
-  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.45s 1 forwards;
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.45s 1 backwards;
 }
 
 .style-quiet-rule .qr-intro {
@@ -472,42 +596,40 @@
   font-weight: 300;
   line-height: 1.35;
   margin: 0 0 0.35em;
-  opacity: 0;
-  transform: translate3d(0, 0.5em, 0);
-  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.6s 1 forwards;
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.6s 1 backwards;
 }
 
-/* line-height above 1 (the root sets 1) because this is the line that wraps:
-   at 1 the two wrapped lines would touch. No fixed height and no overflow
-   clipping here for the same reason -- the block grows to whatever the text
-   needs and the rule follows it. */
 .style-quiet-rule .qr-line2 {
   font-size: 2.1em;
   font-weight: 300;
   line-height: 1.3;
   margin: 0;
-  opacity: 0;
-  transform: translate3d(0, 0.5em, 0);
-  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.72s 1 forwards;
+  animation: qr-settle 0.8s cubic-bezier(0.22, 0.61, 0.36, 1) 0.72s 1 backwards;
 }
 
 @keyframes qr-rule-draw {
-  0% {
-    transform: scaleY(0);
-  }
-  100% {
-    transform: scaleY(1);
-  }
+  from { transform: scaleY(0); }
 }
 
 @keyframes qr-settle {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0.5em, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+  from { opacity: 0; transform: translate3d(0, 0.5em, 0); }
 }
 
+.style-quiet-rule.is-leaving .overlay-block {
+  animation: qr-leave 0.4s ease-in 0s 1 forwards;
+}
+
+@keyframes qr-leave {
+  to { opacity: 0; transform: translate3d(0, 0.4em, 0); }
+}
+
+/* Someone who has asked their system for less motion gets the same overlay
+   without the travel. Nothing in OBS sets this; it is here for the browser
+   previews and costs nothing. */
+@media (prefers-reduced-motion: reduce) {
+  .overlay-root *,
+  .overlay-root::before {
+    animation-duration: 0.01s !important;
+    animation-delay: 0s !important;
+  }
+}

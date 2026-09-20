@@ -94,9 +94,20 @@ than working around it.
 
 | Style name | id | Motion |
 |---|---|---|
-| **Slash & Slide** | 1 | A diagonal accent slash fades in, then both lines slide in from the left |
-| **Slide Up / Down** | 2 | Line 1 rises from below, line 2 drops from above |
+| **Slash & Slide** | 1 | A gold stripe draws up its own slant, a plate cut at the same 13° wipes out from behind it, then both lines slide in from the plate's edge |
+| **Slide Up / Down** | 2 | A scrim fades in; line 1 rises from below, line 2 drops from above |
 | **Quiet Rule** | 3 | A vertical rule draws down at the right, both lines settling in beside it |
+
+The panel offers the first two. Quiet Rule is still in `native/overlay.css` and still
+renders for `id=3`; the design settled on two styles, so the panel's list did too.
+
+Style 1's geometry is read off the author's Figma frame, not eyeballed — text block at
+x 121, heading at 150.76 and question at 134.20 so the two lines step along the slant,
+each line stopping as far from the right edge as it starts from the left. The plate has no
+fixed height: it is pinned 16px above and 35.6px below the text block, so a question that
+wraps simply makes it taller. The one thing CSS cannot work out is how far left the foot of
+the slant must reach for a given height, so `overlay.html` measures the plate and writes
+that number (`--ss-slant`, height × 26.5/115.5) back for the `clip-path` to use.
 
 Ids 1 and 2 keep the numbers the original used for the same two motions. Id 3 does not:
 it is this project's own style, and it took over the number from an original id-3
@@ -109,27 +120,41 @@ designed for a short "Name — Job Title" pair, not a full lesson question that 
 
 ## How it works
 
-`panel.html` sends `{id, line1, line2, color1, color2}` over a `BroadcastChannel` named
-`infor-r-lower-thirds` whenever you press **Show**. `result.html` keeps a single,
-persistent `<iframe id="overlayFrame">` (created once, on page load) and, on receiving a
-message, sets that iframe's `src` to
-`native/overlay.html?id=...&line1=...&line2=...&color1=...&color2=...&_t=...` (the
-trailing `_t` is just a cache-buster timestamp so pressing **Show** twice with identical
-text still forces a reload — setting `.src` to an unchanged value is a no-op in every
-browser). Reloading the iframe re-runs `native/overlay.html`'s `render()` call and
-replays the animation, without navigating `result.html` itself away.
+`panel.html` sends `{id, line1, line2, ref, color1, color2, mode}` over a
+`BroadcastChannel` named `infor-r-lower-thirds` whenever you press **Show**, and
+`{mode: 'hide'}` on **Stop**. `result.html` keeps a single, persistent
+`<iframe id="overlayFrame">` and passes what it receives on to `native/overlay.html`
+inside it — in one of two ways.
 
-Pressing **Show** again — whether with the same text or different text — always replaces
-whatever was showing, including an overlay whose animation had already finished and was
-sitting in its held, fully-visible state: reloading the iframe discards the old DOM
-entirely and `render()` rebuilds it from scratch for the new parameters. This is how the
-two halves of the "stays until advanced" requirement are both satisfied: the overlay
-holds indefinitely on its own (`native/overlay.css`'s `forwards` fill, no reverse), and
-it still changes cleanly the instant the presenter acts.
+**The first thing shown goes by URL.** The iframe starts empty, so `result.html` sets its
+`src` to `native/overlay.html?id=...&line1=...&line2=...&ref=...&_t=...` (the trailing
+`_t` is a cache-buster: setting `.src` to an unchanged value is a no-op in every browser).
+The overlay reads those parameters at load and plays its entrance. This is the route the
+overlay has always had, and `result-wirecast.html` still uses nothing else.
 
-`result.html` needs no logic to reach into the iframe after it loads — no freeze-on-load,
-no `contentDocument` access at all. It only ever sets the iframe's `src` and never reads
-anything back out of it.
+**Everything after that goes by `postMessage`.** Once loaded, the overlay tells its parent
+it is listening (`{type: 'ready'}`), and from then on `result.html` posts
+`{type: 'show', data}` and `{type: 'hide'}` to it instead of reloading it. The overlay
+decides how the new content should arrive:
+
+- nothing on air, or a different style → a fresh render and the full entrance;
+- same style already on air → a **swap**: only the row whose text changed slides out and
+  back, the plate and any unchanged line are left alone, and if the line count changed the
+  block's height is walked from old to new so the plate grows rather than jumps;
+- `hide` → the **exit**, the entrance in reverse; when it has played the overlay reports
+  `{type: 'hidden'}` and `result.html` hides the iframe. A 1.2s timer hides it regardless,
+  so Stop means stop even if the page inside is in no state to answer.
+
+Why messages and not reaching into the iframe: a `file://` page cannot read another
+`file://` iframe's `contentDocument` — that dead end is what `native/` was built to get
+around in the first place — but posting to it is allowed across any origins, `file://`
+included. `result.html` still never reads anything out of the iframe.
+
+The "stays until advanced" requirement is met the same way as before: no animation in
+`native/overlay.css` reverses or repeats. Every entrance is a `from`-only keyframe with
+`backwards` fill, so the resting state in the stylesheet *is* the visible state — if an
+animation ever fails to start, the question is simply on screen without having moved,
+rather than invisible.
 
 ### Bottom-anchored positioning
 
