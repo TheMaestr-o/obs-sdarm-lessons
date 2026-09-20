@@ -112,6 +112,8 @@ REF_DASHES = {"-", "–", "—"}
 REF_QUOTES = "«„“\"‘'「『"
 REF_OPENERS = "（(［[「【"
 REF_BARE_NUMBER = re.compile(r"^[\d\s,.:;\-–—]+$")
+# Verses joined by a word, with no book or chapter of their own: Portuguese "6 e 7".
+REF_VERSES_AND = re.compile(r"^\d+(?:\s*[-–]\s*\d+)?\s+[^\W\d]{1,2}\s+\d+(?:\s*[-–]\s*\d+)?$")
 ZERO_WIDTH = dict.fromkeys(map(ord, "\u200b\u200c\u200d\u2060\ufeff"))
 
 
@@ -126,6 +128,7 @@ def question_reference(sub: dict, sep: str = "; ", lead: str = "") -> str:
       "Luc 12:32;"  "1"  " Peter 4:13."     a book's number, split off its name
       "Romanos 7:12,"  "14"  " e "  "Romanos 7:24."    a verse, and a word, between
       "ヨハネ 16:"  "20"                     a verse split off its chapter
+      "Apocalipse 10:2,"  "6 e 7."          verses that carry on the citation before
       "Jonah 4:2"  "(last part);"           a note on the citation before it
       "Jón 4:2."  "ur; "                    the same note, abbreviated, no brackets
       "От Иоанна 1:51."  "20"               the printed lesson's page number
@@ -205,7 +208,9 @@ def question_reference(sub: dict, sep: str = "; ", lead: str = "") -> str:
         # A citation after a comma still gets the full separator. Print had "Romans
         # 7:12, 14, 24"; the source spells each verse out as a citation of its own,
         # and "Romans 7:12, Romans 7:14" reads as one run-on where "; " keeps them apart.
-        if tight and parts:
+        if parts and prev_end in REF_SOFT and REF_VERSES_AND.match(t):
+            parts[-1] += ", " + t                        # "Apocalipse 10:2," "6 e 7"
+        elif tight and parts:
             # "Псалом 51:12" "-" "Псалми 51:15" is print's "Псалом 51:12-15".
             a = re.search(r"(\d+)[:：]\d+$", parts[-1])
             z = re.search(r"(\d+)[:：](\d+)$", t)
