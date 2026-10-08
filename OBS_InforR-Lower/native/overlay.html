@@ -40,10 +40,12 @@
 		}
 
 		/*
-		Bottom-anchored, 220px: the lower third of a 1080px canvas. result.html's
-		iframe is taller than this on purpose -- a style may grow the strip upward
-		for a question that runs to three lines (see overlay.css, style 1), and the
-		room for that has to exist above it.
+		Bottom-anchored, 220px: the lower third of a 1080px canvas. Style 2
+		("Slide Up / Down") overrides this to 350px -- see overlay.css -- for more
+		room under its scrim-only darkening. result.html's iframe is taller than
+		either on purpose -- a style may also grow the strip upward for a question
+		that runs to three lines (see overlay.css, style 1), and the room for that
+		has to exist above it.
 		*/
 		#overlay-root {
 			position: fixed;

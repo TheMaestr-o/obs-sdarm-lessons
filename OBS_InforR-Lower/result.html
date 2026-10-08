@@ -19,18 +19,21 @@
 		}
 		/*
 		The overlay anchors ITSELF to the bottom of whatever it is given (see
-		native/overlay.html), in a strip 220px tall -- the lower third of a 1080px
-		canvas. This frame is taller than that on purpose: a question that runs to
-		three lines grows the strip upward rather than off the bottom of the
-		picture, and the room for that has to exist. Everything above the strip is
-		transparent, so the extra height costs nothing on screen.
+		native/overlay.html), in a strip 220px tall for most styles -- the lower
+		third of a 1080px canvas -- but 350px for "Slide Up / Down", whose
+		darkening is a scrim alone and needs more room to fade out before it
+		reaches the top of the strip. This frame is taller than either on
+		purpose: a question that runs to three lines grows a strip upward rather
+		than off the bottom of the picture, and the room for that has to exist.
+		Everything above the strip is transparent, so the extra height costs
+		nothing on screen.
 		*/
 		#overlayFrame {
 			position: fixed;
 			left: 0;
 			bottom: 0;
 			width: 100%;
-			height: 340px;
+			height: 450px;
 			border: 0;
 			display: block;
 			background: transparent;

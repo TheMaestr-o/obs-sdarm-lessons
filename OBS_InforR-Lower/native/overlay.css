@@ -448,17 +448,23 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  /* Centred in the strip, a touch above the middle: the design puts a
-     one-line question's block at 59-150 of 220 and a two-line one at 45-175,
-     and 5px of lift lands within 2.5px of both. It used to sit on the floor
-     of the strip, which left the heading of a long question pressed against
-     the top. */
+  /* Centred in the strip, a touch above the middle: flex centring keeps the
+     block there regardless of the strip's own height, and the 5px of lift
+     below nudges it off dead centre. It used to sit on the floor of the
+     strip, which left the heading of a long question pressed against the
+     top. */
   justify-content: center;
 }
 
-/* With the id, because the strip's own padding is set on #overlay-root and a
-   class alone does not outrank it. */
+/* With the id, because the strip's own height and padding are set on
+   #overlay-root (inline, in overlay.html) and a class alone does not outrank
+   them. Taller than the other two styles on purpose: this is the one style
+   whose darkening is a scrim alone, with no plate or rule to carry it, so it
+   needs more room to fade out before it reaches the top of the strip -- see
+   the note at ::before below. result.html's iframe (450px) already has the
+   headroom for this. */
 #overlay-root.style-slide-up-down {
+  height: 350px;
   padding-bottom: 5px;
 }
 
